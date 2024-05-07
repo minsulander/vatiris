@@ -6,7 +6,10 @@
   <VueWinBox :options="{ title: 'NOTAM', width: 650 }">
     <pre id="notam" v-html="notam" style="padding: 10px"></pre>
   </VueWinBox>
-  <vue-win-box :options="{ title: 'other', width: 200, height: 300 }">another window</vue-win-box>
+  <vue-win-box :options="{ title: 'other', width: 200, height: 300 }">
+  another window
+  <v-btn variant="text" color="primary">do stuff</v-btn>
+  </vue-win-box>
 </template>
 
 <style scoped>
