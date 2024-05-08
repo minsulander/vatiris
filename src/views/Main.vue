@@ -1,7 +1,6 @@
 <template>
-  <div id="topbar">topbar</div>
   <!--<VueWinBox ref="esgg" :options="esggOptions" @move="onMove"> </VueWinBox>
-  <VueWinBox ref="essa" :options="essaOptions" @move="onMove"> </VueWinBox>-->
+  <VueWinBox ref="essa" :options="essaOptions" @move="onMove"> </VueWinBox>
   <VueWinBox :options="{ title: 'ESSA', top: 25 }"><div v-html="wx"></div></VueWinBox>
   <VueWinBox :options="{ title: 'NOTAM', width: 650 }">
     <pre id="notam" v-html="notam" style="padding: 10px"></pre>
@@ -10,19 +9,13 @@
   another window
   <v-btn variant="text" color="primary">do stuff</v-btn>
   </vue-win-box>
+-->
+  <Window id="test" title="Test" width="500" height="500">stuff</Window>
+  <wx-window id="ESSA"/>
 </template>
 
-<style scoped>
-#topbar {
-  width: 100%;
-  height: 25px;
-  background: deeppink;
-  position: fixed;
-  z-index: 100;
-}
-</style>
-
 <script setup lang="ts">
+import Window from "@/components/Window.vue"
 import { onMounted, onUnmounted, ref } from "vue"
 import { VueWinBox } from "vue-winbox"
 import axios from "axios"
@@ -55,6 +48,7 @@ const wx = ref("hejsan")
 const notam = ref("hmm")
 
 onMounted(() => {
+  /*
   axios.get("https://api.vatiris.se/wx?viewId=arlanda-overview.html").then((response) => {
     console.log(response.data)
     wx.value = response.data
@@ -64,6 +58,7 @@ onMounted(() => {
     contentDiv.innerHTML = response.data
     notam.value = contentDiv.getElementsByTagName("pre")[0].innerHTML
   })
+  */
 })
 
 onUnmounted(() => {

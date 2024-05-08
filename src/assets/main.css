@@ -23,4 +23,12 @@ body {
 .wb-body {
   background: #ddd;
   color: #222;
+  top: 25px;
+}
+.wb-header {
+  max-height: 25px;
+}
+.wb-title {
+  height: 25px;
+  line-height: 25px;
 }
