@@ -55,11 +55,11 @@ const wx = ref("hejsan")
 const notam = ref("hmm")
 
 onMounted(() => {
-  axios.get("https://api.vatscout.com/wx2?viewId=arlanda-overview.html").then((response) => {
+  axios.get("https://api.vatiris.se/wx?viewId=arlanda-overview.html").then((response) => {
     console.log(response.data)
     wx.value = response.data
   })
-  axios.get("https://api.vatscout.com/notam").then((response) => {
+  axios.get("https://api.vatiris.se/notam").then((response) => {
     const contentDiv = document.createElement("div")
     contentDiv.innerHTML = response.data
     notam.value = contentDiv.getElementsByTagName("pre")[0].innerHTML
