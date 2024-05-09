@@ -1,8 +1,16 @@
 import { reactive, ref, computed, watch } from "vue"
 import { defineStore } from "pinia"
 
+export interface WindowLayout {
+    x?: number
+    y?: number
+    width?: string
+    height?: string
+    enabled?: boolean
+}
+
 export const useWindowsStore = defineStore("windows", () => {
-    const layout = reactive({})
+    const layout = reactive({} as {[key: string]: WindowLayout})
     const focusId = ref("")
 
     if ("layout" in localStorage) Object.assign(layout, JSON.parse(localStorage.layout))

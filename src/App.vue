@@ -22,6 +22,7 @@
             <template v-for="(win, id) in availableWindows">
                 <Window
                     v-if="id in windows.layout && windows.layout[id].enabled"
+                    :key="id"
                     :id="id"
                     :title="win.title"
                     :width="win.width"
@@ -35,15 +36,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
-import { RouterView } from "vue-router"
 import { useWinBox } from "vue-winbox"
 import Window from "@/components/Window.vue"
 import Wx from "@/components/Wx.vue"
 import { useWindowsStore } from "./stores/windows"
 import { onMounted } from "vue"
-import { reactive } from "vue"
-import { shallowReactive } from "vue"
 
 const windowOptions = {
     WX: {
@@ -75,10 +72,6 @@ onMounted(() => {})
 
 const winbox = useWinBox()
 ;(window as any).winbox = winbox
-
-function click(item) {
-    console.log(item)
-}
 
 function enable(id: string) {
     if (id in windows.layout) {

@@ -8,7 +8,7 @@ import axios from "axios"
 
 const props = defineProps<{ id: string }>()
 
-const viewIdByIcao = {
+const viewIdByIcao: { [key: string]: string } = {
     ESSA: "arlanda-overview.html",
     ESGG: "landvetter-overview.html"
 }
