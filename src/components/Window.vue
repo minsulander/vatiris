@@ -21,7 +21,7 @@ const options = computed(() => {
     return {
         title: props.title,
         class: "no-full no-min no-max",
-        top: 25,
+        top: 30,
         border: 3,
         x: props.id in windows.layout ? windows.layout[props.id].x : 0,
         y: props.id in windows.layout ? windows.layout[props.id].y : 0,

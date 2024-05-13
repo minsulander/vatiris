@@ -1,26 +1,22 @@
 <template>
-    <pre class="pa-1" style="font-size: 14px; line-height: 16px" v-html="wx"></pre>
+    <pre class="pa-1" style="font-size: 14px; line-height: 16px" v-html="wx.wx[props.id]"></pre>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
-import axios from "axios"
+import { onMounted, onUnmounted } from "vue"
+import { useWxStore } from "@/stores/wx";
 
 const props = defineProps<{ id: string }>()
 
-const viewIdByIcao: { [key: string]: string } = {
-    ESSA: "arlanda-overview.html",
-    ESGG: "landvetter-overview.html"
-}
+const wx = useWxStore()
 
-const wx = ref("Weather info...")
+let subscription = ""
 
 onMounted(() => {
-    if (props.id in viewIdByIcao) {
-    axios.get(`https://api.vatiris.se/wx?viewId=${viewIdByIcao[props.id]}`).then((response) => {
-    console.log(response.data)
-    wx.value = response.data
-  })
-}
+    subscription = wx.subscribe(props.id)
+})
+
+onUnmounted(() => {
+    wx.unsubscribe(subscription)
 })
 </script>

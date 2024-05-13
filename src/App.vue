@@ -2,7 +2,10 @@
     <v-app>
         <v-app-bar color="#2b2d31" height="30">
             <template v-for="(options, title) in windowOptions" :key="title">
-                <v-btn type="text">
+                <v-btn v-if="typeof (options) == 'string'" type="text" @click="enable(options)">
+                    {{ title }}
+                </v-btn>
+                <v-btn v-else type="text">
                     {{ title }}
                     <v-menu activator="parent" transition="slide-y-transition">
                         <v-list>
@@ -23,7 +26,7 @@
                 <Window
                     v-if="id in windows.layout && windows.layout[id].enabled"
                     :key="id"
-                    :id="id"
+                    :id="id as string"
                     :title="win.title"
                     :width="win.width"
                     :height="win.height"
@@ -39,6 +42,7 @@
 import { useWinBox } from "vue-winbox"
 import Window from "@/components/Window.vue"
 import Wx from "@/components/Wx.vue"
+import Notam from "@/components/Notam.vue"
 import { useWindowsStore } from "./stores/windows"
 import { onMounted } from "vue"
 
@@ -46,10 +50,19 @@ const windowOptions = {
     WX: {
         ESSA: "wxESSA",
         ESGG: "wxESGG"
-    }
+    },
+    NOTAM: "notam"
 }
 
-const availableWindows = {
+export interface WindowSpec {
+    title: string,
+    component: any,
+    props?: any,
+    width: string | number,
+    height: string | number
+}
+
+const availableWindows: {[key: string]: WindowSpec} = {
     wxESSA: {
         title: "WX ESSA",
         component: Wx,
@@ -63,6 +76,12 @@ const availableWindows = {
         props: { id: "ESGG" },
         width: 800,
         height: 500
+    },
+    notam: {
+        title: "NOTAM",
+        component: Notam,
+        width: 800,
+        height: 800
     }
 }
 
@@ -74,6 +93,7 @@ const winbox = useWinBox()
 ;(window as any).winbox = winbox
 
 function enable(id: string) {
+    if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
     if (id in windows.layout) {
         windows.layout[id].enabled = true
     } else {
