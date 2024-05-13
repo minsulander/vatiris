@@ -1,18 +1,10 @@
 <template>
-    <pre v-html="notam"></pre>
+    <pre class="pa-1" style="font-size: 14px; line-height: 16px" v-html="notam.allText"></pre>
 </template>
 
 <script setup lang="ts">
-import axios from "axios"
-import { onMounted, ref } from "vue"
+import { useNotamStore } from "@/stores/notam";
 
-const notam = ref("Loading...")
+const notam = useNotamStore()
 
-onMounted(() => {
-    axios.get(`https://api.vatiris.se/notam`).then((response) => {
-        const el = document.createElement("div")
-        el.innerHTML = response.data
-        notam.value = el.getElementsByTagName("pre")[0].innerHTML
-    })
-})
 </script>

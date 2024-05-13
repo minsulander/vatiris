@@ -61,10 +61,14 @@ onMounted(() => {
     if (wb.value) {
         wb.value.winbox.id = props.id
     }
-    if (windows.focusId && props.id == windows.focusId) nextTick(() => wb.value?.winbox.focus())
+    nextTick(() => {
+        windows.winbox[props.id] = wb.value?.winbox
+        if (windows.focusId && props.id == windows.focusId) wb.value?.winbox.focus()
+    })
 })
 
 onUnmounted(() => {
     wb.value?.winbox.close(true)
+    delete windows.winbox[props.id]
 })
 </script>
