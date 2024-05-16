@@ -1,0 +1,24 @@
+<template>
+    <pre class="pa-1" style="font-size: 14px; line-height: 16px" v-html="metsensor"></pre>
+</template>
+
+<script setup lang="ts">
+import { onMounted, onUnmounted, computed } from "vue"
+import { useWxStore } from "@/stores/wx";
+
+const props = defineProps<{ id: string }>()
+
+const wx = useWxStore()
+
+const metsensor = computed(() => wx.metsensor(props.id))
+
+let subscription = ""
+
+onMounted(() => {
+    subscription = wx.subscribe(props.id)
+})
+
+onUnmounted(() => {
+    wx.unsubscribe(subscription)
+})
+</script>

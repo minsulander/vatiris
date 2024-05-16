@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { reactive, ref } from "vue"
 import { v4 as uuid } from "uuid"
 import axios from "axios"
+import moment from "moment"
 
 const viewIdByIcao: { [key: string]: string } = {
     ESSA: "arlanda-overview.html",
@@ -34,6 +35,23 @@ export const useWxStore = defineStore("wx", () => {
     const wx = reactive({} as { [key: string]: string })
     const subscriptions = reactive({} as { [key: string]: string })
     const lastFetch = reactive({} as { [key: string]: Date })
+
+    const wxPart = (key: string, spanIndex: number) => {
+        if (key in wx) {
+            const el = document.createElement("div")
+            el.innerHTML = wx[key]
+            const partEls = el.querySelectorAll(".spanText")
+            if (partEls.length > spanIndex) return (partEls[spanIndex] as HTMLElement).innerText.trim()
+        }
+        return ""
+    }
+
+    const time = (key: string) => wxPart(key, 0)
+    const rwy = (key: string) => wxPart(key, 1)
+    const metreport = (key: string) => wxPart(key, 2)
+    const info = (key: string) => wxPart(key, 3)
+    const metsensor = (key: string) => wxPart(key, 4)
+    const metar = (key: string) => wxPart(key, 5)
 
     function subscribe(icao: string) {
         const subscriptionId = uuid()
@@ -73,6 +91,12 @@ export const useWxStore = defineStore("wx", () => {
 
     return {
         wx,
+        time,
+        rwy,
+        metreport,
+        info,
+        metsensor,
+        metar,
         subscribe,
         unsubscribe,
         fetch
