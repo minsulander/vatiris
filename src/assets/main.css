@@ -32,3 +32,6 @@ body {
   height: 25px;
   line-height: 25px;
 }
+.no-scroll .wb-body {
+  overflow: hidden;
+}

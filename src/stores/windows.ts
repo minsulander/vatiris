@@ -6,6 +6,8 @@ export interface WindowLayout {
     y?: number
     width?: string
     height?: string
+    min?: boolean
+    max?: boolean
     enabled?: boolean
 }
 

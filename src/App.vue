@@ -5,18 +5,18 @@
                 <v-btn
                     v-if="typeof options == 'string'"
                     type="text"
-                    :color="options in windows.winbox ? 'grey' : ''"
+                    :color="options in windows.winbox ? '' : 'grey'"
                     @click="enable(options)"
                 >
                     {{ title }}
                 </v-btn>
-                <v-btn v-else type="text">
+                <v-btn v-else type="text" class="text-grey">
                     {{ title }}
                     <v-menu activator="parent" transition="slide-y-transition">
                         <v-list>
                             <v-list-item
                                 v-for="(id, label) in options"
-                                :class="id in windows.winbox ? 'text-grey' : ''"
+                                :class="id in windows.winbox ? '' : 'text-grey'"
                                 :key="id"
                                 @click="enable(id)"
                             >
@@ -36,6 +36,7 @@
                     :title="win.title"
                     :width="win.width"
                     :height="win.height"
+                    :class="win.class"
                 >
                     <component :is="win.component" v-bind="win.props" />
                 </Window>
@@ -49,8 +50,9 @@ import { useWinBox } from "vue-winbox"
 import Window from "@/components/Window.vue"
 import Wx from "@/components/Wx.vue"
 import Notam from "@/components/Notam.vue"
+import LfvEcharts from "@/components/LfvEcharts.vue"
+import Smhi from "@/components/Smhi.vue"
 import { useWindowsStore } from "./stores/windows"
-import { onMounted } from "vue"
 import { useWxStore } from "./stores/wx"
 import { useNotamStore } from "./stores/notam"
 
@@ -81,18 +83,34 @@ const windowOptions = {
         ESKN: "wxESKN",
         ESGJ: "wxESGJ",
     },
-    NOTAM: "notam"
+    NOTAM: "notam",
+    SMHI: "smhi",
+    eCharts: "echarts",
 }
 
 export interface WindowSpec {
     title: string
     component: any
     props?: any
+    class?: string
     width: string | number
     height: string | number
 }
 
 const availableWindows: { [key: string]: WindowSpec } = {
+    echarts: {
+        title: "LFV eCharts",
+        component: LfvEcharts,
+        width: 800,
+        height: 600
+    },
+    smhi: {
+        title: "SMHI",
+        component: Smhi,
+        width: 800,
+        height: 715,
+        class: "no-scroll"
+    },
     wxESSA: {
         title: "WX ESSA",
         component: Wx,
@@ -284,6 +302,7 @@ const notam = useNotamStore()
 function enable(id: string) {
     if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
     if (id in windows.winbox) {
+        if (windows.winbox[id].min) windows.winbox[id].restore()
         windows.winbox[id].focus()
     } else {
         if (id in windows.layout) {
