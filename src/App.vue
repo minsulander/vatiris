@@ -55,6 +55,7 @@ import Smhi from "@/components/Smhi.vue"
 import { useWindowsStore } from "./stores/windows"
 import { useWxStore } from "./stores/wx"
 import { useNotamStore } from "./stores/notam"
+import moment from "moment"
 
 const windowOptions = {
     WX: {
@@ -101,15 +102,14 @@ const availableWindows: { [key: string]: WindowSpec } = {
     echarts: {
         title: "LFV eCharts",
         component: LfvEcharts,
-        width: 800,
+        width: 600,
         height: 600
     },
     smhi: {
         title: "SMHI",
         component: Smhi,
-        width: 800,
-        height: 715,
-        class: "no-scroll"
+        width: 600,
+        height: 600
     },
     wxESSA: {
         title: "WX ESSA",
@@ -298,6 +298,8 @@ const wx = useWxStore()
 
 const notam = useNotamStore()
 ;(window as any).notam = notam
+
+;(window as any).moment = moment
 
 function enable(id: string) {
     if (!(id in availableWindows)) console.error(`Unknown window ${id}`)

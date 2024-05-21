@@ -7,6 +7,8 @@ import { createVuetify } from "vuetify"
 import "@mdi/font/css/materialdesignicons.css"
 import "vuetify/styles"
 
+import "ol/ol.css"
+
 const vuetify = createVuetify({
     theme: {
         defaultTheme: "dark",
