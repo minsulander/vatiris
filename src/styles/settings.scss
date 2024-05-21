@@ -1,9 +1,9 @@
 a {
     text-decoration: none;
-    color: white;
+    color: #33f;
 }
 a:hover:not(.v-btn) {
-    background: #313338;
+    background: rgba(100, 100, 100, 0.2);
     border-radius: 3px;
     cursor: pointer;
 }
@@ -16,6 +16,8 @@ body {
     scrollbar-color: grey #1e1f22;
     scrollbar-width: thin;
 }
+
+/*
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -32,6 +34,7 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(100, 100, 100, 0.7);
 }
+*/
 
 .v-theme--dark .v-overlay__scrim {
     background: black; /* #1e2022; */

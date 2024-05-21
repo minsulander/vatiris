@@ -39,10 +39,10 @@ const options = computed(() => {
         class: `no-full ${props.class || ""}`,
         top: 30,
         border: 3,
-        x: id in windows.layout ? windows.layout[id].x : 0,
-        y: id in windows.layout ? windows.layout[id].y : 0,
-        width: id in windows.layout ? windows.layout[id].width || width : width,
-        height: id in windows.layout ? windows.layout[id].height || height : height
+        x: id in windows.layout && "x" in windows.layout[id] ? windows.layout[id].x : typeof(width) == "number" ? (window.innerWidth / 2 - width / 2) : 0,
+        y: id in windows.layout && "y" in windows.layout[id] ? windows.layout[id].y : typeof(height) == "number" ? (window.innerHeight / 2 - height / 2) : 0,
+        width: id in windows.layout && "width" in windows.layout[id] ? windows.layout[id].width : width,
+        height: id in windows.layout && "height" in windows.layout[id] ? windows.layout[id].height : height
     }
 })
 

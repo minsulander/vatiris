@@ -41,12 +41,13 @@ export const useWxStore = defineStore("wx", () => {
             const el = document.createElement("div")
             el.innerHTML = wx[key]
             const partEls = el.querySelectorAll(".spanText")
-            if (partEls.length > spanIndex) return (partEls[spanIndex] as HTMLElement).innerText.trim()
+            if (partEls.length > spanIndex) return (partEls[spanIndex] as HTMLElement).innerHTML.trim()
         }
         return ""
     }
 
-    const time = (key: string) => wxPart(key, 0)
+    const noData = (key: string) => !(key in wx) || wx[key].match("No( recent)? data")
+    const time = (key: string) => wxPart(key, 0) 
     const rwy = (key: string) => wxPart(key, 1)
     const metreport = (key: string) => wxPart(key, 2)
     const info = (key: string) => wxPart(key, 3)
@@ -91,6 +92,7 @@ export const useWxStore = defineStore("wx", () => {
 
     return {
         wx,
+        noData,
         time,
         rwy,
         metreport,
