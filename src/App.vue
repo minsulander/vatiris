@@ -44,6 +44,20 @@
             </template>
             <v-spacer />
             <v-btn class="text-grey" @click="enable('about')">About</v-btn>
+            <v-btn
+                v-if="!fullscreen"
+                type="icon"
+                icon="mdi-fullscreen"
+                class="text-grey"
+                @click="requestFullScreen"
+            ></v-btn>
+            <v-btn
+                v-if="fullscreen"
+                type="icon"
+                icon="mdi-fullscreen-exit"
+                class="text-grey"
+                @click="exitFullScreen"
+            ></v-btn>
         </v-app-bar>
         <v-main>
             <template v-for="(win, id) in availableWindows">
@@ -80,6 +94,7 @@ import { useWindowsStore } from "./stores/windows"
 import { useWxStore } from "./stores/wx"
 import { useNotamStore } from "./stores/notam"
 import moment from "moment"
+import { onMounted, ref } from "vue"
 
 const menuItems = {
     /*
@@ -216,6 +231,8 @@ for (const icao of wxAirports) {
     }
 }
 
+const fullscreen = ref(window.innerHeight == screen.height)
+
 const winbox = useWinBox()
 ;(window as any).winbox = winbox
 
@@ -242,4 +259,37 @@ function enable(id: string) {
         }
     }
 }
+
+function requestFullScreen() {
+    const element = document.body as any
+    var requestMethod =
+        element.requestFullScreen ||
+        element.webkitRequestFullScreen ||
+        element.mozRequestFullScreen ||
+        element.msRequestFullScreen
+
+    if (requestMethod) {
+        requestMethod.call(element)
+        fullscreen.value = true
+    }
+}
+
+function exitFullScreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen()
+    } else if ((document as any).webkitExitFullscreen) {
+        ;(document as any).webkitExitFullscreen()
+    } else if ((document as any).mozCancelFullScreen) {
+        ;(document as any).mozCancelFullScreen()
+    } else if ((document as any).msExitFullscreen) {
+        ;(document as any).msExitFullscreen()
+    }
+    fullscreen.value = false
+}
+
+onMounted(() => {
+    window.addEventListener("resize", () => {
+        fullscreen.value = !!document.fullscreenElement
+    })
+})
 </script>
