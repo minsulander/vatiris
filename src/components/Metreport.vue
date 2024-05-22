@@ -2,7 +2,7 @@
     <div v-if="wx.noData(props.id)" class="pa-3 text-center">
         NO DATA
     </div>
-    <div class="foo" v-else :style="changed ? 'background-color: #33f' : ''" style="height: 100%">
+    <div class="metreport" v-else :style="changed ? 'background-color: #33f; color: #ddd' : ''" style="height: 100%">
         <div class="float-right text-caption text-grey-darken-2">
             {{ time.replace("T", " ") }}
         </div>
@@ -14,9 +14,8 @@
 </template>
 
 <style>
-.foo {
-    transition: background-color 0.5s ease;
-    transition: color 0.5s ease;
+.metreport {
+    transition: background-color 0.25s, color 0.25s;
 }
 </style>
 
@@ -48,7 +47,6 @@ onUnmounted(() => {
 
 watch([rwy, metreport, info, metar], (newValues, oldValues) => {
     if (oldValues.find(v => v.length > 0)) {
-        console.log("changed from", oldValues, "to", newValues)
         changed.value = true
         setTimeout(() => changed.value = false, 1000)
         setTimeout(() => changed.value = true, 2000)

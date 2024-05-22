@@ -18,9 +18,19 @@
                                 v-for="(id, label) in options"
                                 :class="id in windows.winbox ? '' : 'text-grey'"
                                 :key="id"
-                                @click="enable(id)"
+                                @click="typeof id == 'string' ? enable(id) : undefined"
                             >
                                 <v-list-item-title>{{ label }}</v-list-item-title>
+                                <v-menu activator="parent" v-if="typeof id == 'object'" location="end">
+                                    <v-list>
+                                        <v-list-item v-for="(id2, label2) in id" 
+                                        :class="id2 in windows.winbox ? '' : 'text-grey'"
+                                        :key="id2"
+                                        @click="enable(id2)">
+                                            <v-list-item-title>{{ label2 }}</v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
                             </v-list-item>
                         </v-list>
                     </v-menu>
@@ -66,6 +76,12 @@ import moment from "moment"
 
 const menuItems = {
     /*
+    menu: {
+        submenu: {
+            "Item 1": "item1",
+            "Item 2": "item2"
+        },
+    },
     "WX/AWOS": {
         // filled in code
     },
