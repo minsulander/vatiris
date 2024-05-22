@@ -16,17 +16,23 @@
                         <v-list>
                             <v-list-item
                                 v-for="(id, label) in options"
-                                :class="id in windows.winbox ? '' : 'text-grey'"
-                                :key="id"
+                                :class="(id as string) in windows.winbox ? '' : 'text-grey'"
+                                :key="id as string"
                                 @click="typeof id == 'string' ? enable(id) : undefined"
                             >
                                 <v-list-item-title>{{ label }}</v-list-item-title>
-                                <v-menu activator="parent" v-if="typeof id == 'object'" location="end">
+                                <v-menu
+                                    activator="parent"
+                                    v-if="typeof id == 'object'"
+                                    location="end"
+                                >
                                     <v-list>
-                                        <v-list-item v-for="(id2, label2) in id" 
-                                        :class="id2 in windows.winbox ? '' : 'text-grey'"
-                                        :key="id2"
-                                        @click="enable(id2)">
+                                        <v-list-item
+                                            v-for="(id2, label2) in id"
+                                            :class="id2 in windows.winbox ? '' : 'text-grey'"
+                                            :key="id2"
+                                            @click="enable(id2)"
+                                        >
                                             <v-list-item-title>{{ label2 }}</v-list-item-title>
                                         </v-list-item>
                                     </v-list>
@@ -36,7 +42,7 @@
                     </v-menu>
                 </v-btn>
             </template>
-            <v-spacer/>
+            <v-spacer />
             <v-btn class="text-grey" @click="enable('about')">About</v-btn>
         </v-app-bar>
         <v-main>
@@ -53,7 +59,7 @@
                     <component :is="win.component" v-bind="win.props" />
                 </Window>
             </template>
-            <Welcome v-if="!Object.values(windows.layout).find(l => l.enabled)"/>
+            <Welcome v-if="!Object.values(windows.layout).find((l) => l.enabled)" />
         </v-main>
     </v-app>
 </template>
@@ -69,6 +75,7 @@ import Notam from "@/components/Notam.vue"
 import LfvEcharts from "@/components/LfvEcharts.vue"
 import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
+import Image from "@/components/Image.vue"
 import { useWindowsStore } from "./stores/windows"
 import { useWxStore } from "./stores/wx"
 import { useNotamStore } from "./stores/notam"
@@ -82,19 +89,24 @@ const menuItems = {
             "Item 2": "item2"
         },
     },
-    "WX/AWOS": {
-        // filled in code
-    },
     */
-    METREPORT: {
-        // filled in code
-    } as { [key: string]: string },
-    METSENSOR: {
-        // filled in code
-    } as { [key: string]: string },
+    MET: {
+        METREPORT: {
+            // filled in code
+        } as { [key: string]: string },
+        METSENSOR: {
+            // filled in code
+        } as { [key: string]: string },
+        "WX/AWOS": {
+            // filled in code
+        } as { [key: string]: string },
+        SMHI: "smhi",
+        SWC: "swc",
+        VFR: "vfr",
+    },
+
     NOTAM: "notam",
-    SMHI: "smhi",
-    eCharts: "echarts"
+    eCharts: "echarts",
 }
 
 export interface WindowSpec {
@@ -106,64 +118,101 @@ export interface WindowSpec {
     height: string | number
 }
 
-const wxAirports = [ "ESSA", "ESSB", "ESOW", "ESGG", "ESGP", "ESGT", "ESGJ", "ESMS", "ESMK", "ESMQ", "ESMX", "ESOH", "ESOE", "ESOK", "ESSL", "ESKN", "ESKM", "ESNL", "ESND", "ESNX", "ESNK", "ESNV", "ESNG", "ESUP"]
+const wxAirports = [
+    "ESSA",
+    "ESSB",
+    "ESOW",
+    "ESGG",
+    "ESGP",
+    "ESGT",
+    "ESGJ",
+    "ESMS",
+    "ESMK",
+    "ESMQ",
+    "ESMX",
+    "ESOH",
+    "ESOE",
+    "ESOK",
+    "ESSL",
+    "ESKN",
+    "ESKM",
+    "ESNL",
+    "ESND",
+    "ESNX",
+    "ESNK",
+    "ESNV",
+    "ESNG",
+    "ESUP",
+]
 
 const availableWindows: { [key: string]: WindowSpec } = {
     notam: {
         title: "NOTAM",
         component: Notam,
         width: 640,
-        height: 640
+        height: 640,
     },
     echarts: {
         title: "LFV eCharts",
         component: LfvEcharts,
         width: 600,
-        height: 600
+        height: 600,
     },
     smhi: {
         title: "SMHI",
         component: Smhi,
         width: 600,
-        height: 600
+        height: 600,
+    },
+    swc: {
+        title: "SWC",
+        component: Image,
+        props: { id: "swc", src: "https://aro.lfv.se/tor/nswc2aro.gif", refreshInterval: "3600" },
+        width: 480,
+        height: 700,
+    },
+    vfr: {
+        title: "VFR",
+        component: Image,
+        props: { id: "vfr", src: "https://aro.lfv.se/tor/vfrkarta.gif", refreshInterval: "3600" },
+        width: 400,
+        height: 690,
     },
     about: {
         title: "About",
         component: About,
         width: 600,
-        height: 240
-    }
+        height: 240,
+    },
 }
 
 for (const icao of wxAirports) {
-    /*
-    menuItems["WX/AWOS"][icao] = `wx${icao}`
-    availableWindows[`wx${icao}`] = { 
-        title: `WX ${icao}`,
-        component: Wx,
-        props: { id: icao },
-        width: 800,
-        height: 500,
-        class: "no-max"
-    }
-    */
-    menuItems.METREPORT[icao] = `metrep${icao}`
+    menuItems.MET.METREPORT[icao] = `metrep${icao}`
     availableWindows[`metrep${icao}`] = {
         title: `METREPORT ${icao}`,
         component: Metreport,
         props: { id: icao },
         width: 360,
         height: 380,
-        class: "no-max"
+        class: "no-max",
     }
-    menuItems.METSENSOR[icao] = `metsen${icao}`
+    menuItems.MET.METSENSOR[icao] = `metsen${icao}`
     availableWindows[`metsen${icao}`] = {
         title: `METSENSOR ${icao}`,
         component: Metsensor,
         props: { id: icao },
         width: 360,
         height: 380,
-        class: "no-max"
+        class: "no-max",
+    }
+    menuItems.MET["WX/AWOS"][icao] = `wx${icao}`
+    availableWindows[`wx${icao}`] = {
+        title: `WX ${icao}`,
+        component: Wx,
+        props: { id: icao },
+        width: 800,
+        height: 500,
+        class: "no-max",
     }
 }
 
@@ -178,7 +227,6 @@ const wx = useWxStore()
 
 const notam = useNotamStore()
 ;(window as any).notam = notam
-
 ;(window as any).moment = moment
 
 function enable(id: string) {
