@@ -26,6 +26,55 @@ const BASE_URL = "http://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
 const SMHI_URL = "https://wpt-wts.smhi.se/tile/"
 const ECHARTS_URL =
     "https://daim.lfv.se/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
+const AIRPORTS = [
+    "SA",
+    "SB",
+    "OW",
+    "CM",
+    "SU",
+    "KN",
+    "SP",
+    "SL",
+    "CF",
+    "OE",
+    "OK",
+    "ST",
+    "IA",
+    "IB",
+    "GT",
+    "GP",
+    "GG",
+    "GJ",
+    "MK",
+    "MQ",
+    "MX",
+    "MT",
+    "TA",
+    "TL",
+    "MS",
+    "DF",
+    "SV",
+    "SD",
+    "KM",
+    "KS",
+    "ND",
+    "NN",
+    "NK",
+    "NZ",
+    "NO",
+    "NU",
+    "NV",
+    "UD",
+    "NL",
+    "UT",
+    "NS",
+    "NX",
+    "PA",
+    "PE",
+    "NG",
+    "NQ",
+    "UP"
+]
 
 useGeographic()
 
@@ -80,18 +129,20 @@ onMounted(() => {
                     strategy: bbox,
                 }),
                 style: (feature) => {
+                    const id = feature.get("POSITIONINDICATOR").replace(/^ES/, "")
+                    if (!AIRPORTS.includes(id)) return undefined
                     return new Style({
                         image: new RegularShape({
                             fill: new Fill({
                                 color: "#666",
                             }),
                             points: 4,
-                            radius: 2,
+                            radius: 3,
                             angle: Math.PI / 4,
                         }),
                         text: new Text({
                             text: feature.get("POSITIONINDICATOR").replace(/^ES/, ""),
-                            font: "9px sans-serif",
+                            font: "10px sans-serif",
                             fill: new Fill({
                                 color: "#666",
                             }),
@@ -156,7 +207,7 @@ onMounted(() => {
         const newTime = smhiTime()
         if (newTime != time.value) {
             time.value = newTime
-            //console.log("new SMHI time", newTime)
+            console.log("Refresh SMHI", newTime)
             map.getLayers().forEach((layer) => {
                 if (layer instanceof TileLayer && layer.getSource().getParams) {
                     layer.getSource().updateParams({ time: newTime })

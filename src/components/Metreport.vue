@@ -47,6 +47,7 @@ onUnmounted(() => {
 
 watch([rwy, metreport, info, metar], (newValues, oldValues) => {
     if (oldValues.find(v => v.length > 0)) {
+        console.log("Metreport changed", props.id)
         changed.value = true
         setTimeout(() => changed.value = false, 1000)
         setTimeout(() => changed.value = true, 2000)

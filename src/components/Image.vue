@@ -13,7 +13,7 @@ img {
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue"
 
-const props = defineProps<{ id: string; src: string; refreshInterval?: string }>()
+const props = defineProps<{ id: string; src: string; refresh?: string }>()
 
 const div = ref()
 const img = ref()
@@ -33,18 +33,18 @@ onMounted(() => {
             div.value.parentElement.scrollTop = parseInt(localStorage[`${props.id}_image_scroll`])
     }
     div.value.parentElement.addEventListener("scroll", scroll)
-    if (props.refreshInterval && parseInt(props.refreshInterval)) {
+    if (props.refresh && parseInt(props.refresh)) {
         refreshInterval = setInterval(
             () => {
-                console.log(`refresh image ${props.id}`)
+                console.log(`Refresh image ${props.id}`)
                 loadTime.value = Date.now().toString()
             },
-            parseInt(props.refreshInterval) * 1000,
+            parseInt(props.refresh) * 1000,
         )
     }
     // below needed when restoring from minimized
     new ResizeObserver(() => {
-        if (`${props.id}_image_scroll` in localStorage) {
+        if (`${props.id}_image_scroll` in localStorage && div.value) {
             div.value.parentElement.scrollTop = parseInt(localStorage[`${props.id}_image_scroll`])
         }
     }).observe(div.value)
