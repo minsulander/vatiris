@@ -25,6 +25,12 @@ body {
   background: #ddd;
   color: #222;
   top: 25px;
+  scrollbar-width: thin;
+  scrollbar-color: #aaa #666;
+}
+.wb-body div {
+  scrollbar-width: thin;
+  scrollbar-color: #aaa #666;
 }
 .wb-header {
   max-height: 25px;

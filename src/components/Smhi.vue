@@ -73,7 +73,7 @@ const AIRPORTS = [
     "PE",
     "NG",
     "NQ",
-    "UP"
+    "UP",
 ]
 
 useGeographic()
@@ -100,7 +100,58 @@ onMounted(() => {
     if ("smhi_map_center" in localStorage) center = JSON.parse(localStorage["smhi_map_center"])
     if ("smhi_map_zoom" in localStorage) zoom = JSON.parse(localStorage["smhi_map_zoom"])
 
+    const smhiSource = new TileWMS({
+        url: SMHI_URL,
+        params: {
+            VERSION: "1.1.1",
+            layers: "baltrad:radarcomp-lightning_sweden_wpt",
+            time: time.value,
+            dim_reftime: "",
+        },
+        serverType: "geoserver",
+        projection: "EPSG:900913",
+        transition: 0,
+        //hidpi: false,
+        crossOrigin: "anonymous",
+    })
+    const smhiLayer = new TileLayer({
+        source: smhiSource,
+    })
+
+    smhiSource.addEventListener("tileloaderror", (event: any) => {
+        console.error("SMHI tile load error")
+        console.log(event.tile.src_)
+    })
+
+    // https://openlayers.org/en/latest/apidoc/module-ol_ImageTile-ImageTile.html#load
+
+    const retryCodes = [408, 429, 500, 502, 503, 504]
+    const retries: any = {}
+    smhiSource.setTileLoadFunction((tile: any, src: string) => {
+        const image = tile.getImage()
+        fetch(src)
+            .then((response) => {
+                if (retryCodes.includes(response.status)) {
+                    retries[src] = (retries[src] || 0) + 1
+                    if (retries[src] <= 3) {
+                        console.log("retry", retries[src], src)
+                        setTimeout(() => tile.load(), retries[src] * 1000 + Math.random() * 1000)
+                    }
+                    return Promise.reject()
+                }
+                return response.blob()
+            })
+            .then((blob) => {
+                const imageUrl = URL.createObjectURL(blob)
+                image.src = imageUrl
+                setTimeout(() => URL.revokeObjectURL(imageUrl), 5000)
+            })
+            .catch(() => tile.setState(3)) // error
+    })
+
     const map = new Map({
+        //maxTilesLoading: 4,
+        //pixelRatio: 1,
         target: mapcontainer.value,
         layers: [
             new TileLayer({
@@ -108,20 +159,7 @@ onMounted(() => {
                     url: BASE_URL,
                 }),
             }),
-            new TileLayer({
-                source: new TileWMS({
-                    url: SMHI_URL,
-                    params: {
-                        VERSION: "1.1.1",
-                        layers: "baltrad:radarcomp-lightning_sweden_wpt",
-                        time: time.value,
-                        dim_reftime: "",
-                    },
-                    serverType: "geoserver",
-                    transition: 0,
-                    projection: "EPSG:900913",
-                }),
-            }),
+            smhiLayer,
             new VectorLayer({
                 source: new VectorSource({
                     format: new GeoJSON(),
@@ -215,6 +253,7 @@ onMounted(() => {
             })
         }
     }, 2000)
+    ;(window as any).smhimap = map
 })
 
 onUnmounted(() => {
