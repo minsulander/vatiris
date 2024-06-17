@@ -30,9 +30,9 @@ const metsensorStylized = computed(() => {
     const outLines = []
     for (const line of inLines) {
         if (line.startsWith("RWY")) outLines.push(blue(line))
-        else if (line.match(/^T (SURF|BODY)\s+\/\/\.\//)) { /* pass */ }
-        else if (line.match(/^(MEAN02|VRB|MIN\/MAX|COMP|RVR|VIS|PRW|QFETHR|T SURF|T BODY|CLD)/)) outLines.push(blueFirstWord(line))
-        else if (line.startsWith("QNH")) {
+        else if (line.match(/^(MEAN02|VRB|MIN\/MAX|COMP|RVR|VIS|PRW|QFETHR|T SURF|T BODY|CLD)/)) {
+            outLines.push(blueFirstWord(line))
+        } else if (line.startsWith("QNH")) {
             const m = line.match(/QNH\s+(\S+)\s+TRL\s+(\S+)\s+QFE\s+(\S+)/)
             if (m) {
                 outLines.push(`<hr class="my-2"/><div class="text-center">${blue("QNH")} <span style="font-size: 20px">${m[1]}</span></div><hr class="mt-2"/>`)
@@ -50,7 +50,7 @@ const metsensorStylized = computed(() => {
 
 const blue = (text: string) => `<span style="color: #33f">${text}</span>`
 
-const blueFirstWord = (text: string) => text.replace(/^(\S+)/, blue("$1"))
+const blueFirstWord = (text: string) => text.replace(/^(..\S+)/, blue("$1"))
 
 let subscription = ""
 

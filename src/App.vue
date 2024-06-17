@@ -58,6 +58,7 @@
                 class="text-grey"
                 @click="exitFullScreen"
             ></v-btn>
+            <clock class="mx-2 text-grey" />
         </v-app-bar>
         <v-main>
             <template v-for="(win, id) in availableWindows">
@@ -95,6 +96,7 @@ import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import Iframe from "@/components/Iframe.vue"
+import Clock from "@/components/Clock.vue"
 
 import { useWinBox } from "vue-winbox"
 import { useWindowsStore } from "./stores/windows"

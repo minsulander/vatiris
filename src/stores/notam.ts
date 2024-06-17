@@ -30,7 +30,6 @@ export const useNotamStore = defineStore("notam", () => {
 
     function fetch() {
         lastFetch.value = new Date()
-        if (originalText.value === "") originalText.value = "Loading..."
         axios.get(`https://api.vatiris.se/notam`).then((response) => {
             const el = document.createElement("div")
             el.innerHTML = response.data
@@ -71,7 +70,7 @@ export const useNotamStore = defineStore("notam", () => {
 
         for (let line of allText.value.split("\n")) {
             line = line.trimEnd()
-            if (line.length == 0) continue
+            if (line.length == 0 && section != "header" && section != "footer") continue
             if (line.startsWith(">>>> ESAA")) section = "fir"
             else if (line.startsWith("AERODROMES") && section == "fir") section = "ad"
             else if (line.startsWith("EN-ROUTE") && section == "ad") section = "enroute"
@@ -128,7 +127,7 @@ export const useNotamStore = defineStore("notam", () => {
                 console.warn("wat dis?", line)
             }
         }
-        if (!footer.value.endsWith("END OF PIB")) console.warn("notam footer doesn't end with END OF PIB")
+        if (!footer.value.trimEnd().endsWith("END OF PIB")) console.warn("notam footer doesn't end with END OF PIB")
     }
 
     return {
