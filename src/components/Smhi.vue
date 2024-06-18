@@ -118,23 +118,26 @@ onMounted(() => {
         source: smhiSource,
     })
 
+    const retryCodes = [408, 429, 500, 502, 503, 504]
+    const tries: any = {}
+
     smhiSource.addEventListener("tileloaderror", (event: any) => {
-        console.warn("SMHI tile load error", event.tile.src_)
+        const trie = tries[event.tile.src_]
+        if (trie != 1) console.warn("SMHI tile load error try", trie, event.tile.src_)
     })
 
     // https://openlayers.org/en/latest/apidoc/module-ol_ImageTile-ImageTile.html#load
 
-    const retryCodes = [408, 429, 500, 502, 503, 504]
-    const retries: any = {}
     smhiSource.setTileLoadFunction((tile: any, src: string) => {
         const image = tile.getImage()
         fetch(src)
             .then((response) => {
                 if (retryCodes.includes(response.status)) {
-                    retries[src] = (retries[src] || 0) + 1
-                    if (retries[src] <= 3) {
-                        console.log("retry", retries[src], src)
-                        setTimeout(() => tile.load(), retries[src] * 1000 + Math.random() * 1000)
+                    tries[src] = (tries[src] || 0) + 1
+                    if (tries[src] <= 3) {
+                        setTimeout(() => tile.load(), tries[src] * 1000 + Math.random() * 1000)
+                    } else {
+                        console.warn("SMHI giving up on tile", src)
                     }
                     return Promise.reject()
                 }

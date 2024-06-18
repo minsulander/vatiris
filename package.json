@@ -16,6 +16,7 @@
   "dependencies": {
     "@mdi/font": "7.0.96",
     "axios": "^1.6.8",
+    "diff": "^5.2.0",
     "moment": "^2.30.1",
     "ol": "^9.2.2",
     "pinia": "^2.1.7",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",
     "@tsconfig/node20": "^20.1.4",
+    "@types/diff": "^5.2.1",
     "@types/node": "^20.12.5",
     "@types/uuid": "^9.0.8",
     "@vitejs/plugin-vue": "^5.0.4",
