@@ -32,9 +32,26 @@
                 rounded="0"
                 size="small"
                 :color="ad ? 'white' : 'grey-lighten-1'"
-                @click="ad = !ad"
-                >Aerodromes</v-btn
-            >
+                >Aerodromes
+                <v-menu activator="parent" transition="slide-y-transition">
+                    <v-list>
+                        <v-list-item @click="clickAdAll" :class="ad.length == Object.keys(notam.ad).length ? '' : 'text-grey'">
+                            <v-list-item-title>ALL</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="clickAdNone" :class="ad.length == 0 ? '' : 'text-grey'">
+                            <v-list-item-title>NONE</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item
+                            v-for="(id) in Object.keys(notam.ad).sort()"
+                            :key="id"
+                            :class="ad.includes(id) ? '' : 'text-grey'"
+                            @click="clickAd(id)"
+                        >
+                            <v-list-item-title>{{ id }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </v-btn>
             <v-btn
                 variant="text"
                 rounded="0"
@@ -76,14 +93,19 @@
         v-else
         style="font-size: 14px; line-height: 16px; height: calc(100% - 30px); overflow-y: auto"
     >
-        <pre class="pa-1" v-html="notam.allText" v-if="raw"></pre>
-        <div v-else>
+        <pre
+            class="pa-1"
+            style="width: 580px; margin-left: auto; margin-right: auto"
+            v-html="notam.allText"
+            v-if="raw"
+        ></pre>
+        <div style="width: 580px; margin-left: auto; margin-right: auto" v-else>
             <pre class="pa-1 text-grey-darken-2" v-html="notam.header" v-if="header"></pre>
-            <div v-if="ad">
+            <div v-if="ad.length > 0">
                 <h2 class="pa-1 mt-1 mb-3 bg-grey">AERODROMES</h2>
-                <template v-for="id in Object.keys(notam.ad).sort()" :key="id">
+                <template v-for="id in ad" :key="id">
                     <div v-if="notam.ad[id].length > 0">
-                        <h3 class="mb-3 pa-1 bg-grey">{{ id }}</h3>
+                        <h3 class="mb-3 pa-1 bg-grey">{{ id }} {{ notam.adTitle[id] }}</h3>
                         <div
                             v-if="filteredNotams(notam.ad[id]).length == 0"
                             class="pa-1 mb-3 text-grey-darken-2"
@@ -119,7 +141,7 @@
 
 <script setup lang="ts">
 import { useNotamStore } from "@/stores/notam"
-import { onMounted, ref } from "vue"
+import { onMounted, reactive, ref, watch } from "vue"
 
 import NotamItem from "@/components/NotamItem.vue"
 
@@ -127,7 +149,7 @@ const notam = useNotamStore()
 
 const raw = ref(false)
 const header = ref(true)
-const ad = ref(true)
+const ad = reactive([] as string[])
 const enroute = ref(true)
 const nav = ref(true)
 const footer = ref(true)
@@ -138,7 +160,52 @@ const filteredNotams = (notams: any[]) => {
     return notams.filter((n) => n.inEffect)
 }
 
+function clickAd(id: string) {
+    if (ad.includes(id)) ad.splice(ad.indexOf(id), 1)
+    else ad.push(id)
+}
+
+function clickAdAll() {
+    ad.splice(0)
+    for (const id in notam.ad) ad.push(id)
+}
+
+function clickAdNone() {
+    ad.splice(0)
+}
+
 onMounted(() => {
+    loadOptions()
     if (!notam.lastFetch) notam.fetch()
 })
+
+watch([raw, header, ad, enroute, nav, footer, future], () => {
+    saveOptions()
+})
+
+function loadOptions() {
+    if ("notamOptions" in localStorage) {
+        const options = JSON.parse(localStorage.notamOptions)
+        raw.value = options.raw
+        header.value = options.header
+        ad.splice(0)
+        for (const id of options.ad) ad.push(id)
+        enroute.value = options.enroute
+        nav.value = options.nav
+        footer.value = options.footer
+        future.value = options.future
+    }
+}
+
+function saveOptions() {
+    localStorage.notamOptions = JSON.stringify({
+        raw: raw.value,
+        header: header.value,
+        ad,
+        enroute: enroute.value,
+        nav: nav.value,
+        footer: footer.value,
+        future: future.value,
+    })
+}
 </script>

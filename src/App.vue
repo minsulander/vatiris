@@ -176,8 +176,8 @@ const availableWindows: { [key: string]: WindowSpec } = {
     notam: {
         title: "NOTAM",
         component: Notam,
-        width: 640,
-        height: 640,
+        width: 600,
+        height: 600,
     },
     echarts: {
         title: "LFV eCharts",
@@ -219,7 +219,7 @@ for (const icao of wxAirports) {
         title: `METREPORT ${icao}`,
         component: Metreport,
         props: { id: icao },
-        width: 360,
+        width: 420,
         height: 380,
         class: "no-max",
     }

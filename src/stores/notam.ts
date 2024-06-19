@@ -10,6 +10,7 @@ interface Notam {
     id?: string,
     from?: Date,
     to?: Date,
+    toEstimated?: boolean,
     reported?: Date
 }
 
@@ -19,6 +20,7 @@ export const useNotamStore = defineStore("notam", () => {
 
     const header = ref("")
     const ad = reactive({} as { [key: string]: Notam[] })
+    const adTitle = reactive({} as { [key: string]: string })
     const enroute = reactive([] as Notam[])
     const nav = reactive([] as Notam[])
     const footer = ref("")
@@ -57,6 +59,7 @@ export const useNotamStore = defineStore("notam", () => {
                 if (to.isValid()) notam.to = to.toDate()
                 else if (m[2] == "PERM") notam.permanent = true
                 else console.warn("invalid notam to", m[2])
+                if (m[2].trimEnd().endsWith("EST")) notam.toEstimated = true
                 notam.id = m[3]
             } else if (mrep) {
                 const reported = moment.utc(mrep[1], "DD MMM YYYY HH:mm")
@@ -79,6 +82,8 @@ export const useNotamStore = defineStore("notam", () => {
                 if (line.startsWith(">>> ")) {
                     icao = line.substring(4, 8)
                     ad[icao] = []
+                    adTitle[icao] = line.substring(9).trim()
+                    if (adTitle[icao].endsWith(" <<<")) adTitle[icao] = adTitle[icao].substring(0, adTitle[icao].length - 4)
                     currentNotam = undefined
                 } else if (icao) {
                     if (line.startsWith("- ") || line.startsWith("+ ")) {
@@ -136,6 +141,7 @@ export const useNotamStore = defineStore("notam", () => {
         lastFetch,
         header,
         ad,
+        adTitle,
         enroute,
         nav,
         footer,

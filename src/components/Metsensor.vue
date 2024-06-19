@@ -26,7 +26,7 @@
         color 0.25s;
 }
 .metsensor.flash span.changed {
-    background-color: #33f;
+    background-color: #66f;
     color: #ddd;
 }
 </style>
@@ -45,21 +45,13 @@ const metsensor = computed(() => wx.metsensor(props.id))
 const metsensorStylized = ref("")
 const changed = ref(false)
 
-const blue = (text: string) => `<span style="color: #33f">${text}</span>`
+function stylize(newValue: string, oldValue: string = "") {
 
-const blueFirstWord = (text: string) => text.replace(/^(..\S+)/, blue("$1"))
+    function padEndHtml(s: string, n: number) {
+        const text = s.replace(/<[^>]+>/g, "")
+        return text + " ".repeat(n - text.length)
+    }
 
-let subscription = ""
-
-onMounted(() => {
-    subscription = wx.subscribe(props.id)
-})
-
-onUnmounted(() => {
-    wx.unsubscribe(subscription)
-})
-
-watch(metsensor, (newValue: string, oldValue: string) => {
     if (!newValue) {
         metsensorStylized.value = ""
         return
@@ -71,35 +63,73 @@ watch(metsensor, (newValue: string, oldValue: string) => {
         let line = inLines[no]
         if (inLines.length == lastLines.length) {
             const lastLine = lastLines[no]
-            const diff = diffWords(lastLine, line)
-            line = ""
+            const diff = diffWords(lastLine.substring(5), line.substring(5), {
+                ignoreCase: true,
+                ignoreWhitespace: true,
+            })
+            line = line.substring(0, 5)
             for (const part of diff) {
                 if (part.removed) continue
                 if (part.added) line += `<span class="changed">${part.value}</span>`
                 else line += part.value
             }
         }
-        if (line.startsWith("RWY")) outLines.push(blue(line))
-        else if (line.match(/^(MEAN02|VRB|MIN\/MAX|COMP|RVR|VIS|PRW|QFETHR|T SURF|T BODY|CLD)/)) {
+        if (line.startsWith("RWY")) {
+            outLines.push(blue(line))
+        } else if (line.match(/^(T SURF|T BODY)\s+\/\/\.\/\s+\/\/\.\/\s+\/\/\.\//)) {
+            // skip
+        } else if (line.match(/^(MEAN02|VRB|MIN\/MAX|COMP|RVR|VIS|PRW|QFETHR|T SURF|T BODY|CLD)/)) {
+            if (line.startsWith("CLD1")) line = "CLD " + line.substring(4)
+            else if (line.startsWith("CLD2") || line.startsWith("CLD3"))
+                line = "    " + line.substring(4)
+            if (line.startsWith("RVR")) {
+                const m = line.match(/RVR(\s+)(.+?)(\s\s+)(.+?)(\s\s+)(.+)/)
+                if (m) line = `RVR${m[1]}<b>${m[2]}</b>${m[3]}<b>${m[4]}</b>${m[5]}<b>${m[6]}</b>`
+            }
             outLines.push(blueFirstWord(line))
         } else if (line.startsWith("QNH")) {
             const m = line.match(/QNH\s+(.+?)\s+TRL\s+(.+?)\s+QFE\s+(\S+)(.*)/)
             if (m) {
                 outLines.push(
-                    `<hr class="my-2"/><div class="text-center">${blue("QNH")} <span style="font-size: 20px">${m[1]}</span></div><hr class="mt-2"/>`,
+                    `<hr class="my-2"/><div class="text-center">${blue("QNH")} <span style="font-size: 20px; font-weight: bold">${m[1]}</span></div><hr class="mt-2"/>`,
                 )
-                outLines.push(`${blue("TRL")}  ${m[2].padEnd(8)} ${blue("QFE")}  ${m[3]}${m[4]}`)
+                outLines.push(`${blue("TRL")}  ${padEndHtml(m[2], 8)} ${blue("QFE")}  ${m[3]}${m[4]}`)
             } else outLines.push(line)
         } else if (line.startsWith("T") && line.includes("DP")) {
-            const m = line.match(/T\s+(\S+)\s+DP\s+(\S+)\s+RH\s+(\S+)/)
-            if (m)
+            const m = line.match(/T\s+(.+?)\s+DP\s+(.+?)\s+RH\s+(\S+)(.*)/)
+            if (m) {
                 outLines.push(
-                    `${blue("T")}    ${m[1].padEnd(8)} ${blue("DP")}   ${m[2].padEnd(7)} ${blue("RH")}   ${m[3]}`,
+                    `${blue("T")}    ${padEndHtml(m[1], 8)} ${blue("DP")}   ${padEndHtml(m[2], 7)} ${blue("RH")}   ${m[3]}${m[4]}`,
                 )
-            else outLines.push(line)
-        } else outLines.push(line)
+            } else {
+                console.log("Metsensor no bueno", line)
+                outLines.push(line)
+            }
+        } else {
+            console.log("Metsensor no match", line)
+            outLines.push(line)
+        }
     }
     metsensorStylized.value = outLines.join("\n")
+}
+
+const blue = (text: string) => `<span style="color: #33f">${text}</span>`
+
+const blueFirstWord = (text: string) => text.replace(/^(..\S+)/, blue("$1"))
+
+let subscription = ""
+
+onMounted(() => {
+    stylize(metsensor.value)
+    subscription = wx.subscribe(props.id)
+})
+
+onUnmounted(() => {
+    wx.unsubscribe(subscription)
+})
+
+watch(metsensor, (newValue: string, oldValue: string) => {
+    stylize(newValue, oldValue)
     changed.value = true
     setTimeout(() => (changed.value = false), 1000)
     setTimeout(() => (changed.value = true), 2000)
