@@ -1,6 +1,46 @@
 <template>
     <v-app>
         <v-app-bar color="#2b2d31" height="30">
+            <v-btn color="grey">
+                System
+                <v-menu activator="parent" transition="slide-y-transition">
+                    <v-list density="compact">
+                        <v-list-item class="text-grey" @click="true">
+                            <v-list-item-title>PRESET</v-list-item-title>
+                            <v-menu activator="parent" location="end">
+                                <v-list density="compact">
+                                    <v-list-item v-for="id in Object.keys(preset.presets)" :key="id" @click="preset.load(id)">
+                                        <v-list-item-title :class="id == preset.current ? '' : 'text-grey'">{{ id }}</v-list-item-title>
+                                    </v-list-item>
+                                    <v-divider v-if="Object.keys(preset.presets).length > 0"/>
+                                    <v-list-item v-if="preset.current" class="text-grey" @click="preset.save(preset.current)"
+                                        >UPDATE {{ preset.current }}</v-list-item
+                                    >
+                                    <v-list-item v-if="preset.current" class="text-grey" @click="preset.remove(preset.current)"
+                                        >DELETE {{ preset.current }}</v-list-item
+                                    >
+                                    <v-list-item class="text-grey" @click="showSavePresetDialog = true"
+                                        >NEW...</v-list-item
+                                    >
+                                </v-list>
+                            </v-menu>
+                        </v-list-item>
+                        <v-list-item class="text-grey" @click="true">
+                            <v-list-item-title>RESET</v-list-item-title>
+                            <v-menu activator="parent" location="end">
+                                <v-list density="compact">
+                                    <v-list-item class="text-grey" @click="resetLayout"
+                                        >WINDOW LAYOUT</v-list-item
+                                    >
+                                    <v-list-item class="text-grey" @click="resetAll"
+                                        >ALL SETTINGS</v-list-item
+                                    >
+                                </v-list>
+                            </v-menu>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </v-btn>
             <template v-for="(options, title) in menuItems" :key="title">
                 <v-btn
                     v-if="typeof options == 'string'"
@@ -13,7 +53,7 @@
                 <v-btn v-else type="text" class="text-grey">
                     {{ title }}
                     <v-menu activator="parent" transition="slide-y-transition">
-                        <v-list>
+                        <v-list density="compact">
                             <v-list-item
                                 v-for="(id, label) in options"
                                 :class="(id as string) in windows.winbox ? '' : 'text-grey'"
@@ -26,7 +66,7 @@
                                     v-if="typeof id == 'object'"
                                     location="end"
                                 >
-                                    <v-list>
+                                    <v-list density="compact">
                                         <v-list-item
                                             v-for="(id2, label2) in id"
                                             :class="id2 in windows.winbox ? '' : 'text-grey'"
@@ -75,11 +115,19 @@
                 </Window>
             </template>
             <Welcome v-if="!Object.values(windows.layout).find((l) => l.enabled)" />
-                <!--
-                <Window id="iframe" title="IFRAME" width="800" height="600">
-                    <Iframe src="https://www.aro.lfv.se/Editorial/View/General/14387/Daily%20use%20plan%202024-05-23%20version%203" />
-                </Window>
-                -->
+                <v-dialog v-model="showSavePresetDialog" max-width="500" >
+                    <v-card>
+                        <v-card-title class="font-weight-light text-grey">Save current layout as preset</v-card-title>
+                        <v-card-text>
+                            <v-text-field variant="underlined" autofocus v-model="presetName" label="Name" @keyup.enter="savePreset" @input="presetName = presetName.toUpperCase()"></v-text-field>
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-btn variant="text" color="secondary" @click="showSavePresetDialog = false">Cancel</v-btn>
+                            <v-spacer/>
+                            <v-btn variant="text" color="primary" @click="savePreset">Save</v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-dialog>
         </v-main>
     </v-app>
 </template>
@@ -105,6 +153,7 @@ import { useNotamStore } from "./stores/notam"
 import moment from "moment"
 import axios from "axios"
 import { onMounted, ref } from "vue"
+import { usePresetStore } from "./stores/preset"
 
 const menuItems = {
     /*
@@ -246,6 +295,8 @@ for (const icao of wxAirports) {
 }
 
 const fullscreen = ref(window.innerHeight == screen.height)
+const showSavePresetDialog = ref(false)
+const presetName = ref("")
 
 function enable(id: string) {
     if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
@@ -288,12 +339,28 @@ function exitFullScreen() {
     fullscreen.value = false
 }
 
+function savePreset() {
+    if (!presetName.value) return
+    preset.save(presetName.value)
+    showSavePresetDialog.value = false
+}
+
+function resetLayout() {
+    localStorage.removeItem("layout")
+    localStorage.removeItem("preset")
+    location.reload()
+}
+
+function resetAll() {
+    localStorage.clear()
+    location.reload()
+}
+
 onMounted(() => {
     window.addEventListener("resize", () => {
         fullscreen.value = !!document.fullscreenElement
     })
 })
-
 
 // global exports for fiddling in console
 
@@ -309,8 +376,8 @@ const wx = useWxStore()
 const notam = useNotamStore()
 ;(window as any).notam = notam
 
+const preset = usePresetStore()
+;(window as any).preset = preset
 ;(window as any).moment = moment
 ;(window as any).axios = axios
-
-
 </script>

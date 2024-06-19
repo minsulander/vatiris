@@ -27,22 +27,24 @@
                 @click="header = !header"
                 >Header</v-btn
             >
-            <v-btn
-                variant="text"
-                rounded="0"
-                size="small"
-                :color="ad ? 'white' : 'grey-lighten-1'"
+            <v-btn variant="text" rounded="0" size="small" :color="ad.length > 0 ? 'white' : 'grey-lighten-1'"
                 >Aerodromes
                 <v-menu activator="parent" transition="slide-y-transition">
-                    <v-list>
-                        <v-list-item @click="clickAdAll" :class="ad.length == Object.keys(notam.ad).length ? '' : 'text-grey'">
+                    <v-list density="compact">
+                        <v-list-item
+                            @click="clickAdAll"
+                            :class="ad.length == 1 && ad[0] == 'ALL' ? '' : 'text-grey'"
+                        >
                             <v-list-item-title>ALL</v-list-item-title>
                         </v-list-item>
-                        <v-list-item @click="clickAdNone" :class="ad.length == 0 ? '' : 'text-grey'">
+                        <v-list-item
+                            @click="clickAdNone"
+                            :class="ad.length == 0 ? '' : 'text-grey'"
+                        >
                             <v-list-item-title>NONE</v-list-item-title>
                         </v-list-item>
                         <v-list-item
-                            v-for="(id) in Object.keys(notam.ad).sort()"
+                            v-for="id in Object.keys(notam.ad).sort()"
                             :key="id"
                             :class="ad.includes(id) ? '' : 'text-grey'"
                             @click="clickAd(id)"
@@ -103,7 +105,12 @@
             <pre class="pa-1 text-grey-darken-2" v-html="notam.header" v-if="header"></pre>
             <div v-if="ad.length > 0">
                 <h2 class="pa-1 mt-1 mb-3 bg-grey">AERODROMES</h2>
-                <template v-for="id in ad" :key="id">
+                <template
+                    v-for="id in ad.length == 1 && ad[0] == 'ALL'
+                        ? Object.keys(notam.ad).sort()
+                        : ad"
+                    :key="id"
+                >
                     <div v-if="notam.ad[id].length > 0">
                         <h3 class="mb-3 pa-1 bg-grey">{{ id }} {{ notam.adTitle[id] }}</h3>
                         <div
@@ -119,6 +126,10 @@
                                 :item="item"
                             />
                         </div>
+                    </div>
+                    <div v-else-if="ad.length < 1 || ad[0] != 'ALL'">
+                        <h3 class="mb-3 pa-1 bg-grey">{{ id }} {{ notam.adTitle[id] }}</h3>
+                        <div class="pa-1 mb-3 text-grey-darken-2">NIL</div>
                     </div>
                 </template>
             </div>
@@ -149,7 +160,7 @@ const notam = useNotamStore()
 
 const raw = ref(false)
 const header = ref(true)
-const ad = reactive([] as string[])
+const ad = reactive(["ALL"])
 const enroute = ref(true)
 const nav = ref(true)
 const footer = ref(true)
@@ -162,12 +173,15 @@ const filteredNotams = (notams: any[]) => {
 
 function clickAd(id: string) {
     if (ad.includes(id)) ad.splice(ad.indexOf(id), 1)
-    else ad.push(id)
+    else {
+        ad.push(id)
+        if (ad[0] == "ALL") ad.splice(0, 1)
+    }
 }
 
 function clickAdAll() {
     ad.splice(0)
-    for (const id in notam.ad) ad.push(id)
+    ad.push("ALL")
 }
 
 function clickAdNone() {

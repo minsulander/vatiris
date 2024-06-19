@@ -2,7 +2,7 @@
     <div v-if="wx.noData(props.id)" class="pa-3 text-center">
         NO DATA
     </div>
-    <div class="metreport" v-else :style="changed ? 'background-color: #66f; color: #ddd' : ''" style="height: 100%">
+    <div class="metreport" v-else :style="changed ? 'background-color: #33f; color: #ddd' : ''" style="height: 100%">
         <div class="float-right text-caption text-grey-darken-2">
             {{ time.replace("T", " ") }}
         </div>

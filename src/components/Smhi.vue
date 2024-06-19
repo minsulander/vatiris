@@ -97,8 +97,8 @@ onMounted(() => {
     let center = [16, 63]
     let zoom = 5
 
-    if ("smhi_map_center" in localStorage) center = JSON.parse(localStorage["smhi_map_center"])
-    if ("smhi_map_zoom" in localStorage) zoom = JSON.parse(localStorage["smhi_map_zoom"])
+    if ("smhiMapCenter" in localStorage) center = JSON.parse(localStorage["smhiMapCenter"])
+    if ("smhiMapZoom" in localStorage) zoom = JSON.parse(localStorage["smhiMapZoom"])
 
     const smhiSource = new TileWMS({
         url: SMHI_URL,
@@ -239,8 +239,8 @@ onMounted(() => {
     })
 
     map.on("moveend", () => {
-        localStorage["smhi_map_center"] = JSON.stringify(map.getView().getCenter())
-        localStorage["smhi_map_zoom"] = JSON.stringify(map.getView().getZoom())
+        localStorage["smhiMapCenter"] = JSON.stringify(map.getView().getCenter())
+        localStorage["smhiMapZoom"] = JSON.stringify(map.getView().getZoom())
     })
 
     refreshInterval = setInterval(() => {
