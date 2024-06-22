@@ -9,17 +9,32 @@
                             <v-list-item-title>PRESET</v-list-item-title>
                             <v-menu activator="parent" location="end">
                                 <v-list density="compact">
-                                    <v-list-item v-for="id in Object.keys(preset.presets)" :key="id" @click="preset.load(id)">
-                                        <v-list-item-title :class="id == preset.current ? '' : 'text-grey'">{{ id }}</v-list-item-title>
+                                    <v-list-item
+                                        v-for="id in Object.keys(preset.presets)"
+                                        :key="id"
+                                        @click="preset.load(id)"
+                                    >
+                                        <v-list-item-title
+                                            :class="id == preset.current ? '' : 'text-grey'"
+                                            >{{ id }}</v-list-item-title
+                                        >
                                     </v-list-item>
-                                    <v-divider v-if="Object.keys(preset.presets).length > 0"/>
-                                    <v-list-item v-if="preset.current" class="text-grey" @click="preset.save(preset.current)"
+                                    <v-divider v-if="Object.keys(preset.presets).length > 0" />
+                                    <v-list-item
+                                        v-if="preset.current"
+                                        class="text-grey"
+                                        @click="saveCurrentPreset"
                                         >UPDATE {{ preset.current }}</v-list-item
                                     >
-                                    <v-list-item v-if="preset.current" class="text-grey" @click="preset.remove(preset.current)"
+                                    <v-list-item
+                                        v-if="preset.current"
+                                        class="text-grey"
+                                        @click="deleteCurrentPreset"
                                         >DELETE {{ preset.current }}</v-list-item
                                     >
-                                    <v-list-item class="text-grey" @click="showSavePresetDialog = true"
+                                    <v-list-item
+                                        class="text-grey"
+                                        @click="showSavePresetDialog = true"
                                         >NEW...</v-list-item
                                     >
                                 </v-list>
@@ -115,20 +130,35 @@
                 </Window>
             </template>
             <Welcome v-if="!Object.values(windows.layout).find((l) => l.enabled)" />
-                <v-dialog v-model="showSavePresetDialog" max-width="500" >
-                    <v-card>
-                        <v-card-title class="font-weight-light text-grey">Save current layout as preset</v-card-title>
-                        <v-card-text>
-                            <v-text-field variant="underlined" autofocus v-model="presetName" label="Name" @keyup.enter="savePreset" @input="presetName = presetName.toUpperCase()"></v-text-field>
-                        </v-card-text>
-                        <v-card-actions>
-                            <v-btn variant="text" color="secondary" @click="showSavePresetDialog = false">Cancel</v-btn>
-                            <v-spacer/>
-                            <v-btn variant="text" color="primary" @click="savePreset">Save</v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>
+            <v-dialog v-model="showSavePresetDialog" max-width="500">
+                <v-card>
+                    <v-card-title class="font-weight-light text-grey"
+                        >Save current layout as preset</v-card-title
+                    >
+                    <v-card-text>
+                        <v-text-field
+                            variant="underlined"
+                            autofocus
+                            v-model="presetName"
+                            label="Name"
+                            @keyup.enter="savePreset"
+                            @input="presetName = presetName.toUpperCase()"
+                        ></v-text-field>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn
+                            variant="text"
+                            color="secondary"
+                            @click="showSavePresetDialog = false"
+                            >Cancel</v-btn
+                        >
+                        <v-spacer />
+                        <v-btn variant="text" color="primary" @click="savePreset">Save</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
         </v-main>
+        <confirmation-dialog v-model="confirmation" />
     </v-app>
 </template>
 
@@ -145,6 +175,7 @@ import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import Iframe from "@/components/Iframe.vue"
 import Clock from "@/components/Clock.vue"
+import ConfirmationDialog from "@/components/ConfirmationDialog.vue"
 
 import { useWinBox } from "vue-winbox"
 import { useWindowsStore } from "./stores/windows"
@@ -297,6 +328,7 @@ for (const icao of wxAirports) {
 const fullscreen = ref(window.innerHeight == screen.height)
 const showSavePresetDialog = ref(false)
 const presetName = ref("")
+const confirmation = ref({})
 
 function enable(id: string) {
     if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
@@ -339,6 +371,22 @@ function exitFullScreen() {
     fullscreen.value = false
 }
 
+function saveCurrentPreset() {
+    preset.save(preset.current)
+}
+
+function deleteCurrentPreset() {
+    function doIt() {
+        preset.remove(preset.current)
+    }
+    confirmation.value = {
+        title: "Delete preset",
+        text: `Are you sure you want to delete preset ${preset.current}?`,
+        action: "DELETE",
+        callback: doIt,
+    }
+}
+
 function savePreset() {
     if (!presetName.value) return
     preset.save(presetName.value)
@@ -352,8 +400,18 @@ function resetLayout() {
 }
 
 function resetAll() {
-    localStorage.clear()
-    location.reload()
+    function doIt() {
+        const presets = localStorage.presets
+        localStorage.clear()
+        localStorage.presets = presets
+        location.reload()
+    }
+    confirmation.value = {
+        title: "Reset all settings",
+        text: "This will remove all settings except presets.<br/>Are you sure?",
+        action: "RESET",
+        callback: doIt,
+    }
 }
 
 onMounted(() => {
