@@ -23,7 +23,7 @@ import { Style, Stroke, Fill, RegularShape, Text } from "ol/style"
 import moment from "moment"
 
 const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
-const SMHI_URL = "https://api.vatiris.se/smhi-tile" // "https://wts.smhi.se/tile/"
+const SMHI_URL = "https://api.vatiris.se/smhi-tile2" // "https://wts.smhi.se/tile/"
 const ECHARTS_URL =
     "https://daim.lfv.se/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
 const AIRPORTS = [
@@ -111,8 +111,8 @@ onMounted(() => {
         serverType: "geoserver",
         projection: "EPSG:900913",
         transition: 0,
-        // hidpi: false,
-        // crossOrigin: "anonymous",
+        hidpi: false,
+        crossOrigin: "anonymous",
     })
     const smhiLayer = new TileLayer({
         source: smhiSource,
@@ -153,7 +153,7 @@ onMounted(() => {
 
     const map = new Map({
         maxTilesLoading: 4,
-        //pixelRatio: 1,
+        pixelRatio: 1,
         target: mapcontainer.value,
         layers: [
             new TileLayer({
