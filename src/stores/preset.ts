@@ -18,8 +18,16 @@ export const usePresetStore = defineStore("preset", () => {
     const current = ref(localStorage.preset || "")
     const presets = reactive({} as { [key: string]: { [key: string]: string  }})
 
-    if ("presets" in localStorage) Object.assign(presets, JSON.parse(localStorage.presets))
-    else Object.assign(presets, defaultPresets())
+    if ("presets" in localStorage) {
+        try {
+            Object.assign(presets, JSON.parse(localStorage.presets))
+        } catch (e: any) {
+            console.error("Failed to parse presets", e)
+            delete localStorage.presets
+        }
+    } else {
+        Object.assign(presets, defaultPresets())
+    }
 
     function load(name: string) {
         if (name in presets) {

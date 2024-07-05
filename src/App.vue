@@ -403,7 +403,7 @@ function resetAll() {
     function doIt() {
         const presets = localStorage.presets
         localStorage.clear()
-        localStorage.presets = presets
+        if (presets) localStorage.presets = presets
         location.reload()
     }
     confirmation.value = {
