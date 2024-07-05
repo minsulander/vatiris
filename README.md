@@ -1,39 +1,20 @@
-# vatiris
+## VatIRIS
 
-This template should help get you started developing with Vue 3 in Vite.
+[VatIRIS](https://vatiris.se/) is an interpretation of its real-world counterpart [IRIS](https://www.awos.se/sv-se/products/iris.aspx) - 
+Integrated Real-time Information System, but adapted and extended for use by VATSIM controllers in Sweden.
 
-## Recommended IDE Setup
+### Contributing
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Contributions of any kind are most welcome.
 
-## Type Support for `.vue` Imports in TS
+- Please file bug reports and/or feature requests as [issues](https://github.com/minsulander/vatiris/issues).
+- Pull requests are welcome.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### For developers
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
+It's a fairly straight-forward [Vue3](https://vuejs.org) + [Vuetify](https://vuetifyjs.com) + [Winbox](https://nextapps-de.github.io/winbox/) project.
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
+npm start
 ```
