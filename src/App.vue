@@ -98,7 +98,7 @@
                 </v-btn>
             </template>
             <v-spacer />
-            <v-btn class="text-grey" @click="enable('about')">About</v-btn>
+            <v-btn class="text-grey" @click="showAboutDialog = true">About</v-btn>
             <v-btn
                 v-if="!fullscreen"
                 type="icon"
@@ -154,6 +154,20 @@
                         >
                         <v-spacer />
                         <v-btn variant="text" color="primary" @click="savePreset">Save</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+            <v-dialog v-model="showAboutDialog" max-width="730">
+                <v-card>
+                    <v-card-title class="font-weight-light text-grey"
+                        >About VatIRIS</v-card-title
+                    >
+                    <v-card-text>
+                        <About />
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer />
+                        <v-btn variant="text" color="primary" @click="showAboutDialog = false">Got it</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -327,6 +341,7 @@ for (const icao of wxAirports) {
 
 const fullscreen = ref(window.innerHeight == screen.height)
 const showSavePresetDialog = ref(false)
+const showAboutDialog = ref(false)
 const presetName = ref("")
 const confirmation = ref({})
 
