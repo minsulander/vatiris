@@ -184,6 +184,7 @@ import Metreport from "./components/Metreport.vue"
 import Metsensor from "./components/Metsensor.vue"
 import Notam from "@/components/Notam.vue"
 import LfvEcharts from "@/components/LfvEcharts.vue"
+import Wiki from "@/components/Wiki.vue"
 import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
@@ -228,6 +229,7 @@ const menuItems = {
 
     NOTAM: "notam",
     eCharts: "echarts",
+    wiki: "wiki",
 }
 
 export interface WindowSpec {
@@ -277,6 +279,12 @@ const availableWindows: { [key: string]: WindowSpec } = {
         title: "LFV eCharts",
         component: LfvEcharts,
         width: 600,
+        height: 600,
+    },
+    wiki: {
+        title: "VATSCA Wiki",
+        component: Wiki,
+        width: 800,
         height: 600,
     },
     smhi: {
