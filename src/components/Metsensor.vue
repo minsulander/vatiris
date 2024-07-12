@@ -29,6 +29,12 @@
     background-color: #66f;
     color: #ddd;
 }
+.metsensor .leqnh,
+.metsensor .leqnh span.changed {
+    display: inline;
+    font-size: 22px;
+    font-weight: 700 !important;
+}
 </style>
 
 <script setup lang="ts">
@@ -96,10 +102,10 @@ function stylize(newValue: string, oldValue: string = "") {
             }
             outLines.push(blueFirstWord(line))
         } else if (line.startsWith("QNH")) {
-            const m = line.match(/QNH\s+(.+?)\s+TRL\s+(.+?)\s+QFE\s+(\S+)(.*)/)
+            const m = line.match(/QNH(\s+.+?\s+)TRL\s+(.+?)\s+QFE\s+(\S+)(.*)/)
             if (m) {
                 outLines.push(
-                    `<hr class="my-2"/><div class="text-center">${blue("QNH")} <span style="font-size: 20px; font-weight: bold">${m[1]}</span></div><hr class="mt-2" style="margin-bottom: -8px"/>`,
+                    `<hr class="my-2"/><div class="text-center">${blue("QNH")}<div class="leqnh">${m[1]}</div></div><hr class="mt-2" style="margin-bottom: -8px"/>`,
                 )
                 if (m[2] != "//") {
                     outLines.push(`${blue("TRL")}  ${padEndHtml(m[2], 8)} ${blue("QFE")}  ${m[3]}${m[4]}`)
