@@ -84,22 +84,32 @@ function stylize(newValue: string, oldValue: string = "") {
                 line = "    " + line.substring(4)
             if (line.startsWith("RVR")) {
                 const m = line.match(/RVR(\s+)(.+?)(\s\s+)(.+?)(\s\s+)(.+)/)
-                if (m) line = `RVR${m[1]}<b>${m[2]}</b>${m[3]}<b>${m[4]}</b>${m[5]}<b>${m[6]}</b>`
+                if (m) {
+                    const val1 = parseInt(m[2].replace(/\D/g,""))
+                    const val2 = parseInt(m[4].replace(/\D/g,""))
+                    const val3 = parseInt(m[6].replace(/\D/g,""))
+                    if (val1 < 2000 && val2 < 2000 && val3 < 2000) {
+                        line = `RVR${m[1]}<b>${m[2]}</b>${m[3]}<b>${m[4]}</b>${m[5]}<b>${m[6]}</b>`
+                    }
+                }
+                outLines.push("") // empty line between COMP and RVR
             }
             outLines.push(blueFirstWord(line))
         } else if (line.startsWith("QNH")) {
             const m = line.match(/QNH\s+(.+?)\s+TRL\s+(.+?)\s+QFE\s+(\S+)(.*)/)
             if (m) {
                 outLines.push(
-                    `<hr class="my-2"/><div class="text-center">${blue("QNH")} <span style="font-size: 20px; font-weight: bold">${m[1]}</span></div><hr class="mt-2"/>`,
+                    `<hr class="my-2"/><div class="text-center">${blue("QNH")} <span style="font-size: 20px; font-weight: bold">${m[1]}</span></div><hr class="mt-2" style="margin-bottom: -8px"/>`,
                 )
-                outLines.push(`${blue("TRL")}  ${padEndHtml(m[2], 8)} ${blue("QFE")}  ${m[3]}${m[4]}`)
+                if (m[2] != "//") {
+                    outLines.push(`${blue("TRL")}  ${padEndHtml(m[2], 8)} ${blue("QFE")}  ${m[3]}${m[4]}`)
+                }
             } else outLines.push(line)
         } else if (line.startsWith("T") && line.includes("DP")) {
             const m = line.match(/T\s+(.+?)\s+DP\s+(.+?)\s+RH\s+(\S+)(.*)/)
             if (m) {
                 outLines.push(
-                    `${blue("T")}    ${padEndHtml(m[1], 8)} ${blue("DP")}   ${padEndHtml(m[2], 7)} ${blue("RH")}   ${m[3]}${m[4]}`,
+                    `${blue("T")}    ${padEndHtml(m[1], 8)} ${blue("DP")}   ${padEndHtml(m[2], 7)} ${blue("HUM")}   ${m[3]}%${m[4]}`,
                 )
             } else {
                 console.log("Metsensor no bueno", line)
