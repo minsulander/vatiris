@@ -230,6 +230,7 @@ const menuItems = {
     NOTAM: "notam",
     eCharts: "echarts",
     wiki: "wiki",
+    aip: "aip",
 }
 
 export interface WindowSpec {
@@ -284,6 +285,13 @@ const availableWindows: { [key: string]: WindowSpec } = {
     wiki: {
         title: "VATSCA Wiki",
         component: Wiki,
+        width: 800,
+        height: 600,
+    },
+    aip: {
+        title: "AIP test",
+        component: Iframe,
+        props: { src: "https://www.aro.lfv.se/Editorial/View/13845/ES_AD_2_ESSA_5-23_en#toolbar=0&navpanes=0&scrollbar=0" },
         width: 800,
         height: 600,
     },

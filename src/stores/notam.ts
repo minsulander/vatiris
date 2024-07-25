@@ -4,7 +4,7 @@ import { defineStore } from "pinia"
 import { computed, reactive, ref } from "vue"
 
 interface Notam {
-    inEffect: boolean,
+    minus: boolean,
     permanent: boolean,
     content: string,
     id?: string,
@@ -87,7 +87,7 @@ export const useNotamStore = defineStore("notam", () => {
                     currentNotam = undefined
                 } else if (icao) {
                     if (line.startsWith("- ") || line.startsWith("+ ")) {
-                        currentNotam = { inEffect: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
+                        currentNotam = { minus: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
                         ad[icao].push(currentNotam)
                     } else if (line == "NIL") {
                         currentNotam = undefined
@@ -103,7 +103,7 @@ export const useNotamStore = defineStore("notam", () => {
                 }
             } else if (section == "enroute") {
                 if (line.startsWith("- ") || line.startsWith("+ ")) {
-                    currentNotam = { inEffect: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
+                    currentNotam = { minus: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
                     enroute.push(currentNotam)
                 } else if (currentNotam) {
                     parseNotamLine(currentNotam, line)
@@ -113,9 +113,9 @@ export const useNotamStore = defineStore("notam", () => {
                 }
             } else if (section == "nav") {
                 if (line.startsWith("- ") || line.startsWith("+ ")) {
-                    currentNotam = { inEffect: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
+                    currentNotam = { minus: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
                     nav.push(currentNotam)
-                    if (currentNotam.content.includes(" IN SECTION ")) currentNotam = undefined // one-lin reference
+                    if (currentNotam.content.includes(" IN SECTION ")) currentNotam = undefined // one-line reference
                 } else if (currentNotam) {
                     parseNotamLine(currentNotam, line)
                     if (currentNotam.id) currentNotam = undefined // assume all notams end with id

@@ -168,7 +168,7 @@ const future = ref(true)
 
 const filteredNotams = (notams: any[]) => {
     if (future.value) return notams.sort((a, b) => a.from - b.from)
-    return notams.filter((n) => n.inEffect)
+    return notams.filter((n) => !n.from || n.from.getTime() < Date.now()).sort((a, b) => a.from - b.from)
 }
 
 function clickAd(id: string) {

@@ -1,5 +1,5 @@
 <template>
-    <div class="pa-1 mb-3" :class="props.item.inEffect ? 'text-black' : 'text-grey-darken-2'">
+    <div class="pa-1 mb-3" :class="props.item.from && props.item.from.getTime() < Date.now() ? 'text-black' : 'text-grey-darken-2'">
         <pre>{{ props.item.content.trim() }}</pre>
         <v-row no-gutters style="font-size: 12px; width: 100%; opacity: 0.7">
             <v-col cols="4" v-if="props.item.reported">
