@@ -3,8 +3,9 @@
     <div
         class="metreport"
         v-else
-        :style="changed ? 'background-color: #33f; color: #ddd' : ''"
+        :style="changed ? 'background-color: #33f; color: #ddd' : changedLong ? 'color: #33f' : ''"
         style="height: 100%"
+        @click="click"
     >
         <div class="float-right text-caption text-grey-darken-2">
             {{ time.replace("T", " ") }}
@@ -130,8 +131,16 @@ const formatMetreport = (report: string) => {
 const formattedMetreport = computed(() => formatMetreport(metreport.value || ""))
 
 const changed = ref(false)
+const changedLong = ref(false)
+let changeTimeouts: any[] = []
 
 let subscription = ""
+
+function click() {
+    for (const timeout of changeTimeouts) clearTimeout(timeout)
+    changeTimeouts.splice(0)
+    changed.value = changedLong.value = false
+}
 
 onMounted(() => {
     subscription = wx.subscribe(props.id)
@@ -144,9 +153,21 @@ onUnmounted(() => {
 watch([rwy, metreport, info, metar], (newValues, oldValues) => {
     if (oldValues.find((v) => v.length > 0)) {
         changed.value = true
-        setTimeout(() => (changed.value = false), 1000)
-        setTimeout(() => (changed.value = true), 2000)
-        setTimeout(() => (changed.value = false), 3000)
+        changeTimeouts.splice(0)
+        changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))
+        changeTimeouts.push(setTimeout(() => (changed.value = true), 2000))
+        changeTimeouts.push(
+            setTimeout(() => {
+                changed.value = false
+                changedLong.value = true
+            }, 3000),
+        )
+        changeTimeouts.push(
+            setTimeout(() => {
+                changed.value = false
+                changedLong.value = false
+            }, 63000),
+        )
     }
 })
 </script>

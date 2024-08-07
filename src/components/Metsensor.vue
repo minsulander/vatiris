@@ -1,6 +1,12 @@
 <template>
     <div v-if="wx.noData(props.id)" class="pa-3 text-center">NO DATA</div>
-    <div v-else class="metsensor" :class="changed ? 'flash' : ''" style="height: 100%">
+    <div
+        v-else
+        class="metsensor"
+        :class="changed ? 'flash' : ''"
+        style="height: 100%"
+        @click="click"
+    >
         <div style="position: relative">
             <div
                 style="position: absolute; right: 3px; z-index: 100"
@@ -135,6 +141,13 @@ const blue = (text: string) => `<span style="color: #33f">${text}</span>`
 const blueFirstWord = (text: string) => text.replace(/^(..\S+)/, blue("$1"))
 
 let subscription = ""
+let changeTimeouts: any[] = []
+
+function click() {
+    for (const timeout of changeTimeouts) clearTimeout(timeout)
+    changeTimeouts.splice(0)
+    changed.value = false
+}
 
 onMounted(() => {
     stylize(metsensor.value)
@@ -148,8 +161,9 @@ onUnmounted(() => {
 watch(metsensor, (newValue: string, oldValue: string) => {
     stylize(newValue, oldValue)
     changed.value = true
-    setTimeout(() => (changed.value = false), 1000)
-    setTimeout(() => (changed.value = true), 2000)
-    setTimeout(() => (changed.value = false), 3000)
+    changeTimeouts.splice(0)
+    changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))
+    changeTimeouts.push(setTimeout(() => (changed.value = true), 2000))
+    changeTimeouts.push(setTimeout(() => (changed.value = false), 3000))
 })
 </script>
