@@ -7,51 +7,106 @@
             {{ time.replace("T", " ") }}
         </div>
         <pre class="pa-1" style="font-size: 14px; line-height: 16px; white-space: pre-wrap" v-html="rwy"></pre>
-        <pre class="pa-1" style="font-size: 14px; line-height: 16px; white-space: pre-wrap" v-html="metreport"></pre>
+        <pre class="pa-1" style="font-size: 14px; line-height: 16px; white-space: pre-wrap" v-html="formattedMetreport"></pre>
         <pre class="pa-1" style="font-size: 14px; line-height: 16px; white-space: pre-wrap" v-html="info"></pre>
         <pre class="pa-1" style="font-size: 14px; line-height: 16px; white-space: pre-wrap" v-html="metar"></pre>
     </div>
 </template>
 
-<style>
-.metreport {
-    transition: background-color 0.25s, color 0.25s;
-}
-</style>
-
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, ref, watch } from "vue"
+import { onMounted, onUnmounted, computed, ref, watch } from "vue";
 import { useWxStore } from "@/stores/wx";
 
-const props = defineProps<{ id: string }>()
+const props = defineProps<{ id: string }>();
 
-const wx = useWxStore()
+const wx = useWxStore();
 
-const time = computed(() => wx.time(props.id))
-const rwy = computed(() => wx.rwy(props.id))
-const metreport = computed(() => wx.metreport(props.id))
-const info = computed(() => wx.info(props.id))
-const metar = computed(() => wx.metar(props.id))
+const time = computed(() => wx.time(props.id));
+const rwy = computed(() => wx.rwy(props.id));
+const metreport = computed(() => wx.metreport(props.id));
+const info = computed(() => wx.info(props.id));
+const metar = computed(() => wx.metar(props.id));
 
-const changed = ref(false)
+// List of valid airport codes
+const ATISAirportCodes = [
+    "ESGG", "ESKN", "ESMS", "ESNN", "ESOW", "ESSA", "ESSB", "ESTL"
+];
 
-let subscription = ""
+// List of keywords to be styled. X-R not working
+const keywords = [
+    "ALF", "BRA", "CHA", "DEL", "ECH", "FOX", "GOL", "HOT", "IND", "JUL",
+    "KIL", "LIM", "MIK", "NOV", "OSC", "PAP", "QUE", "ROM", "SIE", "TAN",
+    "UNI", "VIC", "WHI", "X-R", "YAN", "ZUL"
+];
+
+// Extract ICAO code from the fetched data
+const getAirportCode = (data: string) => {
+    const match = data.match(/^[A-Z]{4}/);
+    return match ? match[0] : '';
+};
+
+// Determine if the airport code is valid
+const airportCode = computed(() => {
+    const data = wx.metreport(props.id) || '';
+    return getAirportCode(data);
+});
+
+const isValidAirport = computed(() => ATISAirportCodes.includes(airportCode.value));
+
+const formatMetreport = (report: string) => {
+    if (!report) return "";
+
+    // QNH styling (3-4 letters, maybe always 4?)
+    let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){3,4}\d+)/g, (match, p1, p2) => {
+        return `${p1}<span style="font-size: 21px; font-weight: 800;">${p2}</span>`;
+    });
+
+    // Issuing time styling
+    formattedReport = formattedReport.replace(/\b(\d{6}Z)\b/g, (match) => {
+        return `<span style="font-weight: 600;">${match}</span>`;
+    });
+
+    // Style ID letter ff ATIS airport
+    if (isValidAirport.value) {
+        formattedReport = formattedReport.replace(/\b(\w{3,4})\b/g, (match) => {
+            if (keywords.includes(match)) {
+                return `<span style="font-size: 16px; font-weight: 600;">${match}</span>`;
+            }
+            return match;
+        });
+    } else {
+        // Remove the ID letter if NOT an ATIS airport - X-R not working
+        formattedReport = formattedReport.replace(/\b(\w{3,4})\b/g, (match) => {
+            if (keywords.includes(match)) {
+                return ""; // Hide keyword
+            }
+            return match;
+        });
+    }
+
+    return formattedReport;
+};
+
+const formattedMetreport = computed(() => formatMetreport(metreport.value || ""));
+
+const changed = ref(false);
+
+let subscription = "";
 
 onMounted(() => {
-    subscription = wx.subscribe(props.id)
-})
+    subscription = wx.subscribe(props.id);
+});
 
 onUnmounted(() => {
-    wx.unsubscribe(subscription)
-})
+    wx.unsubscribe(subscription);
+});
 
 watch([rwy, metreport, info, metar], (newValues, oldValues) => {
     if (oldValues.find(v => v.length > 0)) {
-        console.log("Metreport changed", props.id)
-        changed.value = true
-        setTimeout(() => changed.value = false, 1000)
-        setTimeout(() => changed.value = true, 2000)
-        setTimeout(() => changed.value = false, 3000)
+        changed.value = true;
+        setTimeout(() => (changed.value = false), 1000);
+        setTimeout(() => (changed.value = true), 2000);
+        setTimeout(() => (changed.value = false), 3000);
     }
-})
+});
 </script>
