@@ -47,10 +47,10 @@ const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
 
-// List of valid airport codes
+// List of ATIS airports
 const ATISAirportCodes = ["ESGG", "ESKN", "ESMS", "ESNN", "ESOW", "ESSA", "ESSB", "ESTL"]
 
-// List of keywords to be styled. X-R not working
+// ID letters to be hidden
 const keywords = [
     "ALF",
     "BRA",
@@ -102,12 +102,12 @@ const formatMetreport = (report: string) => {
         return `${p1}<div style="display: inline-block; font-size: 21px; font-weight: bold; margin-top: 7px">${p2}</div>`
     })
 
-    // Issuing time styling
+    // Styling issuing time
     formattedReport = formattedReport.replace(/\b(\d{6}Z)\b/g, (match) => {
         return `<span style="font-weight: bold;">${match}</span>`
     })
 
-    // Style ID letter ff ATIS airport
+    // Hide RWY if NOT an ATIS airport
     if (isValidAirport.value) {
         formattedReport = formattedReport.replace(/\b([\w-]{3,4})\b/g, (match) => {
             if (keywords.includes(match)) {
@@ -116,7 +116,7 @@ const formatMetreport = (report: string) => {
             return match
         })
     } else {
-        // Remove the ID letter if NOT an ATIS airport
+        // Hide ID letter if NOT an ATIS airport
         formattedReport = formattedReport.replace(/\b([\w-]{3,4})\b/g, (match) => {
             if (keywords.includes(match)) {
                 return "   " // Hide keyword
