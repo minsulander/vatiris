@@ -107,15 +107,6 @@ const formatMetreport = (report: string) => {
         return `<span style="font-weight: bold;">${match}</span>`
     })
     
-// Hide RWY if NOT an ATIS airport
-if (isValidAirport.value) {
-    formattedReport = formattedReport.replace(/\bRWY\s\d{2}\s{10}\b/g, (match) => {
-        return `<span>${match}</span>`
-    })
-} else {
-    formattedReport = formattedReport.replace(/\bRWY\s\d{2}\s{10}\b/g, "") // Hide RWY XX by replacing with spaces
-}
-
     // Style ID letter if ATIS airport
     if (isValidAirport.value) {
         formattedReport = formattedReport.replace(/\b([\w-]{3,4})\b/g, (match) => {
