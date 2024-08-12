@@ -97,10 +97,24 @@ const isValidAirport = computed(() => ATISAirportCodes.includes(airportCode.valu
 const formatMetreport = (report: string) => {
     if (!report) return ""
 
+    // Function to hide three spaces before a six-digit number string unless followed by "Z"
+    const hideSpacesBeforeSixDigitNumber = (report: string) => {
+        return report.replace(/\s{3}(\d{6})(?!Z)/g, "$1")
+    }
+    
     // QNH styling (3-4 letters, maybe always 4?)
     let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){3,4}\d+)/g, (match, p1, p2) => {
         return `${p1}<div style="display: inline-block; font-size: 21px; font-weight: bold; margin-top: 7px">${p2}</div>`
     })
+
+    // Hide RWY if NOT an ATIS airport
+    if (isValidAirport.value) {
+        formattedReport = formattedReport.replace(/\bRWY\s\d{2}\b/g, (match) => {
+            return `<span>${match}</span>`
+        })
+    } else {
+        formattedReport = formattedReport.replace(/\bRWY\s\d{2}\b/g, "      ") // Hide RWY XX by replacing with spaces
+    }
 
     // Styling issuing time
     formattedReport = formattedReport.replace(/\b(\d{6}Z)\b/g, (match) => {
@@ -124,6 +138,11 @@ const formatMetreport = (report: string) => {
             return match
         })
     }
+
+    // Always show the four-letter combination but hide the next 6 spaces
+    formattedReport = formattedReport.replace(/\b(ES[A-Z]{2})\s{10}/g, (match, p1) => {
+        return p1 // Show the four-letter combination and remove 6 spaces
+    })
 
     return formattedReport
 }
