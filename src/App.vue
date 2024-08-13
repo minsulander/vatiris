@@ -1,6 +1,14 @@
 <template>
     <v-app>
         <v-app-bar color="#2b2d31" height="30">
+    <!-- Refresh Button -->
+    <v-btn 
+    type="icon"
+    icon="mdi-sync"
+    class="text-grey"
+    size="30px"
+    @click="refreshPage">
+    </v-btn>
             <v-btn color="grey">
                 System
                 <v-menu activator="parent" transition="slide-y-transition">
@@ -361,6 +369,9 @@ const showAboutDialog = ref(false)
 const presetName = ref("")
 const confirmation = ref({})
 
+function refreshPage() {
+    window.location.reload();
+}
 function enable(id: string) {
     if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
     if (id in windows.winbox) {
