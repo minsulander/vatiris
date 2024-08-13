@@ -10,7 +10,9 @@
         <div class="float-right text-caption text-grey-darken-2">
             {{ time.replace("T", " ") }}
         </div>
+        <!-- Conditionally display RWY only if the airport is ESSA -->
         <pre
+            v-if="isESSA"
             class="pa-1"
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
             v-html="rwy"
@@ -40,6 +42,9 @@ const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
+
+// Check if the airport is ESSA
+const isESSA = computed(() => props.id === "ESSA")
 
 // List of ATIS airports
 const ATISAirportCodes = ["ESGG", "ESKN", "ESMS", "ESNN", "ESOW", "ESSA", "ESSB", "ESTL"]
