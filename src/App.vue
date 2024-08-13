@@ -329,8 +329,8 @@ for (const icao of wxAirports) {
         title: `METREPORT ${icao}`,
         component: Metreport,
         props: { id: icao },
-        width: 360,
-        height: 280,
+        width: 420,
+        height: 380,
         class: "no-max",
     }
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
@@ -339,7 +339,7 @@ for (const icao of wxAirports) {
         component: Metsensor,
         props: { id: icao },
         width: 360,
-        height: 380,
+        height: 280,
         class: "no-max",
     }
     /*
