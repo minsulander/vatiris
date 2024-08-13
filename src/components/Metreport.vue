@@ -25,11 +25,6 @@
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
             v-html="info"
         ></pre>
-        <pre
-            class="pa-1"
-            style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
-            v-html="metar"
-        ></pre>
     </div>
 </template>
 
@@ -45,7 +40,6 @@ const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
-const metar = computed(() => wx.metar(props.id))
 
 // List of ATIS airports
 const ATISAirportCodes = ["ESGG", "ESKN", "ESMS", "ESNN", "ESOW", "ESSA", "ESSB", "ESTL"]
@@ -169,7 +163,7 @@ onUnmounted(() => {
     wx.unsubscribe(subscription)
 })
 
-watch([rwy, metreport, info, metar], (newValues, oldValues) => {
+watch([rwy, metreport, info], (newValues, oldValues) => {
     if (oldValues.find((v) => v.length > 0)) {
         changed.value = true
         changeTimeouts.splice(0)
