@@ -101,8 +101,8 @@ const formatMetreport = (report: string) => {
         return report.replace(/\s{3}(\d{6})(?!Z)/g, "$1")
     }
     
-    // QNH styling (3-4 letters, maybe always 4?)
-    let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){3,4}\d+)/g, (match, p1, p2) => {
+    // QNH styling
+    let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){4}\d+)/g, (match, p1, p2) => {
         return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${p2}</div>`
     })
 
