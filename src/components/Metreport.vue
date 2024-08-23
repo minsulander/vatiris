@@ -102,7 +102,8 @@ const formatMetreport = (report: string) => {
     }
     
     // QNH styling
-    let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){4}\d+)/g, (match, p1, p2) => {
+    let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g
+, (match, p1, p2) => {
         return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${p2}</div>`
     })
 
