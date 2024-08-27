@@ -184,7 +184,6 @@ import Metreport from "./components/Metreport.vue"
 import Metsensor from "./components/Metsensor.vue"
 import Notam from "@/components/Notam.vue"
 import LfvEcharts from "@/components/LfvEcharts.vue"
-import Wiki from "@/components/Wiki.vue"
 import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
@@ -200,6 +199,7 @@ import moment from "moment"
 import axios from "axios"
 import { onMounted, ref } from "vue"
 import { usePresetStore } from "./stores/preset"
+import { useVatsimStore } from "./stores/vatsim"
 
 const menuItems = {
     /*
@@ -229,8 +229,6 @@ const menuItems = {
 
     NOTAM: "notam",
     eCharts: "echarts",
-    wiki: "wiki",
-    aip: "aip",
 }
 
 export interface WindowSpec {
@@ -282,12 +280,7 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 600,
     },
-    wiki: {
-        title: "VATSCA Wiki",
-        component: Wiki,
-        width: 800,
-        height: 600,
-    },
+    /*
     aip: {
         title: "AIP test",
         component: Iframe,
@@ -295,6 +288,7 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 800,
         height: 600,
     },
+    */
     smhi: {
         title: "SMHI",
         component: Smhi,
@@ -469,4 +463,7 @@ const preset = usePresetStore()
 ;(window as any).preset = preset
 ;(window as any).moment = moment
 ;(window as any).axios = axios
+
+const vatsim = useVatsimStore()
+;(window as any).vatsim = vatsim
 </script>

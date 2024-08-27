@@ -12,6 +12,13 @@
         </div>
         <pre
             class="pa-1"
+            :class="
+                rwyDiffersToVatsim
+                    ? 'text-orange-darken-4'
+                    : hasVatsimAtis && !changed
+                      ? 'text-grey-darken-1'
+                      : ''
+            "
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
             v-html="rwy"
         ></pre>
@@ -36,10 +43,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useWxStore } from "@/stores/wx"
+import { useVatsimStore } from "@/stores/vatsim"
 
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
+const vatsim = useVatsimStore()
 
 const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
@@ -47,7 +56,39 @@ const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
 
-// List of valid airport codes
+const hasVatsimAtis = computed(() => {
+    const atis =
+        vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
+    return !!atis
+})
+
+const rwyDiffersToVatsim = computed(() => {
+    if (props.id == "ESSA") {
+        const arrAtis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_A"))
+        const depAtis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_D"))
+        if (!arrAtis || !arrAtis.text_atis || arrAtis.text_atis.length == 0) return false
+        if (!depAtis || !depAtis.text_atis || depAtis.text_atis.length == 0) return false
+        const arrRwyInUse = arrAtis.text_atis.join(" ")?.match(/RWY\s+(\d+) IN USE/)?.[1]
+        const depRwyInUse = depAtis.text_atis.join(" ")?.match(/RWY\s+(\d+) IN USE/)?.[1]
+        const rwyText = rwy.value.replace(/<[^>]*>?/gm, "")
+        return (
+            arrRwyInUse &&
+            depRwyInUse &&
+            !rwyText.includes(`ARR: ${arrRwyInUse}`) &&
+            !rwyText.includes(`DEP: ${depRwyInUse}`)
+        )
+    } else {
+        const atis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
+        if (!atis || !atis.text_atis || atis.text_atis.length == 0) return false
+        const rwyInUse = atis.text_atis.join(" ")?.match(/RWY\s+(\d+) IN USE/)?.[1]
+        const rwyText = rwy.value.replace(/<[^>]*>?/gm, "")
+        return rwyInUse && !rwyText.endsWith(rwyInUse)
+    }
+})
+
 const ATISAirportCodes = ["ESGG", "ESKN", "ESMS", "ESNN", "ESOW", "ESSA", "ESSB", "ESTL"]
 
 // List of keywords to be styled. X-R not working
@@ -92,7 +133,7 @@ const airportCode = computed(() => {
     return getAirportCode(data)
 })
 
-const isValidAirport = computed(() => ATISAirportCodes.includes(airportCode.value))
+const isATISAirport = computed(() => ATISAirportCodes.includes(airportCode.value))
 
 const formatMetreport = (report: string) => {
     if (!report) return ""
@@ -108,10 +149,12 @@ const formatMetreport = (report: string) => {
     })
 
     // Style ID letter ff ATIS airport
-    if (isValidAirport.value) {
+    if (isATISAirport.value) {
         formattedReport = formattedReport.replace(/\b([\w-]{3,4})\b/g, (match) => {
             if (keywords.includes(match)) {
-                return `<span style="font-size: 16px; font-weight: bold;">${match}</span>`
+                return hasVatsimAtis.value && !changed.value
+                    ? `<span style="font-size: 16px;" class="text-grey-darken-1">${match}</span>`
+                    : `<span style="font-size: 16px; font-weight: bold;">${match}</span>`
             }
             return match
         })
