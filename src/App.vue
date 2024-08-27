@@ -1,6 +1,6 @@
 <template>
     <v-app>
-        <v-app-bar color="#2b2d31" height="30">
+        <v-app-bar color="#2b2d31" height="30" elevation="0">
             <v-btn color="grey">
                 System
                 <v-menu activator="parent" transition="slide-y-transition">
