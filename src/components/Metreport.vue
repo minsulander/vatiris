@@ -70,8 +70,8 @@ const rwyDiffersToVatsim = computed(() => {
             vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_D"))
         if (!arrAtis || !arrAtis.text_atis || arrAtis.text_atis.length == 0) return false
         if (!depAtis || !depAtis.text_atis || depAtis.text_atis.length == 0) return false
-        const arrRwyInUse = arrAtis.text_atis.join(" ")?.match(/RWY\s+(\d+) IN USE/)?.[1]
-        const depRwyInUse = depAtis.text_atis.join(" ")?.match(/RWY\s+(\d+) IN USE/)?.[1]
+        const arrRwyInUse = arrAtis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
+        const depRwyInUse = depAtis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
         const rwyText = rwy.value.replace(/<[^>]*>?/gm, "")
         return (
             arrRwyInUse &&
@@ -83,7 +83,7 @@ const rwyDiffersToVatsim = computed(() => {
         const atis =
             vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
         if (!atis || !atis.text_atis || atis.text_atis.length == 0) return false
-        const rwyInUse = atis.text_atis.join(" ")?.match(/RWY\s+(\d+) IN USE/)?.[1]
+        const rwyInUse = atis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
         const rwyText = rwy.value.replace(/<[^>]*>?/gm, "")
         return rwyInUse && !rwyText.endsWith(rwyInUse)
     }
