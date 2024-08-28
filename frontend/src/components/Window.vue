@@ -47,25 +47,57 @@ const options = computed(() => {
 })
 
 let moveTimeout: any = undefined
+let lastSnap = Date.now()
 function move(move: any) {
     if (move.id) {
         if (!(move.id in windows.layout)) windows.layout[move.id] = {}
         if (moveTimeout) clearTimeout(moveTimeout)
         moveTimeout = setTimeout(() => {
-            if (!windows.winbox[move.id].min && !windows.winbox[move.id].max) {
-                windows.layout[move.id].x = move.x
-                windows.layout[move.id].y = move.y
-            }
+            moveTimeout = undefined
+            if (windows.winbox[move.id].min || windows.winbox[move.id].max) return
+            windows.layout[move.id].x = move.x
+            windows.layout[move.id].y = move.y
+
+            // TODO prevent snapping when resizing left corner = moving
+
+            // snapping
+            if (Date.now() - lastSnap >= 300) setTimeout(() => {
+                if (wb.value && wb.value.winbox) {
+                    const own = wb.value.winbox
+                    const threshold = 10
+                    for (const id in windows.winbox) {
+                        if (id == move.id) continue
+                        const win = windows.winbox[id]
+                        let snap = false
+                        if (Math.abs(move.x - (win.x + win.width)) < threshold && Math.abs(move.y - win.y) < threshold) {
+                            // top left corner
+                            snap = true
+                            move.y = win.y
+                            move.x = win.x + win.width
+                        } else if (Math.abs(move.x + own.width - win.x) < threshold && Math.abs(move.y - win.y) < threshold) {
+                            // top right corner
+                            snap = true
+                            move.y = win.y
+                            move.x = win.x - own.width
+                        }
+                        if (snap) {
+                            lastSnap = Date.now()
+                            own.move(move.x, move.y)
+                            break
+                        }
+                    }
+                }
+            }, 150)
         }, 100)
     }
 }
 
-let resizeTimeout: any = undefined
 function resize(resize: any) {
     if (resize.id) {
         if (!(resize.id in windows.layout)) windows.layout[resize.id] = {}
-        if (resizeTimeout) clearTimeout(resizeTimeout)
-        resizeTimeout = setTimeout(() => {
+        if (moveTimeout) clearTimeout(moveTimeout)
+        moveTimeout = setTimeout(() => {
+            moveTimeout = undefined
             if (windows.winbox[resize.id].min) {
                 windows.layout[resize.id].min = true
                 windows.layout[resize.id].max = false
@@ -74,9 +106,31 @@ function resize(resize: any) {
                 windows.layout[resize.id].min = false
             } else {
                 windows.layout[resize.id].min = false
-                windows.layout[resize.id].max = false
+                windows.layout[resize.id].max = false                
                 windows.layout[resize.id].width = resize.width
                 windows.layout[resize.id].height = resize.height
+
+                // snapping
+                if (Date.now() - lastSnap >= 300) setTimeout(() => {
+                    if (wb.value && wb.value.winbox) {
+                        const own = wb.value.winbox
+                        const threshold = 10
+                        for (const id in windows.winbox) {
+                            if (id == resize.id) continue
+                            const win = windows.winbox[id]
+                            let snap = false
+                            if (Math.abs(resize.height - win.height) < threshold && win.y == own.y && (win.x + win.width == own.x || own.x + resize.width == win.x)) {
+                                snap = true
+                                resize.height = win.height
+                            }
+                            if (snap) {
+                                lastSnap = Date.now()
+                                own.resize(resize.width, resize.height)
+                                break
+                            }
+                        }
+                    }
+                }, 150)
             }
         }, 100)
     }
