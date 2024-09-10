@@ -53,6 +53,8 @@
                                 </v-list>
                             </v-menu>
                         </v-list-item>
+                        <v-list-item v-if="!auth.pending && !auth.user" class="text-grey" @click="auth.login">LOGIN</v-list-item>
+                        <v-list-item v-if="!auth.pending && auth.user" class="text-grey" @click="auth.logout">LOGOUT</v-list-item>
                     </v-list>
                 </v-menu>
             </v-btn>
@@ -200,6 +202,7 @@ import axios from "axios"
 import { onMounted, ref } from "vue"
 import { usePresetStore } from "./stores/preset"
 import { useVatsimStore } from "./stores/vatsim"
+import { useAuthStore } from "./stores/auth"
 
 const menuItems = {
     /*
@@ -466,4 +469,8 @@ const preset = usePresetStore()
 
 const vatsim = useVatsimStore()
 ;(window as any).vatsim = vatsim
+
+const auth = useAuthStore()
+;(window as any).auth = auth
+
 </script>
