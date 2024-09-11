@@ -3,13 +3,10 @@ import moment from "moment"
 import { defineStore } from "pinia"
 import { ref } from "vue"
 
-const clientId = "682"
-const redirectUri = "http://localhost:5173/login"
-const vatsimAuthBaseUri = "https://auth-dev.vatsim.net"
-const backendBaseUrl =
-    location.hostname == "localhost" || location.hostname == "127.0.0.1"
-        ? "http://localhost:5172"
-        : "https://api.vatiris.se"
+const clientId = import.meta.env.VITE_CLIENT_ID || "682"
+const redirectUri = import.meta.env.VITE_REDIRECT_URI || "http://localhost:5173/login"
+const vatsimAuthBaseUri = import.meta.env.VITE_VATSIM_AUTH_BASE_URI || "https://auth-dev.vatsim.net"
+const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
 
 export const useAuthStore = defineStore("auth", () => {
     console.log("hello auth")

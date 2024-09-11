@@ -1,0 +1,15 @@
+[Unit]
+Description=VatIRIS Backend
+Documentation=https://vatiris.se
+After=network.target
+
+[Service]
+Type=simple
+User=main
+WorkingDirectory=/home/main/backend
+EnvironmentFile=/home/main/backend/backend.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
