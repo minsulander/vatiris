@@ -35,7 +35,7 @@ const vuetify = createVuetify({
 })
 
 import App from "./App.vue"
-//import router from "./router"
+import router from "./router"
 
 if (location.search.startsWith("?code=")) {
     console.log("oh look we gonna oauth")
@@ -45,6 +45,6 @@ if (location.search.startsWith("?code=")) {
     const app = createApp(App)
     app.use(createPinia())
     app.use(vuetify)
-    //app.use(router)
+    app.use(router)
     app.mount("#app")
 }
