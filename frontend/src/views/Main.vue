@@ -1,6 +1,6 @@
 <template>
     <v-app-bar color="#2b2d31" height="30" elevation="0">
-        <v-btn color="grey">
+        <v-btn :color="auth.user || auth.pending ? 'grey' : 'warning'">
             System
             <v-menu activator="parent" transition="slide-y-transition">
                 <v-list density="compact">
@@ -52,7 +52,7 @@
                     </v-list-item>
                     <v-list-item
                         v-if="!auth.pending && !auth.user"
-                        class="text-grey"
+                        class="text-warning"
                         @click="auth.login"
                         >LOGIN</v-list-item
                     >
@@ -194,7 +194,7 @@ import ConfirmationDialog from "@/components/ConfirmationDialog.vue"
 
 import moment from "moment"
 import axios from "axios"
-import { onMounted, ref } from "vue"
+import { onBeforeUnmount, onMounted, onUnmounted, ref } from "vue"
 import { useWinBox } from "vue-winbox"
 
 import { useWindowsStore } from "@/stores/windows"
@@ -443,9 +443,18 @@ function resetAll() {
 }
 
 onMounted(() => {
+    console.log("mounted main")
     window.addEventListener("resize", () => {
         fullscreen.value = !!document.fullscreenElement
     })
+})
+
+onBeforeUnmount(() => {
+    windows.unmounting = true
+})
+
+onUnmounted(() => {
+    windows.unmounting = false
 })
 
 // global exports for fiddling in console

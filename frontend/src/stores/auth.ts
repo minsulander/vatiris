@@ -16,14 +16,10 @@ export const useAuthStore = defineStore("auth", () => {
     const user = ref(undefined as any)
 
     if (sessionStorage.authorizationCode) {
-        console.log(
-            "oh look we have an authorization code",
-            `${backendBaseUrl}/token?code=${sessionStorage.authorizationCode}`,
-        )
+        console.log(`${backendBaseUrl}/token?code=${sessionStorage.authorizationCode}`)
         axios
             .get(`${backendBaseUrl}/token?code=${sessionStorage.authorizationCode}`)
             .then((response) => {
-                console.log("oh look we got a token")
                 receiveToken(response)
             })
             .catch((error) => {
@@ -37,12 +33,11 @@ export const useAuthStore = defineStore("auth", () => {
                 moment(localStorage.tokenTimestamp).add(token.value.expires_in - 60, "second"),
             )
         ) {
-            console.log("oh look we have a token but it's expired")
+            console.log("Refreshing token")
             const expiredToken = JSON.parse(localStorage.token)
             axios
                 .get(`${backendBaseUrl}/token?refresh_token=${expiredToken.refresh_token}`)
                 .then((response) => {
-                    console.log("oh look we got a refreshed token")
                     receiveToken(response)
                 })
                 .catch((error) => {
@@ -50,7 +45,6 @@ export const useAuthStore = defineStore("auth", () => {
                     pending.value = false
                 })
         } else {
-            console.log("oh look we have a token")
             token.value = JSON.parse(localStorage.token)
             fetchUser()
         }
@@ -72,10 +66,14 @@ export const useAuthStore = defineStore("auth", () => {
                 headers: { Authorization: `Bearer ${token.value.access_token}` },
             })
             .then((response) => {
-                console.log("oh look we got a user")
                 console.log(response.data.data)
                 user.value = response.data.data
                 pending.value = false
+                axios.post(`${backendBaseUrl}/login`, user.value).then((response) => {
+                    console.log(response.data)
+                }).catch((error) => {
+                    console.error("Failed to login user", error)
+                })
             })
             .catch((error) => {
                 console.error("Failed to get user from token", error)
@@ -88,7 +86,7 @@ export const useAuthStore = defineStore("auth", () => {
             `${vatsimAuthBaseUri}/oauth/authorize` +
             `?response_type=code&client_id=${encodeURIComponent(clientId)}` +
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-            `&scope=vatsim_details%20country` +
+            `&scope=full_name%20vatsim_details%20country` +
             `&prompt=login`
     }
 

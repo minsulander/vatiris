@@ -83,7 +83,7 @@ function resize(resize: any) {
 }
 
 function close(close: any) {
-    if (close.id) {
+    if (close.id && !windows.unmounting) {
         if (!(close.id in windows.layout)) windows.layout[close.id] = {}
         windows.layout[close.id].enabled = false
     }

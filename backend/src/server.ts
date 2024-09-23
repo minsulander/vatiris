@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express"
 import cors from "cors"
+import bodyparser from "body-parser"
 
 const vatsimAuthBaseUri = process.env.VATSIM_AUTH_BASE_URI || "https://auth-dev.vatsim.net/"
 const clientId = process.env.CLIENT_ID || "682"
@@ -10,6 +11,7 @@ const app = express()
 const port = process.env.PORT || 5172
 
 app.use(cors())
+app.use(bodyparser.json())
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`)
@@ -36,11 +38,17 @@ app.get("/token", async (req: Request, res: Response) => {
             refresh_token: req.query.refresh_token,
         })
         res.send(result.data)
-        console.log("token")
+        console.log("Token")
     } catch (error: any) {
-        console.log("token error", error.response.data)
+        console.log("Token error", error.response.data)
         res.status(error.response.status).json(error.response.data)
     }
+})
+
+app.post("/login", async (req: Request, res: Response) => {
+    const user = req.body
+    console.log("Login", user?.cid, user?.personal?.name_full)
+    res.send("kthx")
 })
 
 app.get(/.*/, (req, res) => {
