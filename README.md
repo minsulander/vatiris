@@ -15,6 +15,7 @@ Contributions of any kind are most welcome.
 It's a fairly straight-forward [Vue3](https://vuejs.org) + [Vuetify](https://vuetifyjs.com) + [Winbox](https://nextapps-de.github.io/winbox/) project.
 
 ```sh
+cd frontend
 npm install
 npm start
 ```
