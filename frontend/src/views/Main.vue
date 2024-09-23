@@ -1,5 +1,13 @@
 <template>
     <v-app-bar color="#2b2d31" height="30" elevation="0">
+        
+        <v-btn 
+        type="icon"
+        icon="mdi-sync"
+        class="text-grey"
+        size="30px"
+        @click="refreshPage">
+        </v-btn>
         <v-btn :color="auth.user || auth.pending ? 'grey' : 'warning'">
             System
             <v-menu activator="parent" transition="slide-y-transition">
@@ -370,6 +378,10 @@ function enable(id: string) {
             windows.layout[id] = { enabled: true }
         }
     }
+}
+
+function refreshPage() {
+    window.location.reload();
 }
 
 function requestFullScreen() {
