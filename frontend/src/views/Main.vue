@@ -199,6 +199,7 @@ import Image from "@/components/Image.vue"
 import Iframe from "@/components/Iframe.vue"
 import Clock from "@/components/Clock.vue"
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue"
+import Whiteboard from "@/components/Whiteboard.vue"
 
 import moment from "moment"
 import axios from "axios"
@@ -240,6 +241,7 @@ const menuItems = {
 
     NOTAM: "notam",
     eCharts: "echarts",
+    Whiteboard: "Whiteboard",
 }
 
 export interface WindowSpec {
@@ -319,6 +321,12 @@ const availableWindows: { [key: string]: WindowSpec } = {
         props: { id: "vfr", src: "https://aro.lfv.se/tor/vfrkarta.gif", refresh: "3610" },
         width: 400,
         height: 690,
+    },
+    Whiteboard: {
+        title: "Tactical DCT:s",
+        component: Whiteboard,
+        width: 400,
+        height: 600,
     },
     about: {
         title: "About",
