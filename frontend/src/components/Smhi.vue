@@ -116,6 +116,7 @@ onMounted(() => {
     })
     const smhiLayer = new TileLayer({
         source: smhiSource,
+        opacity: 0.4
     })
 
     const retryCodes = [408, 429, 500, 502, 503, 504]
