@@ -199,6 +199,7 @@ import Image from "@/components/Image.vue"
 import Iframe from "@/components/Iframe.vue"
 import Clock from "@/components/Clock.vue"
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue"
+import ECFMP from "@/components/ECFMP.vue"
 
 import moment from "moment"
 import axios from "axios"
@@ -240,6 +241,9 @@ const menuItems = {
 
     NOTAM: "notam",
     eCharts: "echarts",
+    ATFM: {
+        ECFMP: "ECFMP",
+    },
 }
 
 export interface WindowSpec {
@@ -320,6 +324,13 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 400,
         height: 690,
     },
+    ECFMP: {
+        title: "ECFMP Flow Measures",
+        component: ECFMP,
+        width: 600,
+        height: 300,
+    },
+
     about: {
         title: "About",
         component: About,
