@@ -1,3 +1,4 @@
+import useEventBus from "@/eventbus"
 import axios from "axios"
 import moment from "moment"
 import { defineStore } from "pinia"
@@ -15,6 +16,8 @@ interface Notam {
 }
 
 export const useNotamStore = defineStore("notam", () => {
+    const bus = useEventBus()
+
     const originalText = ref("")
     const lastFetch = ref(undefined as Date | undefined)
 
@@ -135,6 +138,13 @@ export const useNotamStore = defineStore("notam", () => {
         if (!footer.value.trimEnd().endsWith("END OF PIB")) console.warn("notam footer doesn't end with END OF PIB")
     }
 
+    bus.on("refresh", refresh)
+
+    function refresh() {
+        originalText.value = ""
+        fetch()
+    }
+
     return {
         originalText,
         allText,
@@ -145,6 +155,7 @@ export const useNotamStore = defineStore("notam", () => {
         enroute,
         nav,
         footer,
-        fetch
+        fetch,
+        refresh
     }
 })

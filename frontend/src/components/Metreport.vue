@@ -1,5 +1,6 @@
 <template>
     <div v-if="wx.noData(props.id)" class="pa-3 text-center">NO DATA</div>
+    <div v-if="wx.wx[props.id] && wx.wx[props.id].endsWith('...')" class="pa-3 text-center">{{wx.wx[props.id]}}</div>
     <div
         class="metreport"
         v-else
@@ -50,6 +51,7 @@ const props = defineProps<{ id: string }>()
 const wx = useWxStore()
 const vatsim = useVatsimStore()
 
+const text = computed(() => wx.wx[props.id])
 const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
@@ -58,7 +60,8 @@ const metar = computed(() => wx.metar(props.id))
 
 const hasVatsimAtis = computed(() => {
     const atis =
-        vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
+        vatsim.data.atis &&
+        vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
     return !!atis
 })
 
@@ -81,7 +84,8 @@ const rwyDiffersToVatsim = computed(() => {
         )
     } else {
         const atis =
-            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
+            vatsim.data.atis &&
+            vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
         if (!atis || !atis.text_atis || atis.text_atis.length == 0) return false
         const rwyInUse = atis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
         const rwyText = rwy.value.replace(/<[^>]*>?/gm, "")
@@ -193,8 +197,13 @@ onUnmounted(() => {
     wx.unsubscribe(subscription)
 })
 
-watch([rwy, metreport, info, metar], (newValues, oldValues) => {
-    if (oldValues.find((v) => v.length > 0)) {
+watch([text, rwy, metreport, info, metar], (newValues, oldValues) => {
+    if (
+        (!oldValues[0] || !oldValues[0].endsWith("...")) &&
+        (!newValues[0] || !newValues[0].endsWith("...")) &&
+        oldValues.find((v) => v && v.length > 0)
+    ) {
+        console.log("WTF", oldValues, newValues)
         changed.value = true
         changeTimeouts.splice(0)
         changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))

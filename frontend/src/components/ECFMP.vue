@@ -98,6 +98,7 @@
 
 <script>
 import axios from 'axios';
+import useEventBus from "@/eventbus";
 
 export default {
   data() {
@@ -139,6 +140,11 @@ export default {
     this.fetchFlowMeasures();
     setInterval(this.fetchFlowMeasures, 300000); // Fetch data every minute
     setInterval(this.checkStates, 1000); // Check state every second
+    const bus = useEventBus();
+    bus.on("refresh", () => {
+      this.flowMeasures = [];
+      this.fetchFlowMeasures();
+    });
   },
   methods: {
     formatTime(time) {
