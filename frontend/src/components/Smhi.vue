@@ -21,6 +21,7 @@ import GeoJSON from "ol/format/GeoJSON"
 import { bbox } from "ol/loadingstrategy"
 import { Style, Stroke, Fill, RegularShape, Text } from "ol/style"
 import moment from "moment"
+import useEventBus from "@/eventbus"
 
 const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
 const SMHI_URL = "https://api.vatiris.se/smhi-tile2" // "https://wts.smhi.se/tile/"
@@ -257,6 +258,18 @@ onMounted(() => {
         }
     }, 2000)
     ;(window as any).smhimap = map
+
+    const bus = useEventBus()
+    bus.on("refresh", () => {
+        time.value = smhiTime()
+        map.getLayers().forEach((layer) => {
+            if (layer instanceof TileLayer && layer.getSource().getParams) {
+                layer.getSource().updateParams({ time: time.value })
+            }
+            const source = (layer as any).getSource && (layer as any).getSource()
+            if (source) source.refresh()
+        })
+    })
 })
 
 onUnmounted(() => {

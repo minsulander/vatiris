@@ -1,8 +1,35 @@
 import { defineStore } from "pinia"
-import { reactive, ref } from "vue"
+import { reactive, watch } from "vue"
 import { v4 as uuid } from "uuid"
 import axios from "axios"
-import moment from "moment"
+import useEventBus from "@/eventbus"
+
+export const wxAirports = [
+    "ESSA",
+    "ESSB",
+    "ESOW",
+    "ESGG",
+    "ESGP",
+    "ESGT",
+    "ESGJ",
+    "ESMS",
+    "ESMK",
+    "ESMQ",
+    "ESMX",
+    "ESOH",
+    "ESOE",
+    "ESOK",
+    "ESSL",
+    "ESKN",
+    "ESKM",
+    "ESNL",
+    "ESND",
+    "ESNX",
+    "ESNK",
+    "ESNV",
+    "ESNG",
+    "ESUP",
+]
 
 const viewIdByIcao: { [key: string]: string } = {
     ESSA: "arlanda-overview.html",
@@ -32,6 +59,8 @@ const viewIdByIcao: { [key: string]: string } = {
 }
 
 export const useWxStore = defineStore("wx", () => {
+    const bus = useEventBus()
+
     const wx = reactive({} as { [key: string]: string })
     const subscriptions = reactive({} as { [key: string]: string })
     const lastFetch = reactive({} as { [key: string]: Date })
@@ -41,13 +70,14 @@ export const useWxStore = defineStore("wx", () => {
             const el = document.createElement("div")
             el.innerHTML = wx[key]
             const partEls = el.querySelectorAll(".spanText")
-            if (partEls.length > spanIndex) return (partEls[spanIndex] as HTMLElement).innerHTML.trim()
+            if (partEls.length > spanIndex)
+                return (partEls[spanIndex] as HTMLElement).innerHTML.trim()
         }
         return ""
     }
 
     const noData = (key: string) => !(key in wx) || wx[key].match("No( recent)? data")
-    const time = (key: string) => wxPart(key, 0) 
+    const time = (key: string) => wxPart(key, 0)
     const rwy = (key: string) => wxPart(key, 1)
     const metreport = (key: string) => wxPart(key, 2)
     const info = (key: string) => wxPart(key, 3)
@@ -66,8 +96,8 @@ export const useWxStore = defineStore("wx", () => {
             const icao = subscriptions[subscription]
             delete subscriptions[subscription]
             if (!Object.values(subscriptions).includes(icao)) {
-                 delete wx[icao]
-                 delete lastFetch[icao]
+                delete wx[icao]
+                delete lastFetch[icao]
             }
         }
     }
@@ -90,6 +120,14 @@ export const useWxStore = defineStore("wx", () => {
         }
     }, 1000)
 
+    function refresh() {
+        for (const icao in wx) delete wx[icao]
+        for (const id in subscriptions) wx[subscriptions[id]] = "Refreshing..."
+        for (const id in subscriptions) fetch(subscriptions[id])
+    }
+
+    bus.on("refresh", () => refresh())
+
     return {
         wx,
         noData,
@@ -101,6 +139,7 @@ export const useWxStore = defineStore("wx", () => {
         metar,
         subscribe,
         unsubscribe,
-        fetch
+        fetch,
+        refresh,
     }
 })

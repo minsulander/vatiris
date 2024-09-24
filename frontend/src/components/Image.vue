@@ -1,6 +1,6 @@
 <template>
     <div ref="div" style="height: 100%">
-        <img ref="img" :src="imgsrc" style="width: 100%" :style="'opacity: ' + (loaded ? 1 : 0)" />
+        <img ref="img" :src="imgsrc" style="width: 100%" :style="'opacity: ' + (loaded && !refreshing ? 1 : 0)" />
     </div>
 </template>
 
@@ -11,7 +11,9 @@ img {
 </style>
 
 <script setup lang="ts">
+import useEventBus from "@/eventbus"
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue"
+const bus = useEventBus()
 
 const props = defineProps<{ id: string; src: string; refresh?: string }>()
 
@@ -20,9 +22,18 @@ const img = ref()
 
 const loaded = ref(false)
 const loadTime = ref(Date.now().toString())
+const refreshing = ref(false)
 const imgsrc = computed(() => `${props.src}?${loadTime.value}`)
 
 let refreshInterval: any = undefined
+
+bus.on("refresh", () => {
+    refreshing.value = true
+    setTimeout(() => {
+        refreshing.value = false
+        loadTime.value = Date.now().toString()
+    }, 300)
+})
 
 onMounted(() => {
     if (`${props.id}_image_scroll` in localStorage)
