@@ -203,7 +203,6 @@ watch([text, rwy, metreport, info, metar], (newValues, oldValues) => {
         (!newValues[0] || !newValues[0].endsWith("...")) &&
         oldValues.find((v) => v && v.length > 0)
     ) {
-        console.log("WTF", oldValues, newValues)
         changed.value = true
         changeTimeouts.splice(0)
         changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))
