@@ -60,6 +60,9 @@ const menuItems = {
 
     NOTAM: "notam",
     eCharts: "echarts",
+    ATFM: {
+        ECFMP: "ECFMP",
+    },
 }
 
 import { wxAirports } from "@/stores/wx"
