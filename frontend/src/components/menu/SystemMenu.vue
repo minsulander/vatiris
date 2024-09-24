@@ -1,4 +1,5 @@
 <template>
+    <v-btn type="icon" icon="mdi-sync" class="text-grey" size="small" @click="refresh" />
     <v-btn :color="auth.user || auth.pending ? 'grey' : 'warning'">
         System
         <v-menu activator="parent" transition="slide-y-transition">
@@ -99,15 +100,21 @@ import { ref } from "vue"
 import { useWindowsStore } from "@/stores/windows";
 import { usePresetStore } from "@/stores/preset";
 import { useAuthStore } from "@/stores/auth"
+import useEventBus from "@/eventbus"
 
 const windows = useWindowsStore()
 const preset = usePresetStore()
 const auth = useAuthStore()
+const bus = useEventBus()
 
 const showSavePresetDialog = ref(false)
 const presetName = ref("")
 const confirmation = ref({})
 
+
+function refresh() {
+    bus.emit("refresh")
+}
 
 function saveCurrentPreset() {
     preset.save(preset.current)

@@ -14,8 +14,6 @@
         class="text-grey"
         @click="exitFullScreen"
     ></v-btn>
-    <v-btn type="icon" icon="mdi-reload" class="text-grey" size="small" @click="refresh">
-    </v-btn>
     <clock class="mx-2 text-grey" />
 
     <v-dialog v-model="showAboutDialog" max-width="730">
@@ -38,16 +36,9 @@
 import Clock from "@/components/Clock.vue"
 import About from "@/components/About.vue"
 import { ref, onMounted } from "vue"
-import useEventBus from "@/eventbus"
-
-const bus = useEventBus()
 
 const showAboutDialog = ref(false)
 const fullscreen = ref(window.innerHeight == screen.height)
-
-function refresh() {
-    bus.emit("refresh")
-}
 
 function requestFullScreen() {
     const element = document.body as any
