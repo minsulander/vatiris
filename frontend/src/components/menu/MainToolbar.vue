@@ -18,7 +18,10 @@
 
     <v-dialog v-model="showAboutDialog" max-width="730">
         <v-card>
-            <v-card-title class="font-weight-light text-grey">About VatIRIS</v-card-title>
+            <v-card-title class="font-weight-light text-grey pl-6 pt-3">
+                <img src="/vatiris-icon2.png" style="max-width: 40px; float: right" />
+                About VatIRIS
+            </v-card-title>
             <v-card-text>
                 <About />
             </v-card-text>
