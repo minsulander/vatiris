@@ -122,7 +122,7 @@ export const useWxStore = defineStore("wx", () => {
 
     function refresh() {
         for (const icao in wx) delete wx[icao]
-        for (const id in subscriptions) wx[subscriptions[id]] = "Refreshing..."
+        for (const icao in wx) delete lastFetch[icao]
         for (const id in subscriptions) fetch(subscriptions[id])
     }
 

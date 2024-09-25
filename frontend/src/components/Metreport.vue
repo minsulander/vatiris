@@ -1,6 +1,8 @@
 <template>
     <div v-if="wx.noData(props.id)" class="pa-3 text-center">NO DATA</div>
-    <div v-if="wx.wx[props.id] && wx.wx[props.id].endsWith('...')" class="pa-3 text-center">{{wx.wx[props.id]}}</div>
+    <div v-if="wx.wx[props.id] && wx.wx[props.id].endsWith('...')" class="pa-3 text-center">
+        {{ wx.wx[props.id] }}
+    </div>
     <div
         class="metreport"
         v-else
@@ -45,18 +47,21 @@
 import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
+import useEventBus from "@/eventbus"
 
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
 const vatsim = useVatsimStore()
+const bus = useEventBus()
 
-const text = computed(() => wx.wx[props.id])
 const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
+
+const firstUpdate = ref(true)
 
 const hasVatsimAtis = computed(() => {
     const atis =
@@ -197,13 +202,25 @@ onUnmounted(() => {
     wx.unsubscribe(subscription)
 })
 
-watch([text, rwy, metreport, info, metar], (newValues, oldValues) => {
-    if (
-        (!oldValues[0] || !oldValues[0].endsWith("...")) &&
-        (!newValues[0] || !newValues[0].endsWith("...")) &&
-        oldValues.find((v) => v && v.length > 0)
-    ) {
-        changed.value = true
+bus.on("refresh", () => {
+    firstUpdate.value = true
+    changed.value = false
+    changedLong.value = false
+})
+
+watch([rwy, metreport, info, metar], (newValues, oldValues) => {
+    if (firstUpdate.value) {
+        firstUpdate.value = false
+        return
+    }
+    changed.value = false
+    for (var i = 0; i < newValues.length; i++) {
+        if (oldValues[i] && oldValues[i].length > 0 && newValues[i] != oldValues[i]) {
+            changed.value = true
+            break
+        }
+    }
+    if (changed.value) {
         changeTimeouts.splice(0)
         changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))
         changeTimeouts.push(setTimeout(() => (changed.value = true), 2000))
