@@ -37,6 +37,7 @@ import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
+import Iframe from "@/components/Iframe.vue"
 
 import { onBeforeUnmount, onUnmounted } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -130,6 +131,19 @@ for (const icao of wxAirports) {
     }
 }
 
+import aipAirports from "@/data/aip-airports.json"
+for (const airport of aipAirports) {
+    for (const document of airport.documents) {
+        availableWindows[`aip${document.prefix}`] = {
+            title: `AIP ${document.prefix} ${document.name}`,
+            component: Iframe,
+            props: { src: `${document.url}#toolbar=0` },
+            width: 500,
+            height: 700,
+        }
+    }
+}
+
 function select(id: string) {
     if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
     if (id in windows.winbox) {
@@ -151,4 +165,7 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
     windows.unmounting = false
 })
+
+;(window as any).select = select
+
 </script>
