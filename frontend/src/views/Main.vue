@@ -144,17 +144,25 @@ for (const airport of aipAirports) {
     }
 }
 
-function select(id: string) {
-    if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
-    if (id in windows.winbox) {
-        if (windows.winbox[id].min) windows.winbox[id].restore()
-        windows.winbox[id].focus()
-    } else {
-        if (id in windows.layout) {
-            windows.layout[id].enabled = true
+function select(id: string | object) {
+    if (typeof id == 'object') {
+        // submenu
+    } else if (id in availableWindows) {
+        if (id in windows.winbox) {
+            if (windows.winbox[id].min) windows.winbox[id].restore()
+            windows.winbox[id].focus()
         } else {
-            windows.layout[id] = { enabled: true }
+            if (id in windows.layout) {
+                windows.layout[id].enabled = true
+            } else {
+                windows.layout[id] = { enabled: true }
+            }
         }
+    } else if (id.startsWith && id.startsWith("link")) {
+        const [_, url, target] = id.split("|")
+        window.open(url, target || "_blank")
+    } else {
+        console.error(`Unknown menu selection: ${id}`)
     }
 }
 
@@ -165,7 +173,5 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
     windows.unmounting = false
 })
-
 ;(window as any).select = select
-
 </script>
