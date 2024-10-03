@@ -37,6 +37,7 @@ import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
+import SApush from "@/components/SApush.vue"
 
 import { onBeforeUnmount, onUnmounted } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -102,7 +103,12 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 300,
     },
-
+    SApush: {
+        title: "ESSA Pushback",
+        component: SApush,
+        width: 600,
+        height: 600,
+    },
     about: {
         title: "About",
         component: About,

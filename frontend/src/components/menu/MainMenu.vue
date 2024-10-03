@@ -57,11 +57,15 @@ const menuItems = {
         "SWC NORDEN": "swc",
         VFR: "vfr",
     },
-
     NOTAM: "notam",
     eCharts: "echarts",
     ATFM: {
         ECFMP: "ECFMP",
+    },
+    DOCUMENTS: {
+        OTHER: {
+            "ESSA PUSH": "SApush",
+        },
     },
 }
 
