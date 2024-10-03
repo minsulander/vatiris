@@ -117,43 +117,49 @@
   </script>
   
   <style scoped>
-  .apron-list {
-    list-style-type: none; /* Remove bullet points */
-    padding: 5px;
-    display: flex; /* Make the list items align horizontally */
-    flex-wrap: wrap; /* Ensure the items wrap if there's not enough space */
-  }
-  
-  .apron-list li {
-    margin-right: 10px; /* Add space between the buttons */
-  }
-  
-  .apron-list a {
-    display: block; /* Make the links behave like block elements */
-    padding: 8px;
-    background-color: #f0f0f0;
-    text-align: center;
-    text-decoration: none;
-    color: #333;
-  }
-  
-  .apron-list a:hover {
-    background-color: #ddd;
-    border-radius: 0;
-  }
-  
-  .apron-list a.selected {
-    background-color: #007bff; /* Change background color for the selected button */
-    color: white; /* Change text color for the selected button */
-  }
-  
-  .image-container {
-    margin-top: 5px;
-  }
-  
-  img {
-    max-width: 100%;
-    height: auto;
-  }
+.apron-list {
+  list-style-type: none; /* Remove bullet points */
+  padding: 5px;
+  display: flex; /* Make the list items align horizontally */
+  flex-wrap: wrap; /* Ensure the items wrap if there's not enough space */
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0; /* Stick the list to the top of the page */
+  background-color: #DDDDDD; /* Set background color to make sure it doesn't blend with the content */
+  z-index: 1000; /* Ensure it stays on top of other content */
+}
+
+.apron-list li {
+  margin-right: 10px; /* Add space between the buttons */
+}
+
+.apron-list a {
+  display: block; /* Make the links behave like block elements */
+  padding: 8px;
+  background-color: #f0f0f0;
+  text-align: center;
+  text-decoration: none;
+  color: #333;
+}
+
+.apron-list a:hover {
+  background-color: #ddd;
+  border-radius: 0;
+}
+
+.apron-list a.selected {
+  background-color: #007bff; /* Change background color for the selected button */
+  color: white; /* Change text color for the selected button */
+}
+
+.image-container {
+  margin-top: 5px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
   </style>
   
