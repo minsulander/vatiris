@@ -37,6 +37,7 @@ import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
+import Iframe from "@/components/Iframe.vue"
 
 import { onBeforeUnmount, onUnmounted } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -130,17 +131,38 @@ for (const icao of wxAirports) {
     }
 }
 
-function select(id: string) {
-    if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
-    if (id in windows.winbox) {
-        if (windows.winbox[id].min) windows.winbox[id].restore()
-        windows.winbox[id].focus()
-    } else {
-        if (id in windows.layout) {
-            windows.layout[id].enabled = true
-        } else {
-            windows.layout[id] = { enabled: true }
+import aipAirports from "@/data/aip-airports.json"
+for (const airport of aipAirports) {
+    for (const document of airport.documents) {
+        availableWindows[`aip${document.prefix}`] = {
+            title: `AIP ${document.prefix} ${document.name}`,
+            component: Iframe,
+            props: { src: `${document.url}#toolbar=0` },
+            width: 500,
+            height: 700,
         }
+    }
+}
+
+function select(id: string | object) {
+    if (typeof id == 'object') {
+        // submenu
+    } else if (id in availableWindows) {
+        if (id in windows.winbox) {
+            if (windows.winbox[id].min) windows.winbox[id].restore()
+            windows.winbox[id].focus()
+        } else {
+            if (id in windows.layout) {
+                windows.layout[id].enabled = true
+            } else {
+                windows.layout[id] = { enabled: true }
+            }
+        }
+    } else if (id.startsWith && id.startsWith("link")) {
+        const [_, url, target] = id.split("|")
+        window.open(url, target || "_blank")
+    } else {
+        console.error(`Unknown menu selection: ${id}`)
     }
 }
 
@@ -151,4 +173,5 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
     windows.unmounting = false
 })
+;(window as any).select = select
 </script>

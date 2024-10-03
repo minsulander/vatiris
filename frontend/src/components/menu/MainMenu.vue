@@ -1,47 +1,24 @@
 <template>
-        <template v-for="(options, title) in menuItems" :key="title">
-            <v-btn
-                v-if="typeof options == 'string'"
-                type="text"
-                :color="options in windows.winbox ? '' : 'grey'"
-                @click="emit('select', options)"
-            >
-                {{ title }}
-            </v-btn>
-            <v-btn v-else type="text" class="text-grey">
-                {{ title }}
-                <v-menu activator="parent" transition="slide-y-transition">
-                    <v-list density="compact">
-                        <v-list-item
-                            v-for="(id, label) in options"
-                            :class="(id as string) in windows.winbox ? '' : 'text-grey'"
-                            :key="id as string"
-                            @click="typeof id == 'string' ? emit('select', id) : undefined"
-                        >
-                            <v-list-item-title>{{ label }}</v-list-item-title>
-                            <v-menu activator="parent" v-if="typeof id == 'object'" location="end">
-                                <v-list density="compact">
-                                    <v-list-item
-                                        v-for="(id2, label2) in id"
-                                        :class="id2 in windows.winbox ? '' : 'text-grey'"
-                                        :key="id2"
-                                        @click="emit('select', id2)"
-                                    >
-                                        <v-list-item-title>{{ label2 }}</v-list-item-title>
-                                    </v-list-item>
-                                </v-list>
-                            </v-menu>
-                        </v-list-item>
-                    </v-list>
-                </v-menu>
-            </v-btn>
-        </template>
+    <template v-for="(options, title) in menuItems" :key="title">
+        <v-btn
+            v-if="typeof options == 'string'"
+            type="text"
+            :color="options in windows.winbox ? '' : 'grey'"
+            @click="emit('select', options)"
+        >
+            {{ title }}
+        </v-btn>
+        <v-btn v-else type="text" class="text-grey">
+            {{ title }}
+            <submenu :items="options" @select="select"/>
+        </v-btn>
+    </template>
 </template>
 
 <script setup lang="ts">
-
 const emit = defineEmits(["select"])
 
+import Submenu from "@/components/menu/Submenu.vue"
 import { useWindowsStore } from "@/stores/windows"
 const windows = useWindowsStore()
 
@@ -63,6 +40,18 @@ const menuItems = {
     ATFM: {
         ECFMP: "ECFMP",
     },
+    Documents: {
+        WIKI: {
+            Sweden: "link|https://wiki.vatsim-scandinavia.org/shelves/atc-sweden|wiki",
+            GEN: "link|https://wiki.vatsim-scandinavia.org/books/gen-k9C|wiki",
+            GOP: "link|https://wiki.vatsim-scandinavia.org/books/gop|wiki",
+            LOP: "link|https://wiki.vatsim-scandinavia.org/books/lop|wiki",
+            LoA: "link|https://wiki.vatsim-scandinavia.org/books/loa|wiki",
+        },
+        AIP: {
+            // filled in code
+        },
+    },
 }
 
 import { wxAirports } from "@/stores/wx"
@@ -72,4 +61,15 @@ for (const icao of wxAirports) {
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
 }
 
+import aipAirports from "@/data/aip-airports.json"
+for (const airport of aipAirports) {
+    menuItems.Documents.AIP[airport.icao] = {}
+    for (const document of airport.documents) {
+        menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+    }
+}
+
+function select(id: string) {
+    emit("select", id)
+}
 </script>

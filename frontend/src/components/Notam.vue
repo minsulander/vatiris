@@ -43,8 +43,18 @@
                         >
                             <v-list-item-title>NONE</v-list-item-title>
                         </v-list-item>
+                        <v-list-item>
+                            <v-text-field
+                                v-model="adFilter"
+                                variant="underlined"
+                                density="compact"
+                                hide-details
+                                autofocus
+                                @keydown.esc="adFilter = ''"
+                                @keydown.enter="filterEnter"/>
+                        </v-list-item>
                         <v-list-item
-                            v-for="id in Object.keys(notam.ad).sort()"
+                            v-for="id in filteredAd"
                             :key="id"
                             :class="ad.includes(id) ? '' : 'text-grey'"
                             @click="clickAd(id)"
@@ -152,7 +162,7 @@
 
 <script setup lang="ts">
 import { useNotamStore } from "@/stores/notam"
-import { onMounted, reactive, ref, watch } from "vue"
+import { computed, onMounted, reactive, ref, watch } from "vue"
 
 import NotamItem from "@/components/NotamItem.vue"
 
@@ -165,6 +175,16 @@ const enroute = ref(true)
 const nav = ref(true)
 const footer = ref(true)
 const future = ref(true)
+
+const adFilter = ref("")
+
+const filteredAd = computed(() => {
+    if (adFilter.value) {
+        const lower = adFilter.value.toLowerCase()
+        return Object.keys(notam.ad).filter((id) => id.toLowerCase().includes(lower)).sort()
+    }
+    return Object.keys(notam.ad).sort()
+})
 
 const filteredNotams = (notams: any[]) => {
     if (future.value) return notams.sort((a, b) => a.from - b.from)
@@ -221,5 +241,12 @@ function saveOptions() {
         footer: footer.value,
         future: future.value,
     })
+}
+
+function filterEnter() {
+    if (filteredAd.value.length == 1) {
+        clickAd(filteredAd.value[0])
+        adFilter.value = ""
+    }
 }
 </script>
