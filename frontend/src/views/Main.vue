@@ -68,15 +68,6 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 600,
     },
-    /*
-    aip: {
-        title: "AIP test",
-        component: Iframe,
-        props: { src: "https://www.aro.lfv.se/Editorial/View/13845/ES_AD_2_ESSA_5-23_en#toolbar=0&navpanes=0&scrollbar=0" },
-        width: 800,
-        height: 600,
-    },
-    */
     smhi: {
         title: "SMHI",
         component: Smhi,

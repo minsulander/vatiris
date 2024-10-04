@@ -16,7 +16,7 @@
         <pre
             class="pa-1"
             :class="
-                rwyDiffersToVatsim
+                rwyDiffersToVatsim && !metarAuto
                     ? 'text-orange-darken-4'
                     : hasVatsimAtis && !changed
                       ? 'text-grey-darken-1'
@@ -60,6 +60,8 @@ const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
+
+const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
 
 const firstUpdate = ref(true)
 
