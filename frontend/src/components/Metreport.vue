@@ -149,9 +149,9 @@ const isATISAirport = computed(() => ATISAirportCodes.includes(airportCode.value
 const formatMetreport = (report: string) => {
     if (!report) return ""
 
-    // QNH styling (3-4 letters, maybe always 4?)
-    let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){3,4}\d+)/g, (match, p1, p2) => {
-        return `${p1}<div style="display: inline-block; font-size: 21px; font-weight: bold; margin-top: 7px">${p2}</div>`
+    // QNH styling
+    let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
+        return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${p2}</div>`
     })
 
     // Issuing time styling
