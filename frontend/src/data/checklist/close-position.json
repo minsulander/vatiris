@@ -1,8 +1,13 @@
 {
     "title": "Close position",
     "items": [
-        "A", 
-        "B", 
-        "C"
+        "Above controller: <i>closing in 10 minutes</i>...COORDINATE", 
+        "ATC channel <tt>/closing in 10</tt> and <tt>.break</tt>...SEND", 
+        "Above controller: traffic handoff, location, status...COORDINATE",
+        "Pilots: contact above/downstream controller or advisory...TRANSMIT & TRANSFER",
+        "Voice & text announcement: <i>&lt;station&gt; now closed</i>...TRANSMIT",
+        "ATC channel <tt>/closed</tt>...SEND",
+        "EuroScope, audio client, vATIS...DISCONNECT & CLOSE",
+        "Discord coordination channel...LEAVE"
     ]
 }

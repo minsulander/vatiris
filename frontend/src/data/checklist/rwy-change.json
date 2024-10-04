@@ -1,8 +1,18 @@
 {
     "title": "Runway change",
     "items": [
-        "A", 
-        "B", 
-        "C"
-    ]
+        "Upstream controller...COORDINATE", 
+        "Last arrival...INPUT:ABC123", 
+        "Last departure...INPUT:ABC123",
+        "Old runway in EuroScope lists...SET",
+        "Runway configuration EuroScope...CHANGE",
+        "vATIS...UPDATE",
+        "Amended departure clearances...TRANSMIT"
+    ],
+    "sections": {
+        "0": "Preparation",
+        "4": "Execution"
+    },
+    "preDescription": "Tänk på att...\n...bra tänkt.",
+    "postDescription": "Och då var vi klara med det..."
 }

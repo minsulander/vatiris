@@ -45,6 +45,8 @@ const menuItems = reactive({
         CHECKLIST: {
             "Open position": "checklist-open-position",
             "Close position": "checklist-close-position",
+            "Handoff position": "checklist-handoff-position",
+            "Takeover position": "checklist-takeover-position",
             "Runway change": "checklist-rwy-change",
         },
         WIKI: {
