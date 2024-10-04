@@ -15,7 +15,7 @@
         @click="exitFullScreen"
     ></v-btn>
     <clock class="mx-2 text-grey" />
-
+    <PLSTimer/>
     <v-dialog v-model="showAboutDialog" max-width="730">
         <v-card>
             <v-card-title class="font-weight-light text-grey pl-6 pt-3">
@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import Clock from "@/components/Clock.vue"
 import About from "@/components/About.vue"
+import PLSTimer from "@/components/PLSTimer.vue"
 import { ref, onMounted } from "vue"
 
 const showAboutDialog = ref(false)
