@@ -47,10 +47,12 @@
 import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useWxStore } from "@/stores/wx"
 import { diffWords } from "diff"
+import { useSettingsStore } from "@/stores/settings"
 
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
+const settings = useSettingsStore()
 
 const time = computed(() => wx.time(props.id))
 const metsensor = computed(() => wx.metsensor(props.id))
@@ -160,6 +162,8 @@ onUnmounted(() => {
 
 watch(metsensor, (newValue: string, oldValue: string) => {
     stylize(newValue, oldValue)
+    changed.value = false
+    if (!settings.metsensorFlash) return
     changed.value = true
     changeTimeouts.splice(0)
     changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))

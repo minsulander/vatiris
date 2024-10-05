@@ -4,6 +4,9 @@
         System
         <v-menu activator="parent" transition="slide-y-transition">
             <v-list density="compact">
+                <v-list-item to="/settings">
+                    <v-list-item-title class="text-grey">SETTINGS</v-list-item-title>
+                </v-list-item>
                 <v-list-item class="text-grey" @click="true">
                     <v-list-item-title>PRESET</v-list-item-title>
                     <v-menu activator="parent" location="end">

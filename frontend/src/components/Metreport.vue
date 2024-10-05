@@ -48,10 +48,12 @@ import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
 import useEventBus from "@/eventbus"
+import { useSettingsStore } from "@/stores/settings"
 
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
+const settings = useSettingsStore()
 const vatsim = useVatsimStore()
 const bus = useEventBus()
 
@@ -216,6 +218,7 @@ watch([rwy, metreport, info, metar], (newValues, oldValues) => {
         return
     }
     changed.value = false
+    if (!settings.metreportFlash) return
     for (var i = 0; i < newValues.length; i++) {
         if (oldValues[i] && oldValues[i].length > 0 && newValues[i] != oldValues[i]) {
             changed.value = true
