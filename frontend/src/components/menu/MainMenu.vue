@@ -52,7 +52,7 @@ const menuItems = {
             // filled in code
         },
     },
-}
+} as any
 
 import { wxAirports } from "@/stores/wx"
 
