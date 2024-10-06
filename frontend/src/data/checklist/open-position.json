@@ -8,7 +8,7 @@
         "EuroScope observer/unprimed...LOGIN",
         "Audio client...LOGIN",
         "EuroScope secondary instance, METAR, runway in use...SETUP",
-        "vATIS startup, runway, weather, notams...PREPARE",
+        "vATIS: runway, weather, notams...PREPARE",
         "Above/below controllers: intent to open...COORDINATE",
         "Traffic in sector...NOTE & PLAN",
         "EuroScope active controller...LOGIN/PRIME",

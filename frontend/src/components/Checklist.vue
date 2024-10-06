@@ -52,6 +52,7 @@
                             <v-text-field
                                 variant="underlined"
                                 hide-details
+                                reverse
                                 style="margin-top: -20px"
                                 @click.stop=""
                                 :placeholder="itemInputPlaceholder(item)"

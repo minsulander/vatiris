@@ -2,8 +2,8 @@
     "title": "Runway change",
     "items": [
         "Upstream controller...COORDINATE", 
-        "Last arrival...INPUT:ABC123", 
-        "Last departure...INPUT:ABC123",
+        "Last arrival...INPUT:NOTE", 
+        "Last departure...INPUT:NOTE",
         "Old runway in EuroScope lists...SET",
         "Runway configuration EuroScope...CHANGE",
         "vATIS...UPDATE",
