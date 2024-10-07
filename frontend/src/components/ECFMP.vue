@@ -1,82 +1,114 @@
 <template>
   <div>
     <!-- Filter Input and Toggle Buttons -->
-    <div style="background-color: #9E9E9E; padding: 2px; display: flex; align-items: center;">
-      <input 
-        id="identifierFilter" 
-        type="text" 
-        v-model="identifierFilter" 
-        placeholder="Filter identifier" 
-        style="padding: 4px; border: none; border-radius: 4px;" 
-      />
+    <div style="background-color: #9E9E9E; padding: 2px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center;">
+        <!-- Toggle Expired/Withdrawn -->
+        <button 
+          @click="toggleExpiredWithdrawn" 
+          :style="{ 
+            marginLeft: '4px', 
+            color: showExpiredWithdrawn ? 'white' : 'red', 
+            backgroundColor: showExpiredWithdrawn ? 'red' : 'transparent', 
+            border: `1px solid red`, 
+            padding: '4px 8px', 
+            borderRadius: '4px'
+          }"
+        >
+          Expired/Withdrawn
+        </button>
 
-      <!-- Toggle Expired/Withdrawn -->
-      <button 
-        @click="toggleExpiredWithdrawn" 
-        :style="{ 
-          marginLeft: '4px', 
-          color: showExpiredWithdrawn ? 'white' : 'red', 
-          backgroundColor: showExpiredWithdrawn ? 'red' : 'transparent', 
-          border: `1px solid red`, 
-          padding: '4px 8px', 
-          borderRadius: '4px'
-        }"
-      >
-        Expired/Withdrawn
-      </button>
+        <!-- Toggle Notified -->
+        <button 
+          @click="toggleNotified" 
+          :style="{ 
+            marginLeft: '4px', 
+            color: showNotified ? 'white' : 'orange', 
+            backgroundColor: showNotified ? 'orange' : 'transparent', 
+            border: `1px solid orange`, 
+            padding: '4px 8px', 
+            borderRadius: '4px'
+          }"
+        >
+          Notified
+        </button>
 
-      <!-- Toggle Notified -->
-      <button 
-        @click="toggleNotified" 
-        :style="{ 
-          marginLeft: '4px', 
-          color: showNotified ? 'white' : 'orange', 
-          backgroundColor: showNotified ? 'orange' : 'transparent', 
-          border: `1px solid orange`, 
-          padding: '4px 8px', 
-          borderRadius: '4px'
-        }"
-      >
-        Notified
-      </button>
-
-      <!-- Toggle Reason -->
-      <button 
-        @click="toggleReason" 
-        :style="{ 
-          marginLeft: '4px', 
-          color: showReason ? 'white' : 'gray', 
-          backgroundColor: showReason ? 'gray' : 'transparent', 
-          border: `1px solid gray`, 
-          padding: '4px 8px', 
-          borderRadius: '4px'
-        }"
-      >
-        Reason
-      </button>
+        <!-- Toggle Reason -->
+        <button 
+          @click="toggleReason" 
+          :style="{ 
+            marginLeft: '4px', 
+            color: showReason ? 'white' : 'gray', 
+            backgroundColor: showReason ? 'gray' : 'transparent', 
+            border: `1px solid gray`, 
+            padding: '4px 8px', 
+            borderRadius: '4px'
+          }"
+        >
+          Reason
+        </button>
+      </div>
 
       <!-- Timestamp of API data -->
-      <div style="margin-left: 12px; color: #616161">
+      <div style="color: #616161; margin-right: 12px;">
         {{ formatTime(time) }}
       </div>
     </div>
 
     <!-- Data Table -->
-    <table v-if="filteredFlowMeasures.length > 0 && !error">
+    <table v-if="!error">
       <thead>
         <tr>
-          <th @click="sortBy('ident')" style="width: 100px;">Identifier</th>
-          <th @click="sortBy('starttime')" style="width: 140px;">Start Time</th>
-          <th @click="sortBy('endtime')" style="width: 140px;">End Time</th>
-          <th @click="sortBy('measure')">Type</th>
-          <th>Value</th>
-          <th>Filters</th>
-          <th v-if="showReason">Reason</th>
+          <th style="width: 100px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="cursor: pointer; font-weight: bold;" @click="sortBy('ident')">ID</span>
+              <input 
+                type="text" 
+                v-model="identifierFilter" 
+                placeholder="Filter" 
+                style="width: 50%; padding: 2px; font-weight: normal;"
+              />
+            </div>
+          </th>
+          <th style="width: 140px;">
+            <span style="cursor: pointer; font-weight: bold;" @click="sortBy('starttime')">Start Time</span>
+          </th>
+          <th>
+            <span style="cursor: pointer; font-weight: bold;" @click="sortBy('endtime')">End Time</span>
+          </th>
+          <th>
+            <span style="cursor: pointer; font-weight: bold;" @click="sortBy('measure.type')">Type</span>
+          </th>
+          <th>
+            <span style="font-weight: bold;">Value</span>
+          </th>
+          <th>
+            <div style="display: flex; align-items: center;">
+              <span style="font-weight: bold;">Filters</span>
+              <input 
+                type="text" 
+                v-model="filtersFilter" 
+                placeholder="Filter" 
+                style="width: 50%; padding: 2px; font-weight: normal; margin-left: 10px;"
+              />
+            </div>
+          </th>
+          <th v-if="showReason">
+            <div style="display: flex; align-items: center;">
+              <span style="font-weight: bold;">Reason</span>
+              <input 
+                type="text" 
+                v-model="reasonFilter" 
+                placeholder="Filter" 
+                style="width: 50%; padding: 2px; font-weight: normal; margin-left: 10px;"
+              />
+            </div>
+          </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="sortedMeasures.length > 0">
         <tr 
-          v-for="measure in filteredFlowMeasures" 
+          v-for="measure in sortedMeasures" 
           :key="measure.ident"
           :style="{ color: isNotified(measure.starttime) || isExpired(measure.endtime) || isWithdrawn(measure.withdrawn_at) ? '#616161' : 'inherit' }"
         >
@@ -97,8 +129,8 @@
           >
             <a :href="`https://ecfmp.vatsim.net/dashboard/flow-measures/${measure.id}`" target="_blank" style="color: inherit; text-decoration: none;">{{ measure.ident }}</a>
           </td>
-          <td>{{ formatTime(measure.starttime) }}</td>
-          <td>{{ formatTime(measure.endtime) }}</td>
+          <td :title="getTimeLeftTooltip(measure.starttime)">{{ formatTime(measure.starttime) }}</td>
+          <td :title="getTimeLeftTooltip(measure.endtime)">{{ formatEndTime(measure.starttime, measure.endtime) }}</td>
           <td :title="getTypeTooltip(measure.measure)">{{ getType(measure.measure) }}</td>
           <td>{{ getFormattedValue(measure.measure) }}</td>
           <td>{{ formatFilters(measure.filters) }}</td>
@@ -108,7 +140,7 @@
     </table>
 
     <div v-if="loading">Loading...</div>
-    <div v-else-if="filteredFlowMeasures.length === 0 && !error">No records found</div>
+    <div v-else-if="sortedMeasures.length === 0 && !error" style="padding: 10px;">No records found</div>
     <div v-else-if="error">{{ error }}</div>
   </div>
 </template>
@@ -129,7 +161,9 @@ export default {
       showExpiredWithdrawn: true, // Toggle for expired/withdrawn measures
       showNotified: true, // Toggle for notified measures
       showReason: true, // Toggle for reason column
-      time: '' // New property to hold the timestamp of API data
+      time: '', // New property to hold the timestamp of API data
+      filtersFilter: '',
+      reasonFilter: ''
     };
   },
   computed: {
@@ -137,17 +171,29 @@ export default {
       return this.flowMeasures
         .filter(measure => measure.ident.toLowerCase().includes(this.identifierFilter.toLowerCase()))
         .filter(measure => this.showExpiredWithdrawn || (!this.isExpired(measure.endtime) && !this.isWithdrawn(measure.withdrawn_at)))
-        .filter(measure => this.showNotified || !this.isNotified(measure.starttime));
+        .filter(measure => this.showNotified || !this.isNotified(measure.starttime))
+        .filter(measure => {
+          const formattedFilters = this.formatFilters(measure.filters).toLowerCase();
+          return formattedFilters.includes(this.filtersFilter.toLowerCase());
+        })
+        .filter(measure => {
+          if (!this.showReason) return true;
+          return measure.reason.toLowerCase().includes(this.reasonFilter.toLowerCase());
+        });
     },
     sortedMeasures() {
-      if (!this.sortKey) return this.filteredFlowMeasures;
       return [...this.filteredFlowMeasures].sort((a, b) => {
         let fieldA = this.resolveNestedValue(a, this.sortKey);
         let fieldB = this.resolveNestedValue(b, this.sortKey);
+        
         if (this.sortKey === 'starttime' || this.sortKey === 'endtime') {
           fieldA = new Date(fieldA).getTime();
           fieldB = new Date(fieldB).getTime();
+        } else if (this.sortKey === 'measure.type') {
+          fieldA = this.getType(a.measure);
+          fieldB = this.getType(b.measure);
         }
+        
         if (fieldA < fieldB) return -1 * this.sortOrder;
         if (fieldA > fieldB) return 1 * this.sortOrder;
         return 0;
@@ -167,6 +213,29 @@ export default {
   methods: {
     formatTime(time) {
       return time.replace("T", "  ").replace(/:\d{2}\.\d{3}Z$/, "Z").replace(":00Z", ""); // Remove decimal seconds and format
+    },
+    formatEndTime(starttime, endtime) {
+      const startDate = new Date(starttime).toDateString();
+      const endDate = new Date(endtime).toDateString();
+      if (startDate === endDate) {
+        return this.formatTime(endtime).split('  ')[1]; // Only return time part
+      } else {
+        return this.formatTime(endtime); // Return full date and time
+      }
+    },
+    getTimeLeftTooltip(timestamp) {
+      const now = new Date();
+      const target = new Date(timestamp);
+      const timeDiff = target - now;
+      
+      if (timeDiff <= 0) {
+        return 'Expired';
+      }
+      
+      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      return `${hours}h ${minutes}m left`;
     },
     isActive(measure) {
       const now = new Date().toISOString(); // Current UTC time in ISO format
@@ -225,13 +294,12 @@ export default {
       }
     },
     sortBy(key) {
-      if (key === 'measure' || key === 'filters') return;
       if (this.sortKey === key) {
         this.sortOrder *= -1; // Reverse the sort order
       } else {
+        this.sortKey = key;
         this.sortOrder = 1; // Reset to ascending
       }
-      this.sortKey = key;
     },
     getType(measure) {
       const typeMapping = {
