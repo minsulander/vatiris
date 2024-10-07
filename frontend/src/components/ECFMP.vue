@@ -49,9 +49,32 @@
         </button>
       </div>
 
-      <!-- Timestamp of API data -->
-      <div style="color: #616161; margin-right: 12px;">
-        {{ formatTime(time) }}
+      <div style="display: flex; align-items: center;">
+        <!-- Create new Flow measure button -->
+        <a 
+          href="https://ecfmp.vatsim.net/dashboard/flow-measures/create" 
+          target="_blank" 
+          style="
+            margin-right: 12px;
+            text-decoration: none;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+          "
+        >
+          New
+          <span class="mdi mdi-open-in-new" style="margin-left: 4px;"></span>
+        </a>
+
+        <!-- Timestamp of API data -->
+        <div style="color: #616161;">
+          {{ formatTime(time) }}
+        </div>
       </div>
     </div>
 
@@ -144,7 +167,6 @@
     <div v-else-if="error">{{ error }}</div>
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 import useEventBus from "@/eventbus";
