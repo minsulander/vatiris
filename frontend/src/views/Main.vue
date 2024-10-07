@@ -38,6 +38,7 @@ import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import Iframe from "@/components/Iframe.vue"
+import SunriseSunset from "@/components/SunriseSunset.vue"
 
 import { onBeforeUnmount, onUnmounted } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -87,6 +88,12 @@ const availableWindows: { [key: string]: WindowSpec } = {
         props: { id: "vfr", src: "https://aro.lfv.se/tor/vfrkarta.gif", refresh: "3610" },
         width: 400,
         height: 690,
+    },
+    sunriseSunset: {
+        title: "Sunrise/Sunset Times",
+        component: SunriseSunset,
+        width: 300,
+        height: 200,
     },
     ECFMP: {
         title: "ECFMP Flow Measures",
