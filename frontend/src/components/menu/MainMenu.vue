@@ -10,7 +10,7 @@
         </v-btn>
         <v-btn v-else type="text" class="text-grey">
             {{ title }}
-            <submenu :items="options" @select="select" />
+            <submenu :items="options" @select="select"/>
         </v-btn>
     </template>
 </template>
@@ -19,10 +19,11 @@
 const emit = defineEmits(["select"])
 
 import Submenu from "@/components/menu/Submenu.vue"
+import { reactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 const windows = useWindowsStore()
 
-const menuItems = {
+const menuItems = reactive({
     MET: {
         METREPORT: {
             // filled in code
@@ -41,6 +42,12 @@ const menuItems = {
         ECFMP: "ECFMP",
     },
     Documents: {
+        CHECKLIST: {
+            "Open position": "checklist-open-position",
+            "Close position": "checklist-close-position",
+            "Handover/takeover": "checklist-handover-takeover",
+            "Runway change": "checklist-rwy-change",
+        },
         WIKI: {
             Sweden: "https://wiki.vatsim-scandinavia.org/shelves/atc-sweden",
             GEN: "https://wiki.vatsim-scandinavia.org/books/gen-k9C",
@@ -129,7 +136,7 @@ const menuItems = {
             // filled in code
         },
     },
-} as any
+} as any)
 
 import { wxAirports } from "@/stores/wx"
 
@@ -138,13 +145,14 @@ for (const icao of wxAirports) {
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
 }
 
-import aipAirports from "@/data/aip-airports.json"
-for (const airport of aipAirports) {
-    menuItems.Documents.AIP[airport.icao] = {}
-    for (const document of airport.documents) {
-        menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+import("@/data/aip-airports.json").then((module) => {
+    for (const airport of module.default) {
+        menuItems.Documents.AIP[airport.icao] = {}
+        for (const document of airport.documents) {
+            menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+        }
     }
-}
+})
 
 function select(id: string) {
     emit("select", id)

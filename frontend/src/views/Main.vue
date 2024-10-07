@@ -39,7 +39,7 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import Iframe from "@/components/Iframe.vue"
 
-import { onBeforeUnmount, onUnmounted } from "vue"
+import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 
 const windows = useWindowsStore()
@@ -55,7 +55,7 @@ export interface WindowSpec {
     height: string | number
 }
 
-const availableWindows: { [key: string]: WindowSpec } = {
+const availableWindows = shallowReactive({
     notam: {
         title: "NOTAM",
         component: Notam,
@@ -94,14 +94,7 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 300,
     },
-
-    about: {
-        title: "About",
-        component: About,
-        width: 600,
-        height: 240,
-    },
-}
+} as { [key: string]: WindowSpec })
 
 for (const icao of wxAirports) {
     availableWindows[`metrep${icao}`] = {
@@ -122,21 +115,37 @@ for (const icao of wxAirports) {
     }
 }
 
-import aipAirports from "@/data/aip-airports.json"
-for (const airport of aipAirports) {
-    for (const document of airport.documents) {
-        availableWindows[`aip${document.prefix}`] = {
-            title: `AIP ${document.prefix} ${document.name}`,
-            component: Iframe,
-            props: { src: `${document.url}#toolbar=0` },
-            width: 500,
-            height: 700,
+
+import("@/data/aip-airports.json").then((module) => {
+    for (const airport of module.default) {
+        for (const document of airport.documents) {
+            availableWindows[`aip${document.prefix}`] = {
+                title: `AIP ${document.prefix} ${document.name}`,
+                component: Iframe,
+                props: { src: `${document.url}#toolbar=0` },
+                width: 500,
+                height: 700,
+            }
         }
     }
+})
+
+import Checklist from "@/components/Checklist.vue"
+for (const name of ["open-position", "close-position", "handover-takeover", "rwy-change"]) {
+    import(`@/data/checklist/${name}.json`).then((module) => {
+        const checklist = module.default
+        availableWindows[`checklist-${name}`] = {
+            title: `Checklist - ${checklist.title}`,
+            component: Checklist,
+            props: { id: name, checklist },
+            width: checklist.width || 600,
+            height: checklist.height || 700
+        }
+    })
 }
 
 function select(id: string | object) {
-    if (typeof id == 'object') {
+    if (typeof id == "object") {
         // submenu
     } else if (id in availableWindows) {
         if (id in windows.winbox) {
