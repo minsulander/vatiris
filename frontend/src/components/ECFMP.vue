@@ -300,7 +300,7 @@ export default {
     },
     async fetchFlowMeasures() {
       try {
-        const response = await axios.get('https://ecfmp.vatsim.net/api/v1/flow-measure?deleted=1&notified=0');
+        const response = await axios.get('https://ecfmp.vatsim.net/api/v1/flow-measure?deleted=1');
         if (response.data && Array.isArray(response.data)) {
           this.flowMeasures = response.data;
           this.time = new Date().toISOString(); // Update the timestamp to current time
