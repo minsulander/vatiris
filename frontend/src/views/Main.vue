@@ -131,15 +131,15 @@ import("@/data/aip-airports.json").then((module) => {
 })
 
 import Checklist from "@/components/Checklist.vue"
-for (const name of ["open-position", "close-position", "handoff-position", "takeover-position", "rwy-change"]) {
+for (const name of ["open-position", "close-position", "handover-takeover", "rwy-change"]) {
     import(`@/data/checklist/${name}.json`).then((module) => {
         const checklist = module.default
         availableWindows[`checklist-${name}`] = {
             title: `Checklist - ${checklist.title}`,
             component: Checklist,
             props: { id: name, checklist },
-            width: 600,
-            height: 700
+            width: checklist.width || 600,
+            height: checklist.height || 700
         }
     })
 }

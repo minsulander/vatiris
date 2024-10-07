@@ -1,6 +1,7 @@
 {
     "title": "Close position",
     "items": [
+        "Discord (optional): position available for handover...SEND",
         "Above controller: <i>closing in 10 minutes</i>...COORDINATE", 
         "ATC channel <tt>/closing in 10</tt> and <tt>.break</tt>...SEND", 
         "Above controller: traffic handoff, location, status...COORDINATE",
@@ -9,5 +10,12 @@
         "ATC channel <tt>/closed</tt>...SEND",
         "EuroScope, audio client, vATIS...DISCONNECT & CLOSE",
         "Discord coordination channel...LEAVE"
-    ]
+    ],
+    "sections": {
+        "0": "Preparation",
+        "3": "Execution"
+    },
+    "preDescription": "Plan ahead and avoid overloading above controller if closing with a lot of traffic",
+    "width": 600,
+    "height": 450
 }

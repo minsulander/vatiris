@@ -7,12 +7,13 @@
         "Old runway in EuroScope lists...SET",
         "Runway configuration EuroScope...CHANGE",
         "vATIS...UPDATE",
-        "Amended departure clearances...TRANSMIT"
+        "Amend departure clearances...TRANSMIT"
     ],
     "sections": {
         "0": "Preparation",
         "4": "Execution"
     },
-    "preDescription": "Tänk på att...\n...bra tänkt.",
-    "postDescription": "Och då var vi klara med det..."
+    "preDescription": "Runways changes with short notice increase the workload of both pilots and controllers and are due to safety reasons avoided as far as possible.",
+    "width": 600,
+    "height": 450
 }

@@ -27,10 +27,10 @@
                 <tr v-if="checklist.sections && '' + i in checklist.sections">
                     <td
                         colspan="3"
-                        class="pa-1 text-caption text-grey-lighten-3"
-                        style="background: #666"
+                        class="pa-1 text-caption text-white"
+                        style="background: #999"
+                        v-html="checklist.sections['' + i]"
                     >
-                        {{ checklist.sections["" + i] }}
                     </td>
                 </tr>
                 <tr
@@ -91,6 +91,9 @@ tr:hover.checked td {
 }
 tr:not(:hover).checked td {
     opacity: 0.5;
+}
+td tt {
+    font-size: 13px;
 }
 </style>
 
