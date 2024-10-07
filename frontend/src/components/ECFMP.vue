@@ -65,10 +65,10 @@
     <table v-if="filteredFlowMeasures.length > 0 && !error">
       <thead>
         <tr>
-          <th @click="sortBy('ident')">Identifier</th>
-          <th @click="sortBy('starttime')">Start Time</th>
-          <th @click="sortBy('endtime')">End Time</th>
-          <th>Type</th>
+          <th @click="sortBy('ident')" style="width: 100px;">Identifier</th>
+          <th @click="sortBy('starttime')" style="width: 140px;">Start Time</th>
+          <th @click="sortBy('endtime')" style="width: 140px;">End Time</th>
+          <th @click="sortBy('measure')">Type</th>
           <th>Value</th>
           <th>Filters</th>
           <th v-if="showReason">Reason</th>
