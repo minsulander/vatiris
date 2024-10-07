@@ -58,6 +58,7 @@ import { useNotamStore } from "@/stores/notam"
 import { usePresetStore } from "@/stores/preset"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useAuthStore } from "@/stores/auth"
+import { useSettingsStore } from "@/stores/settings"
 import moment from "moment"
 import axios from "axios"
 
@@ -70,6 +71,7 @@ global.notam = useNotamStore()
 global.preset = usePresetStore()
 global.vatsim = useVatsimStore()
 global.auth = useAuthStore()
+global.settings = useSettingsStore()
 global.moment = moment
 global.axios = axios
 

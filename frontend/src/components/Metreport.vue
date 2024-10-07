@@ -16,7 +16,7 @@
         <pre
             class="pa-1"
             :class="
-                rwyDiffersToVatsim
+                rwyDiffersToVatsim && !metarAuto
                     ? 'text-orange-darken-4'
                     : hasVatsimAtis && !changed
                       ? 'text-grey-darken-1'
@@ -48,10 +48,12 @@ import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
 import useEventBus from "@/eventbus"
+import { useSettingsStore } from "@/stores/settings"
 
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
+const settings = useSettingsStore()
 const vatsim = useVatsimStore()
 const bus = useEventBus()
 
@@ -60,6 +62,8 @@ const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
+
+const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
 
 const firstUpdate = ref(true)
 
@@ -147,9 +151,9 @@ const isATISAirport = computed(() => ATISAirportCodes.includes(airportCode.value
 const formatMetreport = (report: string) => {
     if (!report) return ""
 
-    // QNH styling (3-4 letters, maybe always 4?)
-    let formattedReport = report.replace(/(QNH\s+)((?:\d+\s){3,4}\d+)/g, (match, p1, p2) => {
-        return `${p1}<div style="display: inline-block; font-size: 21px; font-weight: bold; margin-top: 7px">${p2}</div>`
+    // QNH styling
+    let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
+        return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${p2}</div>`
     })
 
     // Issuing time styling
@@ -214,6 +218,7 @@ watch([rwy, metreport, info, metar], (newValues, oldValues) => {
         return
     }
     changed.value = false
+    if (!settings.metreportFlash) return
     for (var i = 0; i < newValues.length; i++) {
         if (oldValues[i] && oldValues[i].length > 0 && newValues[i] != oldValues[i]) {
             changed.value = true
