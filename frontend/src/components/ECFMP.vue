@@ -40,6 +40,21 @@
         Notified
       </button>
 
+      <!-- Toggle Reason -->
+      <button 
+        @click="toggleReason" 
+        :style="{ 
+          marginLeft: '4px', 
+          color: showReason ? 'white' : 'gray', 
+          backgroundColor: showReason ? 'gray' : 'transparent', 
+          border: `1px solid gray`, 
+          padding: '4px 8px', 
+          borderRadius: '4px'
+        }"
+      >
+        Reason
+      </button>
+
       <!-- Timestamp of API data -->
       <div style="margin-left: 12px; color: #616161">
         {{ formatTime(time) }}
@@ -56,6 +71,7 @@
           <th>Type</th>
           <th>Value</th>
           <th>Filters</th>
+          <th v-if="showReason">Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -79,13 +95,14 @@
                     isNotified(measure.starttime) ? 'Notified' : 
                     ''"
           >
-            {{ measure.ident }}
+            <a :href="`https://ecfmp.vatsim.net/dashboard/flow-measures/${measure.id}`" target="_blank" style="color: inherit; text-decoration: none;">{{ measure.ident }}</a>
           </td>
           <td>{{ formatTime(measure.starttime) }}</td>
           <td>{{ formatTime(measure.endtime) }}</td>
           <td :title="getTypeTooltip(measure.measure)">{{ getType(measure.measure) }}</td>
           <td>{{ getFormattedValue(measure.measure) }}</td>
           <td>{{ formatFilters(measure.filters) }}</td>
+          <td v-if="showReason">{{ measure.reason }}</td>
         </tr>
       </tbody>
     </table>
@@ -111,6 +128,7 @@ export default {
       identifierFilter: '', // New filter for identifier
       showExpiredWithdrawn: true, // Toggle for expired/withdrawn measures
       showNotified: true, // Toggle for notified measures
+      showReason: true, // Toggle for reason column
       time: '' // New property to hold the timestamp of API data
     };
   },
@@ -183,12 +201,15 @@ export default {
     toggleNotified() {
       this.showNotified = !this.showNotified;
     },
+    toggleReason() {
+      this.showReason = !this.showReason;
+    },
     resolveNestedValue(obj, path) {
       return path.split('.').reduce((acc, part) => acc && acc[part], obj);
     },
     async fetchFlowMeasures() {
       try {
-        const response = await axios.get('https://ecfmp.vatsim.net/api/v1/flow-measure');
+        const response = await axios.get('https://ecfmp.vatsim.net/api/v1/flow-measure?deleted=1&notified=0');
         if (response.data && Array.isArray(response.data)) {
           this.flowMeasures = response.data;
           this.time = new Date().toISOString(); // Update the timestamp to current time
