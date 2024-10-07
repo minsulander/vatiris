@@ -68,10 +68,18 @@ const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
 const firstUpdate = ref(true)
 
 const hasVatsimAtis = computed(() => {
-    const atis =
-        vatsim.data.atis &&
-        vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
-    return !!atis
+    if (props.id == "ESSA") {
+        const arrAtis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_A"))
+        const depAtis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_D"))
+        return arrAtis && depAtis && arrAtis.text_atis && depAtis.text_atis
+    } else {
+        const atis =
+            vatsim.data.atis &&
+            vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
+        return atis && atis.text_atis
+    }
 })
 
 const rwyDiffersToVatsim = computed(() => {
@@ -88,8 +96,7 @@ const rwyDiffersToVatsim = computed(() => {
         return (
             arrRwyInUse &&
             depRwyInUse &&
-            !rwyText.includes(`ARR: ${arrRwyInUse}`) &&
-            !rwyText.includes(`DEP: ${depRwyInUse}`)
+            (!rwyText.includes(`ARR: ${arrRwyInUse}`) || !rwyText.includes(`DEP: ${depRwyInUse}`))
         )
     } else {
         const atis =
