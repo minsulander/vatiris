@@ -1,7 +1,7 @@
 <template>
     <v-menu activator="parent" :location="sub ? 'end' : 'bottom'">
         <v-list density="compact">
-            <v-list-item v-if="Object.keys(items).length > 10">
+            <v-list-item v-if="Object.keys(items).length > 10" style="margin-top: -10px">
                 <v-text-field
                     variant="underlined"
                     density="compact"
@@ -22,13 +22,28 @@
                 <v-list-item-title
                     >{{ label }}
                     <v-icon
-                        v-if="typeof action == 'string' && action.startsWith && action.startsWith('link')"
+                        v-if="
+                            typeof action == 'object'
+                        "
+                        color="grey-darken-2"
+                        class="ml-2 float-right"
+                        style="margin-right: -3px"
+                        size="small"
+                        >mdi-chevron-right</v-icon
+                    >
+                    <v-icon
+                        v-else-if="
+                            typeof action == 'string' &&
+                            action.startsWith &&
+                            action.startsWith('https://')
+                        "
+                        color="grey-darken-2"
                         class="ml-2 float-right"
                         style="margin-top: 3px"
                         size="x-small"
                         >mdi-open-in-new</v-icon
-                    ></v-list-item-title
-                >
+                    >
+                </v-list-item-title>
                 <template v-if="typeof action == 'object' && Object.keys(filteredItems).length > 1">
                     <submenu :items="action" :sub="true" @select="select" />
                 </template>
@@ -82,5 +97,4 @@ function filterEnter(e: KeyboardEvent) {
 function select(id: string) {
     emit("select", id)
 }
-
 </script>

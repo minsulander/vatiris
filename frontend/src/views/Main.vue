@@ -149,8 +149,8 @@ function select(id: string | object) {
                 windows.layout[id] = { enabled: true }
             }
         }
-    } else if (id.startsWith && id.startsWith("link")) {
-        const [_, url, target] = id.split("|")
+    } else if (id.startsWith && id.startsWith("https://")) {
+        const [url, target] = id.split("|")
         window.open(url, target || "_blank")
     } else {
         console.error(`Unknown menu selection: ${id}`)
