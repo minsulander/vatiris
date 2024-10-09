@@ -1,0 +1,19 @@
+{
+    "title": "Runway change",
+    "items": [
+        "Upstream controller...COORDINATE", 
+        "Last arrival...INPUT:NOTE", 
+        "Last departure...INPUT:NOTE",
+        "Old runway in EuroScope lists...SET",
+        "Runway configuration EuroScope...CHANGE",
+        "vATIS...UPDATE",
+        "Amend departure clearances...TRANSMIT"
+    ],
+    "sections": {
+        "0": "Preparation",
+        "4": "Execution"
+    },
+    "preDescription": "Runways changes with short notice increase the workload of both pilots and controllers and are due to safety reasons avoided as far as possible.",
+    "width": 600,
+    "height": 450
+}

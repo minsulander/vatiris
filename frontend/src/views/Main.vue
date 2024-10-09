@@ -38,8 +38,9 @@ import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
+import Iframe from "@/components/Iframe.vue"
 
-import { onBeforeUnmount, onUnmounted } from "vue"
+import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 
 const windows = useWindowsStore()
@@ -55,7 +56,7 @@ export interface WindowSpec {
     height: string | number
 }
 
-const availableWindows: { [key: string]: WindowSpec } = {
+const availableWindows = shallowReactive({
     notam: {
         title: "NOTAM",
         component: Notam,
@@ -68,15 +69,6 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 600,
     },
-    /*
-    aip: {
-        title: "AIP test",
-        component: Iframe,
-        props: { src: "https://www.aro.lfv.se/Editorial/View/13845/ES_AD_2_ESSA_5-23_en#toolbar=0&navpanes=0&scrollbar=0" },
-        width: 800,
-        height: 600,
-    },
-    */
     smhi: {
         title: "SMHI",
         component: Smhi,
@@ -115,7 +107,7 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 240,
     },
-}
+} as { [key: string]: WindowSpec })
 
 for (const icao of wxAirports) {
     availableWindows[`metrep${icao}`] = {
@@ -136,17 +128,54 @@ for (const icao of wxAirports) {
     }
 }
 
-function select(id: string) {
-    if (!(id in availableWindows)) console.error(`Unknown window ${id}`)
-    if (id in windows.winbox) {
-        if (windows.winbox[id].min) windows.winbox[id].restore()
-        windows.winbox[id].focus()
-    } else {
-        if (id in windows.layout) {
-            windows.layout[id].enabled = true
-        } else {
-            windows.layout[id] = { enabled: true }
+
+import("@/data/aip-airports.json").then((module) => {
+    for (const airport of module.default) {
+        for (const document of airport.documents) {
+            availableWindows[`aip${document.prefix}`] = {
+                title: `AIP ${document.prefix} ${document.name}`,
+                component: Iframe,
+                props: { src: `${document.url}#toolbar=0` },
+                width: 500,
+                height: 700,
+            }
         }
+    }
+})
+
+import Checklist from "@/components/Checklist.vue"
+for (const name of ["open-position", "close-position", "handover-takeover", "rwy-change"]) {
+    import(`@/data/checklist/${name}.json`).then((module) => {
+        const checklist = module.default
+        availableWindows[`checklist-${name}`] = {
+            title: `Checklist - ${checklist.title}`,
+            component: Checklist,
+            props: { id: name, checklist },
+            width: checklist.width || 600,
+            height: checklist.height || 700
+        }
+    })
+}
+
+function select(id: string | object) {
+    if (typeof id == "object") {
+        // submenu
+    } else if (id in availableWindows) {
+        if (id in windows.winbox) {
+            if (windows.winbox[id].min) windows.winbox[id].restore()
+            windows.winbox[id].focus()
+        } else {
+            if (id in windows.layout) {
+                windows.layout[id].enabled = true
+            } else {
+                windows.layout[id] = { enabled: true }
+            }
+        }
+    } else if (id.startsWith && id.startsWith("https://")) {
+        const [url, target] = id.split("|")
+        window.open(url, target || "_blank")
+    } else {
+        console.error(`Unknown menu selection: ${id}`)
     }
 }
 
@@ -157,4 +186,5 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
     windows.unmounting = false
 })
+;(window as any).select = select
 </script>

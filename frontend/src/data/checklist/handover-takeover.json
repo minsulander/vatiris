@@ -1,0 +1,30 @@
+{
+    "title": "Handover/takeover briefing",
+    "items": [
+        "Runway in use", 
+        "Open/closed STAR", 
+        "Weather - winds, QNH, TRL, LVP, CB",
+        "Audio - XC if large position",
+        "Euroscope",
+        "CPDLC",
+        "GRP",
+        "vATIS - NOTAMs/APT CONDs",
+        "Self - own AoR",
+        "Other - bordering positions open",
+        "Individual (non-LoA) agreements",
+        "Closures of RWYs/TWYs",
+        "Restrictions - R/D/PCA",
+        "Flow regulations/agreements",
+        "Traffic on frequency",
+        "Pending traffic",
+        "Conflicts and solutions planned/in progress"
+    ],
+    "sections": {
+        "0": "<b>W</b>eather",
+        "3": "<b>E</b>quipment",
+        "8": "<b>S</b>ituation",
+        "14": "<b>T</b>raffic"
+    },
+    "width": 370,
+    "height": 730
+}
