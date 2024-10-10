@@ -37,6 +37,7 @@ import Smhi from "@/components/Smhi.vue"
 import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
+import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
@@ -93,6 +94,18 @@ const availableWindows = shallowReactive({
         component: ECFMP,
         width: 600,
         height: 300,
+    },
+    SApush: {
+        title: "ESSA Pushback",
+        component: SApush,
+        width: 600,
+        height: 600,
+    },
+    about: {
+        title: "About",
+        component: About,
+        width: 600,
+        height: 240,
     },
 } as { [key: string]: WindowSpec })
 

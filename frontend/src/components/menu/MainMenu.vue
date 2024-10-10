@@ -35,7 +35,6 @@ const menuItems = reactive({
         "SWC NORDEN": "swc",
         VFR: "vfr",
     },
-
     NOTAM: "notam",
     eCharts: "echarts",
     ATFM: {
@@ -131,6 +130,9 @@ const menuItems = reactive({
                 EETT: "https://wiki.vatsim-scandinavia.org/books/loa/page/tallinn-fir-sweden-fir",
                 EPWW: "https://wiki.vatsim-scandinavia.org/books/loa/page/warsaw-fir-sweden-fir",
             },
+        },
+        OTHER: {
+            "ESSA PUSH": "SApush",
         },
         AIP: {
             // filled in code
