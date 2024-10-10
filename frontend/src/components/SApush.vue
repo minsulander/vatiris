@@ -9,6 +9,9 @@
             placeholder="Stand/Apron"
             class="search-input"
           />
+          <button @click="clearSearch" class="clear-button">
+            <span class="mdi mdi-close"></span>
+          </button>
         </div>
         <ul class="apron-list">
           <li v-for="apron in aprons" :key="apron.id">
@@ -69,6 +72,11 @@
           this.selectedApron = '';
         }
       },
+      clearSearch() {
+        this.searchQuery = '';
+        this.currentImage = '';
+        this.selectedApron = '';
+      },
     },
   };
   </script>
@@ -85,14 +93,41 @@
 
 .search-container {
   margin-right: 10px;
+  display: flex;
+  align-items: center;
+  position: relative;
 }
 
 .search-input {
   padding: 8px;
+  padding-right: 30px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  width: 100px;
+  width: 120px;
   font-size: 14px;
+}
+
+.clear-button {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-button .mdi {
+  font-size: 18px;
+  color: #999;
+}
+
+.clear-button:hover .mdi {
+  color: #333;
 }
 
 .apron-list {
