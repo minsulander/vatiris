@@ -1,16 +1,16 @@
 <template>
     <div class="sunrise-sunset">
       <div class="pa-3">
-        <input v-model="airportCode" @input="handleInput" placeholder="Enter airport identifier" class="airport-input" />
-      </div>
-      <div v-if="loading" class="pa-3 text-center">Loading...</div>
-      <div v-else-if="error" class="pa-3 text-center text-error">{{ error }}</div>
-      <div v-else class="pa-3">
-        <h3>{{ airportCode }} Times (UTC)</h3>
-        <div>Sunrise: {{ sunriseTime }}</div>
-        <div>Sunset: {{ sunsetTime }}</div>
-        <div>Aeronautical Day Start: {{ aeroDay }}</div>
-        <div>Aeronautical Night Start: {{ aeroNight }}</div>
+        <div class="info-row">
+          <div class="time-info">
+            <div><strong>Sunset:</strong><br> {{ sunsetTime }}</div>
+            <div><strong>Night:</strong><br> {{ aeroNight }}</div>
+          </div>
+          <div class="airport-code-container">
+            <h1 class="airport-code">{{ airportCode }}</h1>
+          </div>
+          <div class="empty-column"></div>
+        </div>
       </div>
     </div>
   </template>
@@ -21,9 +21,7 @@
   import Papa from 'papaparse';
   import airportsData from '@/data/airports.csv?raw';
 
-  const props = withDefaults(defineProps<{ id?: string }>(), {
-    id: ''
-  });
+  const props = defineProps<{ id: string }>();
 
   const airportCode = ref(props.id);
   const sunriseTime = ref('');
@@ -109,10 +107,6 @@
     }
   };
 
-  const handleInput = () => {
-    fetchSunriseSunset();
-  };
-
   watch(() => props.id, (newId) => {
     airportCode.value = newId;
     fetchSunriseSunset();
@@ -128,11 +122,32 @@
   .sunrise-sunset {
     font-family: Arial, sans-serif;
   }
-  
-  .airport-input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 16px;
-    font-size: 16px;
+
+  .airport-code {
+    font-size: 3em;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .time-info {
+    text-align: left;
+    flex: 1;
+  }
+
+  .airport-code-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .empty-column {
+    flex: 1;
   }
   </style>

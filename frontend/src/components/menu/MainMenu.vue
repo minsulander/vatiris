@@ -33,9 +33,10 @@ const menuItems = {
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
-        SUN: "Sun",
+        SUN: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
     },
-
     NOTAM: "notam",
     eCharts: "echarts",
     ATFM: {
@@ -60,6 +61,7 @@ import { wxAirports } from "@/stores/wx"
 for (const icao of wxAirports) {
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
+     menuItems.MET.SUN[icao] = `sun${icao}`
 }
 
 import aipAirports from "@/data/aip-airports.json"
