@@ -180,7 +180,7 @@ export default {
       sortKey: '',
       sortOrder: 1, // 1 for ascending, -1 for descending
       identifierFilter: '', // New filter for identifier
-      showExpiredWithdrawn: true, // Toggle for expired/withdrawn measures
+      showExpiredWithdrawn: false, // Toggle for expired/withdrawn measures
       showNotified: true, // Toggle for notified measures
       showReason: true, // Toggle for reason column
       time: '', // New property to hold the timestamp of API data
