@@ -38,7 +38,7 @@ import About from "@/components/About.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import Iframe from "@/components/Iframe.vue"
-import SunriseSunset from "@/components/SunriseSunset.vue"
+import Sun from "@/components/Sun.vue"
 
 import { onBeforeUnmount, onUnmounted } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -89,9 +89,9 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 400,
         height: 690,
     },
-    sunriseSunset: {
+    Sun: {
         title: "Sunrise/Sunset Times",
-        component: SunriseSunset,
+        component: Sun,
         width: 300,
         height: 200,
     },

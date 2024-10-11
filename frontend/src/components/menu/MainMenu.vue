@@ -33,7 +33,7 @@ const menuItems = {
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
-        Sun: "SunriseSunset",
+        SUN: "Sun",
     },
 
     NOTAM: "notam",
