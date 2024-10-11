@@ -1,5 +1,6 @@
 <template>
     <v-btn class="text-grey" @click="showAboutDialog = true">About</v-btn>
+    <PLSTimer/>
     <v-btn
         v-if="!fullscreen"
         type="icon"
@@ -15,7 +16,6 @@
         @click="exitFullScreen"
     ></v-btn>
     <clock class="mx-2 text-grey" />
-    <PLSTimer/>
     <v-dialog v-model="showAboutDialog" max-width="730">
         <v-card>
             <v-card-title class="font-weight-light text-grey pl-6 pt-3">
