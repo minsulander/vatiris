@@ -22,8 +22,13 @@ import Submenu from "@/components/menu/Submenu.vue"
 import { useWindowsStore } from "@/stores/windows"
 const windows = useWindowsStore()
 
+import Full from "@/components/Full.vue"
+
 const menuItems = {
     MET: {
+        ALL: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
         METREPORT: {
             // filled in code
         } as { [key: string]: string },
@@ -59,6 +64,7 @@ const menuItems = {
 import { wxAirports } from "@/stores/wx"
 
 for (const icao of wxAirports) {
+    menuItems.MET.ALL[icao] = `full${icao}`
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
      menuItems.MET.SUN[icao] = `sun${icao}`

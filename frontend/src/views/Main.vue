@@ -39,6 +39,7 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import Iframe from "@/components/Iframe.vue"
 import Sun from "@/components/Sun.vue"
+import Full from "@/components/Full.vue"
 
 import { onBeforeUnmount, onUnmounted } from "vue"
 import { useWindowsStore } from "@/stores/windows"
