@@ -143,6 +143,7 @@ for (const icao of wxAirports) {
         props: { id: icao },
         width: 300,
         height: 200,
+        class: "no-max",
     }
 }
 

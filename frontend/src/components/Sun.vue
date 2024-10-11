@@ -3,13 +3,23 @@
       <div class="pa-3">
         <div class="info-row">
           <div class="time-info">
-            <div><strong>Sunset:</strong><br> {{ sunsetTime }}</div>
-            <div><strong>Night:</strong><br> {{ aeroNight }}</div>
+            <div v-if="isNightTime">
+              <strong>Sunrise:</strong><br> {{ dawnTime }}
+            </div>
+            <div v-else>
+              <strong>Sunset:</strong><br> {{ sunsetTime }}
+            </div>
+            <div v-if="isNightTime">
+              <strong>Day:</strong><br> {{ sunriseTime }}
+            </div>
+            <div v-else>
+              <strong>Night:</strong><br> {{ duskTime }}
+            </div>
           </div>
-          <div class="airport-code-container">
+          <div class="airport-info">
             <h1 class="airport-code">{{ airportCode }}</h1>
+            <p v-if="isNightTime" class="separation-vfr"><strong>Separation VFR</strong></p>
           </div>
-          <div class="empty-column"></div>
         </div>
       </div>
     </div>
@@ -24,12 +34,13 @@
   const props = defineProps<{ id: string }>();
 
   const airportCode = ref(props.id);
+  const dawnTime = ref('');
+  const duskTime = ref('');
   const sunriseTime = ref('');
   const sunsetTime = ref('');
-  const aeroDay = ref('');
-  const aeroNight = ref('');
   const loading = ref(false);
   const error = ref('');
+  const isNightTime = ref(false);
 
   const airports = ref<Record<string, { lat: number; lon: number }>>({});
 
@@ -93,12 +104,19 @@
       const date = new Date();
       const times = SunCalc.getTimes(date, lat, lon);
       
+      dawnTime.value = formatTime(times.dawn);
+      duskTime.value = formatTime(times.dusk);
       sunriseTime.value = formatTime(times.sunrise);
       sunsetTime.value = formatTime(times.sunset);
 
       const { dayStart, nightStart } = calculateAeronauticalTimes(lat, date, times.sunrise, times.sunset);
-      aeroDay.value = formatTime(dayStart);
-      aeroNight.value = formatTime(nightStart);
+
+      const currentTime = new Date();
+      isNightTime.value = currentTime >= nightStart || currentTime < dayStart;
+
+      // Ensure dawnTime and sunriseTime are always set
+      dawnTime.value = formatTime(times.dawn);
+      sunriseTime.value = formatTime(times.sunrise);
     } catch (err) {
       console.error('Error calculating sunrise/sunset times:', err);
       error.value = 'Failed to calculate sunrise/sunset times';
@@ -136,18 +154,21 @@
   }
 
   .time-info {
-    text-align: left;
-    flex: 1;
+    width: 60px; /* Fixed width for the left column */
+    text-align: center;
   }
-
-  .airport-code-container {
+  .airport-info {
     flex: 1;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    align-items: flex-start;
+    margin-right: 60px;
+    text-align: center;
   }
 
-  .empty-column {
-    flex: 1;
+  .separation-vfr {
+    margin: 0;
+    font-size: 1.2em;
   }
   </style>
