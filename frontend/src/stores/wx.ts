@@ -31,6 +31,17 @@ export const wxAirports = [
     "ESUP",
 ]
 
+export const atisAirports = [
+    "ESGG",
+    "ESKN",
+    "ESMS",
+    "ESNN",
+    "ESOW",
+    "ESSA",
+    "ESSB",
+    "ESTL"
+]
+
 const viewIdByIcao: { [key: string]: string } = {
     ESSA: "arlanda-overview.html",
     ESSB: "bromma-overview.html",

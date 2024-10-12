@@ -109,7 +109,7 @@ const rwyDiffersToVatsim = computed(() => {
     }
 })
 
-const ATISAirportCodes = ["ESGG", "ESKN", "ESMS", "ESNN", "ESOW", "ESSA", "ESSB", "ESTL"]
+import { atisAirports } from "@/stores/wx"
 
 // List of keywords to be styled. X-R not working
 const keywords = [
@@ -153,7 +153,7 @@ const airportCode = computed(() => {
     return getAirportCode(data)
 })
 
-const isATISAirport = computed(() => ATISAirportCodes.includes(airportCode.value))
+const isATISAirport = computed(() => atisAirports.includes(airportCode.value))
 
 const formatMetreport = (report: string) => {
     if (!report) return ""
