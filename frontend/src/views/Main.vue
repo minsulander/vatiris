@@ -112,10 +112,9 @@ const availableWindows: { [key: string]: WindowSpec } = {
     Sun: {
         title: "Sunrise/Sunset Times",
         component: Sun,
-        width: 300,
-        height: 200,
+        width: 340,
+        height: 150,
     },
-    // .
 }
 
 for (const icao of wxAirports) {
@@ -144,6 +143,16 @@ for (const icao of wxAirports) {
         props: { id: icao },
         width: 300,
         height: 200,
+        class: "no-max",
+    }
+}
+for (const icao of wxAirports) {
+    availableWindows[`full${icao}`] = {
+        title: `ALL ${icao}`,
+        component: Full,
+        props: { id: icao },
+        width: 380,
+        height: 800,
         class: "no-max",
     }
 }
@@ -192,16 +201,4 @@ onUnmounted(() => {
 })
 ;(window as any).select = select
 
-// Add this loop after the existing loops
-const fullViewAirports = ["ESGG", "ESMS", "ESSA", "ESSL"];
-for (const icao of fullViewAirports) {
-    availableWindows[`full${icao}`] = {
-        title: `ALL ${icao}`,
-        component: Full,
-        props: { id: icao },
-        width: 600,
-        height: 800,
-        class: "no-max",
-    }
-}
 </script>
