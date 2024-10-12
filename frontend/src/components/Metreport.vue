@@ -206,6 +206,7 @@ function click() {
 }
 
 onMounted(() => {
+    if (!vatsim.data.general) vatsim.fetchData()
     subscription = wx.subscribe(props.id)
 })
 

@@ -39,13 +39,14 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
+import ATIS from "@/components/ATIS.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 
 const windows = useWindowsStore()
 
-import { wxAirports } from "@/stores/wx"
+import { wxAirports, atisAirports } from "@/stores/wx"
 
 export interface WindowSpec {
     title: string
@@ -128,6 +129,16 @@ for (const icao of wxAirports) {
     }
 }
 
+for (const icao of atisAirports) {
+    availableWindows[`atis${icao}`] = {
+        title: `ATIS ${icao}`,
+        component: ATIS,
+        props: { id: icao },
+        width: 420,
+        height: 380,
+        class: "no-max",
+    }
+}
 
 import("@/data/aip-airports.json").then((module) => {
     for (const airport of module.default) {

@@ -31,6 +31,9 @@ const menuItems = reactive({
         METSENSOR: {
             // filled in code
         } as { [key: string]: string },
+        ATIS: {
+            // This will be filled in the same way as METREPORT and METSENSOR
+        } as { [key: string]: string },
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
@@ -140,11 +143,15 @@ const menuItems = reactive({
     },
 } as any)
 
-import { wxAirports } from "@/stores/wx"
+import { wxAirports, atisAirports } from "@/stores/wx"
 
 for (const icao of wxAirports) {
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
+}
+
+for (const icao of atisAirports) {
+    menuItems.MET.ATIS[icao] = `atis${icao}`
 }
 
 import("@/data/aip-airports.json").then((module) => {
