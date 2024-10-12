@@ -90,12 +90,6 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 400,
         height: 690,
     },
-    Sun: {
-        title: "Sunrise/Sunset Times",
-        component: Sun,
-        width: 300,
-        height: 200,
-    },
     ECFMP: {
         title: "ECFMP Flow Measures",
         component: ECFMP,
@@ -108,12 +102,6 @@ const availableWindows: { [key: string]: WindowSpec } = {
         component: About,
         width: 600,
         height: 240,
-    },
-    Sun: {
-        title: "Sunrise/Sunset Times",
-        component: Sun,
-        width: 340,
-        height: 150,
     },
 }
 
@@ -141,8 +129,8 @@ for (const icao of wxAirports) {
         title: `SUN ${icao}`,
         component: Sun,
         props: { id: icao },
-        width: 300,
-        height: 200,
+        width: 340,
+        height: 150,
         class: "no-max",
     }
 }
