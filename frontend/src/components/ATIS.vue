@@ -224,6 +224,9 @@ const extractClouds = (text: string) => {
 const formatAtisText = (text: string) => {
     if (!text) return ""
 
+    // Remove all line breaks from the input text
+    text = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+
     const extractInfo = (regex: RegExp, defaultValue: string = "") => {
         const match = text.match(regex)
         return match ? match[1] : defaultValue
@@ -265,8 +268,9 @@ ${vis}
 ${precipitation}
 
 ${clouds}
-${temperature.padEnd(8)}${dewpoint}
+${temperature.padEnd(9)}${dewpoint}
 QNH <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnh.split('').join(' ')}</div> HPA   TRL ${trl}
+
 ${other}
   `.trim()
 }
