@@ -26,7 +26,7 @@ import Full from "@/components/Full.vue"
 
 const menuItems = {
     MET: {
-        ALL: {
+        FULL: {
             // This will be filled in with ICAO codes
         } as { [key: string]: string },
         METREPORT: {
@@ -64,7 +64,7 @@ const menuItems = {
 import { wxAirports } from "@/stores/wx"
 
 for (const icao of wxAirports) {
-    menuItems.MET.ALL[icao] = `full${icao}`
+    menuItems.MET.FULL[icao] = `full${icao}`
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
      menuItems.MET.SUN[icao] = `sun${icao}`

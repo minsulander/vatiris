@@ -62,6 +62,7 @@
     }
   };
 
+  //Is this relevant..?
   const calculateAeronauticalTimes = (lat: number, date: Date, sunrise: Date, sunset: Date) => {
     const absLat = Math.abs(lat);
     let dayStart: Date, nightStart: Date;

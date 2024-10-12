@@ -96,7 +96,6 @@ const availableWindows: { [key: string]: WindowSpec } = {
         width: 600,
         height: 300,
     },
-
     about: {
         title: "About",
         component: About,
@@ -136,7 +135,7 @@ for (const icao of wxAirports) {
 }
 for (const icao of wxAirports) {
     availableWindows[`full${icao}`] = {
-        title: `ALL ${icao}`,
+        title: `FULL ${icao}`,
         component: Full,
         props: { id: icao },
         width: 380,
