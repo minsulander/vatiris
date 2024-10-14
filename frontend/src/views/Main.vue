@@ -10,7 +10,7 @@
             <Window
                 v-if="id in windows.layout && windows.layout[id].enabled"
                 :key="id"
-                :id="id as string"
+                :id="''+id"
                 :title="win.title"
                 :width="win.width"
                 :height="win.height"
@@ -107,7 +107,7 @@ const availableWindows = shallowReactive({
         width: 600,
         height: 240,
     },
-} as { [key: string]: WindowSpec })
+} as any)
 
 for (const icao of wxAirports) {
     availableWindows[`metrep${icao}`] = {

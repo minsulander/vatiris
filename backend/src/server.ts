@@ -1,6 +1,9 @@
+import "dotenv/config"
 import express, { Request, Response } from "express"
 import cors from "cors"
 import bodyparser from "body-parser"
+import db from "./db"
+import auth from "./auth"
 
 const vatsimAuthBaseUri = process.env.VATSIM_AUTH_BASE_URI || "https://auth-dev.vatsim.net/"
 const clientId = process.env.CLIENT_ID || "682"
@@ -13,13 +16,13 @@ const port = process.env.PORT || 5172
 app.use(cors())
 app.use(bodyparser.json())
 
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`Server running at http://localhost:${port}`)
     console.log("  Using VATSIM Auth Base URI:", vatsimAuthBaseUri)
     console.log("  Using Client ID:", clientId)
     console.log("  Using Redirect URI:", redirectUri)
-    
-    })
+    console.log("  DB Time:", await db.testQuery())
+})
 
 import axios from "axios"
 
@@ -46,11 +49,23 @@ app.get("/token", async (req: Request, res: Response) => {
 })
 
 app.post("/login", async (req: Request, res: Response) => {
-    const user = req.body
-    console.log("Login", user?.cid, user?.personal?.name_full)
+    const user = await auth.requireUser(req, res)
+    console.log("Login", user.cid, user.personal.name_full)
+    await db.upsertUserAtLogin(user.cid, user.personal.name_full, user.vatsim.division.name, user.vatsim.subdivision.name)
     res.send("kthx")
 })
 
+app.post("/data/:key", async (req: Request, res: Response) => {
+    const cid = await auth.requireCid(req, res)
+    await db.upsertUserData(cid, req.params.key, req.body)
+})
+
+app.get("/data/:key", async (req: Request, res: Response) => {
+    const cid = await auth.requireCid(req, res)
+    const data = await db.getUserData(cid, req.params.key)
+    res.send(data)
+})
+
 app.get(/.*/, (req, res) => {
-  res.status(404).send();
-});
+    res.status(404).send()
+})

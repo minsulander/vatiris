@@ -9,8 +9,6 @@ const vatsimAuthBaseUri = import.meta.env.VITE_VATSIM_AUTH_BASE_URI || "https://
 const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
 
 export const useAuthStore = defineStore("auth", () => {
-    console.log("hello auth")
-
     const pending = ref(true)
     const token = ref({} as any)
     const user = ref(undefined as any)
@@ -66,19 +64,38 @@ export const useAuthStore = defineStore("auth", () => {
                 headers: { Authorization: `Bearer ${token.value.access_token}` },
             })
             .then((response) => {
-                console.log(response.data.data)
                 user.value = response.data.data
                 pending.value = false
-                axios.post(`${backendBaseUrl}/login`, user.value).then((response) => {
-                    console.log(response.data)
-                }).catch((error) => {
-                    console.error("Failed to login user", error)
-                })
+                axios
+                    .post(
+                        `${backendBaseUrl}/login`,
+                        {},
+                        { headers: { Authorization: `Bearer ${token.value.access_token}` } },
+                    )
+                    .then((response) => {
+                        console.log("Logged in user", user.value.cid, user.value.personal.name_full, response.data)
+                    })
+                    .catch((error) => {
+                        console.error("Failed to login user", error)
+                    })
             })
             .catch((error) => {
                 console.error("Failed to get user from token", error)
                 pending.value = false
             })
+    }
+
+    async function fetchUserData(key: string) {
+        const response = await axios.get(`${backendBaseUrl}/data/${key}`, {
+            headers: { Authorization: `Bearer ${token.value.access_token}` },
+        })
+        return response.data
+    }
+
+    async function postUserData(key: string, data: object) {
+        return axios.post(`${backendBaseUrl}/data/${key}`, data, {
+            headers: { Authorization: `Bearer ${token.value.access_token}` },
+        })
     }
 
     function login() {
@@ -98,5 +115,5 @@ export const useAuthStore = defineStore("auth", () => {
         user.value = undefined
     }
 
-    return { pending, user, login, logout }
+    return { pending, token, user, login, logout, fetchUserData, postUserData }
 })

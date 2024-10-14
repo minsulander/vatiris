@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import useEventBus from "@/eventbus"
-import { ref, defineProps } from "vue"
+import { ref } from "vue"
 
 const props = defineProps<{ src: string }>()
 const iframe = ref()
