@@ -14,6 +14,7 @@ cd ..
 
 mkdir -p build
 cp -r backend/dist/* build/
+cp -r backend/migrations build/
 
 rm -f backend.zip
 cd build
@@ -32,3 +33,4 @@ ssh $user@$host "sudo systemctl restart vatiris-backend"
 
 rm -f backend.zip
 echo "Deployed to $host"
+echo "Don't forget migrations, if any..."
