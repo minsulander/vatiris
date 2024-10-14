@@ -39,14 +39,17 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
-import Coordinations from "@/components/Coordinations.vue"
+import DCT from "@/components/DCT.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 
 const windows = useWindowsStore()
+const dct = useDctStore()
 
 import { wxAirports } from "@/stores/wx"
+import { useDctStore } from "@/stores/dct"
+import directsData from '@/data/dct/directs.json'
 
 export interface WindowSpec {
     title: string
@@ -108,49 +111,6 @@ const availableWindows = shallowReactive({
         width: 600,
         height: 240,
     },
-    //Make Coordination work like METREPORT/SENSOR
-    "coord-os": {
-        title: "ESOS Coordination",
-        component: Coordinations,
-        props: { id: "OS" },
-        width: 340,
-        height: 500,
-    },
-    "coord-mm": {
-        title: "ESMM Coordination",
-        component: Coordinations,
-        props: { id: "MM" },
-        width: 340,
-        height: 500,
-    },
-    "coord-ed": {
-        title: "EDWW/UU Coordination",
-        component: Coordinations,
-        props: { id: "ED" },
-        width: 340,
-        height: 500,
-    },
-    "coord-ef": {
-        title: "EFIN Coordination",
-        component: Coordinations,
-        props: { id: "EF" },
-        width: 340,
-        height: 500,
-    },
-    "coord-ek": {
-        title: "EKDK Coordination",
-        component: Coordinations,
-        props: { id: "EK" },
-        width: 340,
-        height: 500,
-    },
-    "coord-en": {
-        title: "ENOR Coordination",
-        component: Coordinations,
-        props: { id: "EN" },
-        width: 340,
-        height: 500,
-    },
 } as { [key: string]: WindowSpec })
 
 for (const icao of wxAirports) {
@@ -199,6 +159,17 @@ for (const name of ["open-position", "close-position", "handover-takeover", "rwy
             height: checklist.height || 700
         }
     })
+}
+
+for (const direct of directsData) {
+    const id = direct.id.toLowerCase().replace(/\s+/g, '-')
+    availableWindows[`coord-${id}`] = {
+        title: `${direct.id} Directs`,
+        component: DCT,
+        props: { id: direct.id },
+        width: 550,
+        height: 700,
+    }
 }
 
 function select(id: string | object) {

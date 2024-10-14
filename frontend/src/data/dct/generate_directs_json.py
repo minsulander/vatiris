@@ -27,6 +27,6 @@ def parse_txt_to_json(input_file, output_file):
     print(f"JSON file '{output_file}' has been generated successfully.")
 
 # Usage
-input_file = 'coordinations.txt'
-output_file = 'coordinations.json'
+input_file = 'directs.txt'
+output_file = 'directs.json'
 parse_txt_to_json(input_file, output_file)

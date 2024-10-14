@@ -59,6 +59,7 @@ import { usePresetStore } from "@/stores/preset"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useAuthStore } from "@/stores/auth"
 import { useSettingsStore } from "@/stores/settings"
+import { useDctStore } from "@/stores/dct"
 import moment from "moment"
 import axios from "axios"
 
@@ -74,4 +75,5 @@ global.auth = useAuthStore()
 global.settings = useSettingsStore()
 global.moment = moment
 global.axios = axios
+global.dct = useDctStore()
 
