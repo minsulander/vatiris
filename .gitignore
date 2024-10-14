@@ -31,3 +31,4 @@ coverage
 *.tsbuildinfo
 /build
 *.zip
+frontend/package-lock.json

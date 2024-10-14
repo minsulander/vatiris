@@ -137,6 +137,14 @@ const menuItems = reactive({
         AIP: {
             // filled in code
         },
+        COORDINATIONS: {
+        ESMM: "coord-mm",
+        ESOS: "coord-os",
+        "EDWW/UU": "coord-ed",
+        EFIN: "coord-ef",
+        EKDK: "coord-ek",
+        ENOR: "coord-en",
+    },
     },
 } as any)
 

@@ -39,6 +39,7 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
+import Coordinations from "@/components/Coordinations.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -106,6 +107,49 @@ const availableWindows = shallowReactive({
         component: About,
         width: 600,
         height: 240,
+    },
+    //Make Coordination work like METREPORT/SENSOR
+    "coord-os": {
+        title: "ESOS Coordination",
+        component: Coordinations,
+        props: { id: "OS" },
+        width: 340,
+        height: 500,
+    },
+    "coord-mm": {
+        title: "ESMM Coordination",
+        component: Coordinations,
+        props: { id: "MM" },
+        width: 340,
+        height: 500,
+    },
+    "coord-ed": {
+        title: "EDWW/UU Coordination",
+        component: Coordinations,
+        props: { id: "ED" },
+        width: 340,
+        height: 500,
+    },
+    "coord-ef": {
+        title: "EFIN Coordination",
+        component: Coordinations,
+        props: { id: "EF" },
+        width: 340,
+        height: 500,
+    },
+    "coord-ek": {
+        title: "EKDK Coordination",
+        component: Coordinations,
+        props: { id: "EK" },
+        width: 340,
+        height: 500,
+    },
+    "coord-en": {
+        title: "ENOR Coordination",
+        component: Coordinations,
+        props: { id: "EN" },
+        width: 340,
+        height: 500,
     },
 } as { [key: string]: WindowSpec })
 
