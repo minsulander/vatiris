@@ -182,7 +182,7 @@ export default {
       identifierFilter: '', // New filter for identifier
       showExpiredWithdrawn: false, // Toggle for expired/withdrawn measures
       showNotified: true, // Toggle for notified measures
-      showReason: true, // Toggle for reason column
+      showReason: false, // Toggle for reason column
       time: '', // New property to hold the timestamp of API data
       filtersFilter: '',
       reasonFilter: ''
@@ -371,7 +371,7 @@ export default {
         case 'per_hour':
           return `${value} / h`;
         case 'miles_in_trail':
-          return `${value} nm of aircraft in trail`;
+          return `${value} nm`;
         case 'max_ias':
           return `${value} kt`;
         case 'max_mach':

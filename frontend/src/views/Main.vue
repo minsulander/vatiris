@@ -92,13 +92,13 @@ const availableWindows = shallowReactive({
     ECFMP: {
         title: "ECFMP Flow Measures",
         component: ECFMP,
-        width: 600,
+        width: 700,
         height: 300,
     },
     SApush: {
         title: "ESSA Pushback",
         component: SApush,
-        width: 600,
+        width: 700,
         height: 600,
     },
     about: {
