@@ -10,7 +10,8 @@
         <div style="position: relative">
             <div
                 style="position: absolute; right: 3px; z-index: 100"
-                class="text-caption text-grey-darken-2"
+                class="text-caption font-weight-bold text-orange-darken-4"
+                v-if="outdated"
             >
                 {{ time.replace("T", " ") }}
             </div>
@@ -48,6 +49,7 @@ import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useWxStore } from "@/stores/wx"
 import { diffWords } from "diff"
 import { useSettingsStore } from "@/stores/settings"
+import moment from "moment"
 
 const props = defineProps<{ id: string }>()
 
@@ -58,6 +60,7 @@ const time = computed(() => wx.time(props.id))
 const metsensor = computed(() => wx.metsensor(props.id))
 const metsensorStylized = ref("")
 const changed = ref(false)
+const outdated = ref(false)
 
 function stylize(newValue: string, oldValue: string = "") {
     function padEndHtml(s: string, n: number) {
@@ -151,12 +154,17 @@ function click() {
     changed.value = false
 }
 
+let checkOutdatedInterval: any = undefined
 onMounted(() => {
     stylize(metsensor.value)
     subscription = wx.subscribe(props.id)
+    checkOutdatedInterval = setInterval(() => {
+        outdated.value = time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
+    }, 5000)
 })
 
 onUnmounted(() => {
+    clearInterval(checkOutdatedInterval)
     wx.unsubscribe(subscription)
 })
 

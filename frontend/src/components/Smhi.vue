@@ -2,7 +2,12 @@
     <div ref="mapcontainer" style="width: 100%; height: 100%">
         <div style="position: relative">
             <div style="position: absolute; right: 3px; z-index: 100">
-                {{ time.replace("T", " ") }}
+                <div class="text-caption font-weight-bold text-orange-darken-4" v-if="outdated">
+                    {{ lastTileLoadedTime.replace("T", " ") }}
+                </div>
+                <div v-else class="text-caption text-grey">
+                    {{ moment(time).utc().format('HH:mm') }}
+                </div>
             </div>
         </div>
     </div>
@@ -84,6 +89,9 @@ const mapcontainer = ref()
 let refreshInterval: any = undefined
 
 const time = ref("")
+const lastTileLoadedTimestamp = ref(0)
+const lastTileLoadedTime = ref("")
+const outdated = ref(false)
 
 const smhiTime = () => {
     const mom = moment()
@@ -117,7 +125,7 @@ onMounted(() => {
     })
     const smhiLayer = new TileLayer({
         source: smhiSource,
-        opacity: 0.4
+        opacity: 0.4,
     })
 
     const retryCodes = [408, 429, 500, 502, 503, 504]
@@ -126,6 +134,10 @@ onMounted(() => {
     smhiSource.addEventListener("tileloaderror", (event: any) => {
         const trie = tries[event.tile.src_]
         if (trie != 1) console.warn("SMHI tile load error try", trie, event.tile.src_)
+    })
+    smhiSource.addEventListener("tileloadend", (event: any) => {
+        lastTileLoadedTimestamp.value = Date.now()
+        lastTileLoadedTime.value = time.value
     })
 
     // https://openlayers.org/en/latest/apidoc/module-ol_ImageTile-ImageTile.html#load
@@ -256,6 +268,8 @@ onMounted(() => {
                 }
             })
         }
+        outdated.value =
+            time.value.length > 0 && moment(lastTileLoadedTimestamp.value).isBefore(moment().subtract(10, "minutes"))
     }, 2000)
     ;(window as any).smhimap = map
 
