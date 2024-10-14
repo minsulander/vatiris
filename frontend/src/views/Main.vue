@@ -159,6 +159,11 @@ for (const name of ["open-position", "close-position", "handover-takeover", "rwy
 }
 
 function select(id: string | object) {
+    let ctrl = false
+    if (typeof id == "string" && id.startsWith("ctrl+")) {
+        ctrl = true
+        id = id.substr(5)
+    }
     if (typeof id == "object") {
         // submenu
     } else if (id in availableWindows) {
@@ -166,7 +171,10 @@ function select(id: string | object) {
             if (windows.winbox[id].min) windows.winbox[id].restore()
             windows.winbox[id].focus()
         } else {
-            if (id in windows.layout) {
+            if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
+                // ctrl-click on image/iframe opens in new tab
+                window.open(availableWindows[id].props.src, "_blank")
+            } else if (id in windows.layout) {
                 windows.layout[id].enabled = true
             } else {
                 windows.layout[id] = { enabled: true }
