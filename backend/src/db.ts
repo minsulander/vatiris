@@ -56,9 +56,39 @@ export async function getUserData(cid: number, key: string) {
     }
 }
 
+export async function deleteUserData(cid: number, key: string) {
+    const client = new Client()
+    await client.connect()
+    try {
+        await client.query(
+            `DELETE FROM userdata
+             WHERE cid = $1 AND key = $2`,
+            [cid, key]
+        )
+    } finally {
+        await client.end()
+    }
+}
+
+export async function deleteAllUserData(cid: number) {
+    const client = new Client()
+    await client.connect()
+    try {
+        await client.query(
+            `DELETE FROM userdata
+             WHERE cid = $1`,
+            [cid]
+        )
+    } finally {
+        await client.end()
+    }
+}
+
 export default {
     testQuery,
     upsertUserAtLogin,
     upsertUserData,
     getUserData,
+    deleteUserData,
+    deleteAllUserData,
 }

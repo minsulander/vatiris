@@ -70,10 +70,18 @@ export const useAuthStore = defineStore("auth", () => {
                     .post(
                         `${backendBaseUrl}/login`,
                         {},
-                        { headers: { Authorization: `Bearer ${token.value.access_token}` } },
+                        {
+                            headers: { Authorization: `Bearer ${token.value.access_token}` },
+                            timeout: 5000,
+                        },
                     )
                     .then((response) => {
-                        console.log("Logged in user", user.value.cid, user.value.personal.name_full, response.data)
+                        console.log(
+                            "Logged in user",
+                            user.value.cid,
+                            user.value.personal.name_full,
+                            response.data,
+                        )
                     })
                     .catch((error) => {
                         console.error("Failed to login user", error)
@@ -88,6 +96,7 @@ export const useAuthStore = defineStore("auth", () => {
     async function fetchUserData(key: string) {
         const response = await axios.get(`${backendBaseUrl}/data/${key}`, {
             headers: { Authorization: `Bearer ${token.value.access_token}` },
+            timeout: 5000,
         })
         return response.data
     }
@@ -95,6 +104,21 @@ export const useAuthStore = defineStore("auth", () => {
     async function postUserData(key: string, data: object) {
         return axios.post(`${backendBaseUrl}/data/${key}`, data, {
             headers: { Authorization: `Bearer ${token.value.access_token}` },
+            timeout: 15000,
+        })
+    }
+
+    async function deleteUserData(key: string) {
+        return axios.delete(`${backendBaseUrl}/data/${key}`, {
+            headers: { Authorization: `Bearer ${token.value.access_token}` },
+            timeout: 15000,
+        })
+    }
+
+    async function deleteAllUserData() {
+        return axios.delete(`${backendBaseUrl}/data`, {
+            headers: { Authorization: `Bearer ${token.value.access_token}` },
+            timeout: 15000,
         })
     }
 
@@ -115,5 +139,15 @@ export const useAuthStore = defineStore("auth", () => {
         user.value = undefined
     }
 
-    return { pending, token, user, login, logout, fetchUserData, postUserData }
+    return {
+        pending,
+        token,
+        user,
+        login,
+        logout,
+        fetchUserData,
+        postUserData,
+        deleteUserData,
+        deleteAllUserData,
+    }
 })

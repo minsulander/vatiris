@@ -39,6 +39,7 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
+import Notepad from "@/components/Notepad.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -101,11 +102,11 @@ const availableWindows = shallowReactive({
         width: 600,
         height: 600,
     },
-    about: {
-        title: "About",
-        component: About,
-        width: 600,
-        height: 240,
+    notepad: {
+        title: "NOTEPAD",
+        component: Notepad,
+        width: 400,
+        height: 500,
     },
 } as any)
 

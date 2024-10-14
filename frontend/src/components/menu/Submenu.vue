@@ -27,7 +27,7 @@
                         "
                         color="grey-darken-2"
                         class="ml-2 float-right"
-                        style="margin-right: -3px"
+                        style="margin-top: 2px; margin-right: -3px"
                         size="small"
                         >mdi-chevron-right</v-icon
                     >

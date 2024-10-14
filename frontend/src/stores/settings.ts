@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import { ref, watch } from "vue"
 import { useAuthStore } from "./auth"
+import useEventBus from "@/eventbus"
 
 export const useSettingsStore = defineStore("settings", () => {
     const windowSnapping = ref(true)
@@ -28,7 +29,7 @@ export const useSettingsStore = defineStore("settings", () => {
             metsensorFlash: metsensorFlash.value,
         }
         localStorage.settings = JSON.stringify(settings)
-        if (Date.now() - lastLoadTime > 5000 && auth.user) {
+        if (Date.now() - lastLoadTime > 3000 && auth.user) {
             console.log("Post settings to backend")
             auth.postUserData("settings", settings)
         }
@@ -37,15 +38,22 @@ export const useSettingsStore = defineStore("settings", () => {
     watch(
         () => auth.user,
         async () => {
-            if (auth.user) {
-                const settings = await auth.fetchUserData("settings")
-                if (settings) {
-                    console.log("Got settings from backend")
-                    load(settings)
-                }
-            }
+            if (auth.user) fetchSettings()
         },
     )
+
+    const bus = useEventBus()
+    bus.on("refresh", () => {
+        if (auth.user) fetchSettings()
+    })
+
+    async function fetchSettings() {
+        const settings = await auth.fetchUserData("settings")
+        if (settings) {
+            console.log("Got settings from backend")
+            load(settings)
+        }
+    }
 
     function load(settings: any) {
         lastLoadTime = Date.now()
