@@ -102,6 +102,7 @@
   padding: 8px;
   padding-right: 30px;
   border: 1px solid #ccc;
+  color: #333;
   border-radius: 4px;
   width: 120px;
   font-size: 14px;

@@ -40,6 +40,7 @@ import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
 import Notepad from "@/components/Notepad.vue"
+import Aircraft from "@/components/Aircraft.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -101,6 +102,12 @@ const availableWindows = shallowReactive({
         component: SApush,
         width: 700,
         height: 600,
+    },
+    aircraft: {
+        title: "Aircraft Types ICAO",
+        component: Aircraft,
+        width: 600,
+        height: 400,
     },
     notepad: {
         title: "NOTEPAD",
