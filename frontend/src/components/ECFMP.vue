@@ -73,7 +73,7 @@
 
         <!-- Timestamp of API data -->
         <div style="color: #616161;">
-          {{ formatTime(time) }}
+          {{ formatApiTime(time) }}
         </div>
       </div>
     </div>
@@ -144,16 +144,23 @@
                 isNotified(measure.starttime) ? 'orange' : 
                 'transparent' 
             }"
-            :title="isActive(measure) ? 'Active' : 
+            :title="measure.withdrawn_at ? 'Withdrawn' :
+                    isActive(measure) ? 'Active' : 
                     isExpired(measure.endtime) ? 'Expired' : 
-                    isWithdrawn(measure.withdrawn_at) ? 'Withdrawn' : 
                     isNotified(measure.starttime) ? 'Notified' : 
                     ''"
           >
             <a :href="`https://ecfmp.vatsim.net/dashboard/flow-measures/${measure.id}`" target="_blank" style="color: inherit; text-decoration: none;">{{ measure.ident }}</a>
           </td>
-          <td :title="getTimeLeftTooltip(measure.starttime)">{{ formatTime(measure.starttime) }}</td>
-          <td :title="getTimeLeftTooltip(measure.endtime)">{{ formatEndTime(measure.starttime, measure.endtime) }}</td>
+          <td :title="getTimeLeftTooltip(measure.starttime, measure.withdrawn_at)">{{ formatTime(measure.starttime) }}</td>
+          <td :title="getTimeLeftTooltip(measure.endtime, measure.withdrawn_at)">
+            <span :style="{ textDecoration: measure.withdrawn_at ? 'line-through' : 'none' }">
+              {{ formatEndTime(measure.starttime, measure.endtime) }}
+            </span>
+            <span v-if="measure.withdrawn_at" style="margin-left: 5px;">
+              {{ formatWithdrawnTime(measure.withdrawn_at) }}
+            </span>
+          </td>
           <td :title="getTypeTooltip(measure.measure)">{{ getType(measure.measure) }}</td>
           <td>{{ getFormattedValue(measure.measure) }}</td>
           <td>{{ formatFilters(measure.filters) }}</td>
@@ -234,18 +241,33 @@ export default {
   },
   methods: {
     formatTime(time) {
-      return time.replace("T", "  ").replace(/:\d{2}\.\d{3}Z$/, "Z").replace(":00Z", ""); // Remove decimal seconds and format
+      return time.replace("T", "  ").replace(/:\d{2}\.\d{3}Z$/, "Z").replace(/:\d{2}Z$/, "");
+    },
+    formatApiTime(time) {
+      return time.replace("T", " ").replace(/:\d{2}\.\d{3}Z$/, "Z");
     },
     formatEndTime(starttime, endtime) {
-      const startDate = new Date(starttime).toDateString();
-      const endDate = new Date(endtime).toDateString();
-      if (startDate === endDate) {
-        return this.formatTime(endtime).split('  ')[1]; // Only return time part
+      const startDate = new Date(starttime);
+      const endDate = new Date(endtime);
+      
+      if (startDate.getUTCFullYear() === endDate.getUTCFullYear() &&
+          startDate.getUTCMonth() === endDate.getUTCMonth() &&
+          startDate.getUTCDate() === endDate.getUTCDate()) {
+        // If same date, return only time
+        return endtime.split("T")[1].substring(0, 5);
       } else {
-        return this.formatTime(endtime); // Return full date and time
+        // If different date, return date and time
+        return endtime.replace("T", " ").substring(0, 16);
       }
     },
-    getTimeLeftTooltip(timestamp) {
+    formatWithdrawnTime(withdrawn_at) {
+      return withdrawn_at.split("T")[1].substring(0, 5);
+    },
+    getTimeLeftTooltip(timestamp, withdrawn_at) {
+      if (withdrawn_at) {
+        return 'Withdrawn';
+      }
+
       const now = new Date();
       const target = new Date(timestamp);
       const timeDiff = target - now;
@@ -276,7 +298,7 @@ export default {
       return timeDiff > 0 && timeDiff <= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     },
     isWithdrawn(withdrawn_at) {
-      return withdrawn_at ? true : false; // True if withdrawn_at exists
+      return withdrawn_at ? true : false;
     },
     checkStates() {
       this.flowMeasures.forEach(measure => {
@@ -287,7 +309,13 @@ export default {
       });
     },
     toggleExpiredWithdrawn() {
-      this.showExpiredWithdrawn = !this.showExpiredWithdrawn;
+      try {
+        this.showExpiredWithdrawn = !this.showExpiredWithdrawn;
+        // Force a re-render of the component
+        this.$forceUpdate();
+      } catch (error) {
+        console.error('Error in toggleExpiredWithdrawn:', error);
+      }
     },
     toggleNotified() {
       this.showNotified = !this.showNotified;
@@ -309,7 +337,7 @@ export default {
           this.error = 'No data received from the server.';
         }
       } catch (err) {
-        console.error('Error fetching data:', err);  // Log any error that occurs during the request
+        console.error('Error fetching data:', err);
         this.error = 'Failed to load flow measures. Please try again later.';
       } finally {
         this.loading = false;
@@ -342,8 +370,8 @@ export default {
     getTypeTooltip(measure) {
       const tooltipMapping = {
         'minimum_departure_interval': 'Minimum departure interval',
-        'average_departure_interval': 'Average departure interval applied over 3 aircraft',
-        'per_hour': 'Number of flights per hour permitted',
+        'average_departure_interval': 'Average departure interval (applied over 3 aircraft)',
+        'per_hour': 'Number of flights permitted per hour',
         'miles_in_trail': 'Distance between aircraft in trail',
         'max_ias': 'Maximum speed',
         'max_mach': 'Maximum speed',
@@ -394,8 +422,29 @@ export default {
       if (!Array.isArray(filters) || filters.length === 0) {
         return 'None';
       }
-      return filters.map(filter => `${filter.type}: ${filter.value.join(', ')}`).join(' | ');
-    }
+      return filters.map(filter => {
+        const { type, value } = filter;
+        switch (type) {
+          case 'ADEP':
+          case 'ADES':
+            return `${type}: ${Array.isArray(value) ? value.join(', ') : value}`;
+          case 'level_above':
+            return `FL${value}+`;
+          case 'level_below':
+            return `FL${value}-`;
+          case 'level':
+            return `FL=${Array.isArray(value) ? value.join('/') : value}`;
+          case 'waypoint':
+            return `Via: ${Array.isArray(value) ? value.join(' OR ') : value}`;
+          case 'member_event':
+            return 'Event Member';
+          case 'member_not_event':
+            return 'Not Event Member';
+          default:
+            return `${type}: ${JSON.stringify(value)}`;
+        }
+      }).join(' | ');
+    },
   }
 };
 </script>
@@ -412,11 +461,21 @@ th {
   padding: 6px;
   text-align: left;
   font-weight: bold; /* Makes the header text bold */
+  max-width: 300px; /* Adjust this value as needed */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 td {
   padding: 6px;
+  max-width: 300px; /* Adjust this value as needed */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 tbody tr:nth-child(even) {
   background-color: #f9f9f9; /* Light gray background for even rows */
 }
 </style>
+
+
+
+
