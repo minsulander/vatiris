@@ -17,7 +17,7 @@
               rounded="0"
               :key="itemIndex"
               class="item-chip"
-              color="#08FD2F"
+              color="#ffffff"
               variant="flat"
             >
               {{ item }}
@@ -28,6 +28,8 @@
     </div>
   </div>
 </template>
+
+//Colour for future whiteboards #08FD2F
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';

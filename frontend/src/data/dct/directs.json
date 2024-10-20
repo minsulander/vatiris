@@ -59,7 +59,7 @@
           "LINSA",
           "TORVA",
           "TUSNI",
-          "UXETI (Must enter EFIN S of KELAS)"
+          "UXETI (must enter EFIN S of KELAS)"
         ]
       },
       {
@@ -275,7 +275,7 @@
       {
         "group": "4/6->EFIN",
         "items": [
-          "UXETI (Must enter EFIN S of KELAS)"
+          "UXETI (must enter EFIN S of KELAS)"
         ]
       },
       {
@@ -310,7 +310,7 @@
       {
         "group": "6",
         "items": [
-          "Any FPL point winthin sector 6 (except NISIX)"
+          "Any FPL point within sector 6 (except NISIX)"
         ]
       }
     ]

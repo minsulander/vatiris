@@ -26,7 +26,7 @@ ROE
 LINSA
 TORVA
 TUSNI
-UXETI (Must enter EFIN S of KELAS)
+UXETI (must enter EFIN S of KELAS)
 --EKDK--
 BAVTA
 AAL
@@ -146,7 +146,7 @@ VALDI
 GUNPA
 PEPIN
 --4/6->EFIN--
-UXETI (Must enter EFIN S of KELAS)
+UXETI (must enter EFIN S of KELAS)
 --2->E--
 ESSA: SA630
 --2->S--
@@ -157,4 +157,4 @@ PETEV
 --2--
 ESSV: VSB (ESSB: 12)
 --6--
-Any FPL point winthin sector 6 (except NISIX)
+Any FPL point within sector 6 (except NISIX)
