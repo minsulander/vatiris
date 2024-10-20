@@ -1,6 +1,6 @@
 <template>
     <v-btn class="text-grey" @click="showAboutDialog = true">About</v-btn>
-    <PLSTimer/>
+    <PLS/>
     <v-btn
         v-if="!fullscreen"
         type="icon"
@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import Clock from "@/components/Clock.vue"
 import About from "@/components/About.vue"
-import PLSTimer from "@/components/PLSTimer.vue"
+import PLS from "@/components/PLS.vue"
 import { ref, onMounted } from "vue"
 
 const showAboutDialog = ref(false)

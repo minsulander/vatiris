@@ -1,10 +1,26 @@
 <template>
   <div v-if="settings.enablePLS">
     <span v-if="loading">-</span>
-    <span v-else-if="matchedControllers.length > 0">
-      ( PLS: {{ sessionLength }} {{ statusSuffix }} )
+    <span v-else-if="matchedControllers.length > 0" class="text-grey" style="cursor: pointer">
+    {{ sessionLength }} {{ statusSuffix }}
     </span>
-    <span v-else>( PLS: NIL )</span>
+    <v-btn
+      icon
+      class="text-grey"
+      @click="showMenu = true"
+    >
+      <v-icon>{{ searchValue.length > 0 ? 'mdi-account' : 'mdi-account-outline' }}</v-icon>
+      <v-menu v-model="showMenu" :close-on-content-click="false">
+        <v-list class="text-grey">
+          <v-list-item @click="goOnPause">
+            <v-list-item-title>GO ON PAUSE</v-list-item-title>
+          </v-list-item>
+          <v-list-item @click="goOnPosition">
+            <v-list-item-title>GO ON POSITION</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-btn>
   </div>
 </template>
 
@@ -29,6 +45,18 @@ const statusSuffix = ref("")
 
 let intervalId: number | null = null
 let refreshIntervalId: number | null = null
+
+const showMenu = ref(false)
+
+function goOnPause() {
+  // Implement the logic for "Go on Pause" here
+  showMenu.value = false
+}
+
+function goOnPosition() {
+  // Implement the logic for "Go on Position" here
+  showMenu.value = false
+}
 
 // Function to fetch and filter controllers
 async function fetchSessionData() {
@@ -227,3 +255,4 @@ watch([() => settings.position1, () => settings.position2], () => {
   }
 })
 </script>
+
