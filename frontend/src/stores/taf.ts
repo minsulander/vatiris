@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { reactive } from "vue"
+import { reactive, ref } from "vue"
 import { v4 as uuid } from "uuid"
 import axios from "axios"
 import useEventBus from "@/eventbus"
@@ -10,14 +10,22 @@ export const useTafStore = defineStore("taf", () => {
 
     const taf = reactive({} as { [key: string]: string })
     const subscriptions = reactive({} as { [key: string]: string })
-    const lastFetch = reactive({} as { [key: string]: Date })
+    const lastFetch = ref(0)
 
     const parse = (icao: string) => (icao in taf ? parseTAF(taf[icao]) : undefined)
 
+    let fetchOnSubscribeTimeout: any = undefined
     function subscribe(icao: string) {
         const subscriptionId = uuid()
         subscriptions[subscriptionId] = icao
-        if (!(icao in taf)) fetch(icao)
+        if (!(icao in taf)) {
+            taf[icao] = "Loading..."
+            if (fetchOnSubscribeTimeout) clearTimeout(fetchOnSubscribeTimeout)
+            fetchOnSubscribeTimeout = setTimeout(() => {
+                fetchOnSubscribeTimeout = undefined
+                fetch()
+            }, 500)
+        }
         return subscriptionId
     }
 
@@ -27,34 +35,36 @@ export const useTafStore = defineStore("taf", () => {
             delete subscriptions[subscription]
             if (!Object.values(subscriptions).includes(icao)) {
                 delete taf[icao]
-                delete lastFetch[icao]
             }
         }
     }
 
-    // TODO fetch all at once
-
-    function fetch(icao: string) {
-        if (!(icao in taf)) taf[icao] = "Loading..."
-        lastFetch[icao] = new Date()
-        console.log(`Fetch taf ${icao}`)
-        axios.get(`https://api.vatiris.se/taf?ids=${icao}`).then((response) => {
-            taf[icao] = response.data
-            lastFetch[icao] = new Date()
+    function fetch() {
+        if (Object.values(subscriptions).length == 0) return
+        lastFetch.value = Date.now()
+        const icaos = [...new Set(Object.values(subscriptions))].join(",")
+        console.log(`Fetch tafs`, icaos)
+        axios.get(`https://api.vatiris.se/taf?ids=${icaos}&sep=true`).then((response) => {
+            for (const section of (response.data as string).split("\n\n")) {
+                const text = section.trim()
+                const m = text.match(/^TAF (\w{4})/)
+                if (m && m[1]) {
+                    const icao = m[1]
+                    taf[icao] = text
+                }
+            }
+            lastFetch.value = Date.now()
         })
     }
 
     if ((window as any).tafRefreshInterval) clearInterval((window as any).tafRefreshInterval)
     ;(window as any).tafRefreshInterval = setInterval(() => {
-        for (const icao in lastFetch) {
-            if (new Date().getTime() - lastFetch[icao].getTime() > 60000) fetch(icao)
-        }
+        if (Date.now() - lastFetch.value > 300000) fetch()
     }, 1000)
 
     function refresh() {
         for (const icao in taf) delete taf[icao]
-        for (const icao in taf) delete lastFetch[icao]
-        for (const id in subscriptions) fetch(subscriptions[id])
+        fetch()
     }
 
     bus.on("refresh", () => refresh())
