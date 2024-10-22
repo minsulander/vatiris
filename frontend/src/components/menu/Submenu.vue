@@ -1,5 +1,5 @@
 <template>
-    <v-menu activator="parent" :location="sub ? 'end' : 'bottom'">
+    <v-menu activator="parent" :location="sub ? 'end' : 'bottom'" style="user-select: none">
         <v-list density="compact">
             <v-list-item v-if="Object.keys(items).length > 10" style="margin-top: -10px">
                 <v-text-field
@@ -17,7 +17,7 @@
                 v-for="(action, label) in filteredItems"
                 :class="action in windows.winbox ? '' : 'text-grey'"
                 :key="action"
-                @click="emit('select', action)"
+                @click="click($event, action)"
             >
                 <v-list-item-title
                     >{{ label }}
@@ -27,7 +27,7 @@
                         "
                         color="grey-darken-2"
                         class="ml-2 float-right"
-                        style="margin-right: -3px"
+                        style="margin-top: 2px; margin-right: -3px"
                         size="small"
                         >mdi-chevron-right</v-icon
                     >
@@ -79,19 +79,29 @@ const filteredItems = computed(() => {
     return items
 })
 
-function filterEnter(e: KeyboardEvent) {
+function filterEnter(event: KeyboardEvent) {
     const keys = Object.keys(filteredItems.value)
     if (keys.length == 1) {
-        if (typeof props.items[keys[0]] == "object") {
+        let id = props.items[keys[0]]
+        if (typeof id == "object") {
             open.value = true
-            e.stopPropagation()
+            event.stopPropagation()
         } else {
-            select(props.items[keys[0]])
+            if (event.shiftKey) event.stopPropagation()
+            if (event.ctrlKey || event.altKey || event.metaKey) id = "ctrl+" + id
+            select(id)
             filter.value = ""
         }
     } else {
-        e.stopPropagation()
+        event.stopPropagation()
     }
+}
+
+function click(event: MouseEvent, id: string) {
+    if (event.shiftKey) event.stopPropagation()
+    if (event.ctrlKey || event.altKey || event.metaKey) id = "ctrl+" + id
+    emit("select", id)
+
 }
 
 function select(id: string) {

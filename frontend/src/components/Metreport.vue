@@ -10,7 +10,7 @@
         style="height: 100%"
         @click="click"
     >
-        <div class="float-right text-caption text-grey-darken-2">
+        <div class="float-right text-caption font-weight-bold text-orange-darken-4" v-if="outdated">
             {{ time.replace("T", " ") }}
         </div>
         <pre
@@ -49,6 +49,7 @@ import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
 import useEventBus from "@/eventbus"
 import { useSettingsStore } from "@/stores/settings"
+import moment from "moment"
 
 const props = defineProps<{ id: string }>()
 
@@ -66,6 +67,7 @@ const metar = computed(() => wx.metar(props.id))
 const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
 
 const firstUpdate = ref(true)
+const outdated = ref(false)
 
 const hasVatsimAtis = computed(() => {
     if (props.id == "ESSA") {
@@ -205,11 +207,16 @@ function click() {
     changed.value = changedLong.value = false
 }
 
+let checkOutdatedInterval: any = undefined
 onMounted(() => {
     subscription = wx.subscribe(props.id)
+    checkOutdatedInterval = setInterval(() => {
+        outdated.value = time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
+    }, 5000)
 })
 
 onUnmounted(() => {
+    clearInterval(checkOutdatedInterval)
     wx.unsubscribe(subscription)
 })
 

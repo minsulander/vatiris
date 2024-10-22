@@ -30,8 +30,7 @@
                         class="pa-1 text-caption text-white"
                         style="background: #999"
                         v-html="checklist.sections['' + i]"
-                    >
-                    </td>
+                    ></td>
                 </tr>
                 <tr
                     :class="
@@ -40,7 +39,7 @@
                         (isRowChecked(i) ? ' checked' : '')
                     "
                     style="cursor: pointer"
-                    @click="clickRow(i)"
+                    @click="clickRow($event, i)"
                 >
                     <td class="pa-1">
                         <v-icon color="grey" v-if="isRowChecked(i)">mdi-check</v-icon>
@@ -56,7 +55,7 @@
                                 style="margin-top: -20px"
                                 @click.stop=""
                                 :placeholder="itemInputPlaceholder(item)"
-                                v-model="inputValues[''+i]"
+                                v-model="inputValues['' + i]"
                                 @input="inputItemValue"
                             />
                         </span>
@@ -95,6 +94,9 @@ tr:not(:hover).checked td {
 td tt {
     font-size: 13px;
 }
+td {
+    user-select: none;
+}
 </style>
 
 <script setup lang="ts">
@@ -113,14 +115,21 @@ const isRowChecked = (index: number) => checkedRows.includes(index)
 const itemTitle = (item: string) => item.split("...")[0]
 const itemValue = (item: string) => item.split("...")[1] || ""
 const itemHasInput = (item: string) => itemValue(item).startsWith("INPUT")
-const itemInputPlaceholder = (item: string) => itemValue(item).startsWith("INPUT:") ? itemValue(item).substring(6) : ""
+const itemInputPlaceholder = (item: string) =>
+    itemValue(item).startsWith("INPUT:") ? itemValue(item).substring(6) : ""
 
-function clickRow(index: number) {
-    const checkedIndex = checkedRows.indexOf(index)
-    if (checkedIndex >= 0) {
-        checkedRows.splice(checkedIndex, 1)
+function clickRow(event: MouseEvent, index: number) {
+    const checked = checkedRows.includes(index)
+    if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
+        checkedRows.splice(0)
+        for (let i = 0; i <= index; i++) checkedRows.push(i)
     } else {
-        checkedRows.push(index)
+        if (checked) {
+            const checkedIndex = checkedRows.indexOf(index)
+            checkedRows.splice(checkedIndex, 1)
+        } else {
+            checkedRows.push(index)
+        }
     }
     sessionStorage[`checklist_${props.id}`] = JSON.stringify(checkedRows)
 }

@@ -138,39 +138,37 @@ function snap(own: any) {
         for (const id in windows.winbox) {
             if (id == own.id) continue
             const win = windows.winbox[id]
+            const adjY =
+                (own.y > win.y - snapT && own.y < win.y + win.height + snapT) ||
+                (own.y + own.height > win.y - snapT &&
+                    own.y + own.height < win.y + win.height + snapT)
+            const adjX =
+                (own.x > win.x - snapT && own.x < win.x + win.width + snapT) ||
+                (own.x + own.width > win.x - snapT && own.x + own.width < win.x + win.width + snapT)
             // snap left to left
-            if (
-                snapX < 0 &&
-                Math.abs(win.x - own.x) < snapT &&
-                own.y > win.y - snapT &&
-                own.y < win.y + win.height + snapT
-            )
-                snapX = win.x
+            if (snapX < 0 && adjY && Math.abs(win.x - own.x) < snapT) snapX = win.x
             // snap left to right
-            if (
-                snapX < 0 &&
-                Math.abs(win.x + win.width - own.x) < snapT &&
-                own.y > win.y - snapT &&
-                own.y < win.y + win.height + snapT
-            )
+            if (snapX < 0 && adjY && Math.abs(win.x + win.width - own.x) < snapT)
                 snapX = win.x + win.width
+            // snap right to right
+            if (snapX < 0 && adjY && Math.abs(win.x + win.width - own.x - own.width) < snapT)
+                snapX = win.x + win.width - own.width
+            // snap right to left
+            if (snapX < 0 && adjY && Math.abs(win.x - own.x - own.width) < snapT)
+                snapX = win.x - own.width
+
             // snap top to top
-            if (
-                snapY < 0 &&
-                Math.abs(win.y - own.y) < snapT &&
-                own.x > win.x - snapT &&
-                own.x < win.x + win.width + snapT
-            )
-                snapY = win.y
+            if (snapY < 0 && adjX && Math.abs(win.y - own.y) < snapT) snapY = win.y
             // snap top to bottom
-            if (
-                snapY < 0 &&
-                Math.abs(win.y + win.height - own.y) < snapT &&
-                own.x > win.x - snapT &&
-                own.x < win.x + win.width + snapT
-            )
+            if (snapY < 0 && adjX && Math.abs(win.y + win.height - own.y) < snapT)
                 snapY = win.y + win.height
-            // TODO if not resized, snap right and bottom
+            // snap bottom to bottom
+            if (snapY < 0 && adjX && Math.abs(win.y + win.height - own.y - own.height) < snapT)
+                snapY = win.y + win.height - own.height
+            // snap bottom to top
+            if (snapY < 0 && adjX && Math.abs(win.y - own.y - own.height) < snapT)
+                snapY = win.y - own.height
+
             if (snapX > 0 && snapY > 0) break
         }
         if (snapX >= 0 || snapY >= 0) {
@@ -178,57 +176,46 @@ function snap(own: any) {
             if (snapY < 0) snapY = own.y
             if (resized) own.resize(own.width + (own.x - snapX), own.height + (own.y - snapY))
             own.move(snapX, snapY)
+            own.x = snapX
+            own.y = snapY
         }
     }
-    let snapW = -1
-    let snapH = -1
-    // snap to static boundaries
-    if (own.x + own.width > window.innerWidth - snapT) snapW = window.innerWidth - own.x
-    if (own.y + own.height > window.innerHeight - snapT) snapH = window.innerHeight - own.y
-    // snap to other windows
-    for (const id in windows.winbox) {
-        if (id == own.id) continue
-        const win = windows.winbox[id]
-        // snap right to right
-        if (
-            snapW < 0 &&
-            Math.abs(own.x + own.width - (win.x + win.width)) < snapT &&
-            own.y > win.y - snapT &&
-            own.y < win.y + win.height + snapT
-        )
-            snapW = win.x + win.width - own.x
-        // snap right to left
-        if (
-            snapW < 0 &&
-            Math.abs(own.x + own.width - win.x) < snapT &&
-            own.y > win.y - snapT &&
-            own.y < win.y + win.height + snapT
-        )
-            snapW = win.x - own.x
-        // snap bottom to bottom
-        if (
-            snapH < 0 &&
-            Math.abs(own.y + own.height - (win.y + win.height)) < snapT &&
-            ((own.x > win.x + win.width - snapT && own.x < win.x + win.width + snapT) ||
-                (own.x + own.width > win.x - snapT &&
-                    own.x + own.width < win.x + win.width + snapT))
-        )
-            snapH = win.y + win.height - own.y
-        // snap bottom to top
-        if (
-            snapH < 0 &&
-            Math.abs(own.y + own.height - win.y) < snapT &&
-            ((own.x > win.x + win.width - snapT && own.x < win.x + win.width + snapT) ||
-                (own.x + own.width > win.x - snapT &&
-                    own.x + own.width < win.x + win.width + snapT))
-        )
-            snapH = win.y - own.y
-        if (snapW >= 0 && snapH >= 0) break
-    }
-    if (snapW >= 0 || snapH >= 0) {
-        if (snapW < 0) snapW = own.width
-        if (snapH < 0) snapH = own.height
-        own.resize(snapW, snapH)
+    if (resized) {
+        let snapW = -1
+        let snapH = -1
+        // snap to static boundaries
+        if (own.x + own.width > window.innerWidth - snapT) snapW = window.innerWidth - own.x
+        if (own.y + own.height > window.innerHeight - snapT) snapH = window.innerHeight - own.y
+        // snap to other windows
+        for (const id in windows.winbox) {
+            if (id == own.id) continue
+            const win = windows.winbox[id]
+            const adjY =
+                (own.y > win.y - snapT && own.y < win.y + win.height + snapT) ||
+                (own.y + own.height > win.y - snapT &&
+                    own.y + own.height < win.y + win.height + snapT)
+            const adjX =
+                (own.x > win.x - snapT && own.x < win.x + win.width + snapT) ||
+                (own.x + own.width > win.x - snapT && own.x + own.width < win.x + win.width + snapT)
+            // snap right to right
+            if (snapW < 0 && adjY && Math.abs(own.x + own.width - (win.x + win.width)) < snapT)
+                snapW = win.x + win.width - own.x
+            // snap right to left
+            if (snapW < 0 && adjY && Math.abs(own.x + own.width - win.x) < snapT)
+                snapW = win.x - own.x
+            // snap bottom to bottom
+            if (snapH < 0 && adjX && Math.abs(own.y + own.height - (win.y + win.height)) < snapT)
+                snapH = win.y + win.height - own.y
+            // snap bottom to top
+            if (snapH < 0 && adjX && Math.abs(own.y + own.height - win.y) < snapT)
+                snapH = win.y - own.y
+            if (snapW >= 0 && snapH >= 0) break
+        }
+        if (snapW >= 0 || snapH >= 0) {
+            if (snapW < 0) snapW = own.width
+            if (snapH < 0) snapH = own.height
+            own.resize(snapW, snapH)
+        }
     }
 }
 

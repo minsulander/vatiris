@@ -10,7 +10,7 @@
             <Window
                 v-if="id in windows.layout && windows.layout[id].enabled"
                 :key="id"
-                :id="id as string"
+                :id="''+id"
                 :title="win.title"
                 :width="win.width"
                 :height="win.height"
@@ -40,6 +40,8 @@ import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
 import DCT from "@/components/DCT.vue"
+import Notepad from "@/components/Notepad.vue"
+import Aircraft from "@/components/Aircraft.vue"
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -96,22 +98,28 @@ const availableWindows = shallowReactive({
     ECFMP: {
         title: "ECFMP Flow Measures",
         component: ECFMP,
-        width: 600,
+        width: 700,
         height: 300,
     },
     SApush: {
         title: "ESSA Pushback",
         component: SApush,
-        width: 600,
+        width: 700,
         height: 600,
     },
-    about: {
-        title: "About",
-        component: About,
-        width: 600,
-        height: 240,
+    aircraft: {
+        title: "Aircraft Types ICAO",
+        component: Aircraft,
+        width: 605,
+        height: 400,
     },
-} as { [key: string]: WindowSpec })
+    notepad: {
+        title: "NOTEPAD",
+        component: Notepad,
+        width: 400,
+        height: 500,
+    },
+} as any)
 
 for (const icao of wxAirports) {
     availableWindows[`metrep${icao}`] = {
@@ -173,6 +181,11 @@ for (const direct of directsData) {
 }
 
 function select(id: string | object) {
+    let ctrl = false
+    if (typeof id == "string" && id.startsWith("ctrl+")) {
+        ctrl = true
+        id = id.substr(5)
+    }
     if (typeof id == "object") {
         // submenu
     } else if (id in availableWindows) {
@@ -180,7 +193,10 @@ function select(id: string | object) {
             if (windows.winbox[id].min) windows.winbox[id].restore()
             windows.winbox[id].focus()
         } else {
-            if (id in windows.layout) {
+            if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
+                // ctrl-click on image/iframe opens in new tab
+                window.open(availableWindows[id].props.src, "_blank")
+            } else if (id in windows.layout) {
                 windows.layout[id].enabled = true
             } else {
                 windows.layout[id] = { enabled: true }
