@@ -68,7 +68,9 @@ export const usePresetStore = defineStore("preset", () => {
     )
 
     const bus = useEventBus()
-    bus.on("refresh", fetchPresets)
+    bus.on("refresh", () => {
+        if (auth.user) fetchPresets()
+    })
 
     async function fetchPresets() {
         try {

@@ -48,7 +48,6 @@ if (location.search.startsWith("?code=")) {
     app.mount("#app")
 }
 
-
 // global exports for fiddling in console
 
 import { useWinBox } from "vue-winbox"
@@ -59,6 +58,8 @@ import { usePresetStore } from "@/stores/preset"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useAuthStore } from "@/stores/auth"
 import { useSettingsStore } from "@/stores/settings"
+import { useMetarStore } from "@/stores/metar"
+import { useTafStore } from "@/stores/taf"
 import moment from "moment"
 import axios from "axios"
 
@@ -72,6 +73,7 @@ global.preset = usePresetStore()
 global.vatsim = useVatsimStore()
 global.auth = useAuthStore()
 global.settings = useSettingsStore()
+global.metar = useMetarStore()
+global.taf = useTafStore()
 global.moment = moment
 global.axios = axios
-
