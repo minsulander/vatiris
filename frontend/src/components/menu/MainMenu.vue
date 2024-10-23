@@ -22,6 +22,7 @@ import Submenu from "@/components/menu/Submenu.vue"
 import { reactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 const windows = useWindowsStore()
+const dct = useDctStore()
 
 const menuItems = reactive({
     MET: {
@@ -141,6 +142,7 @@ const menuItems = reactive({
         "AIRCRAFT TYPES": "aircraft",
         NOTEPAD: "notepad",
     },
+    DCT: {},  // We'll populate this dynamically
 } as any)
 
 import { wxAirports } from "@/stores/wx"
@@ -148,6 +150,12 @@ import { wxAirports } from "@/stores/wx"
 for (const icao of wxAirports) {
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
+}
+
+import { useDctStore } from "@/stores/dct"
+
+for (const [id, groups] of Object.entries(dct.menuItems)) {
+    menuItems.DCT[id] = groups
 }
 
 import("@/data/aip-airports.json").then((module) => {

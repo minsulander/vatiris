@@ -1,0 +1,318 @@
+[
+  {
+    "id": "MM 2/3",
+    "groups": [
+      {
+        "group": "4/5",
+        "items": [
+          "XENTA"
+        ]
+      },
+      {
+        "group": "6/7",
+        "items": [
+          "MOTAD",
+          "PENOR"
+        ]
+      },
+      {
+        "group": "8/9",
+        "items": [
+          "AMROR",
+          "SALLO"
+        ]
+      },
+      {
+        "group": "W",
+        "items": [
+          "ALAMI",
+          "MIKNA",
+          "NEREN",
+          "NILUG",
+          "TRS"
+        ]
+      },
+      {
+        "group": "EKDK",
+        "items": [
+          "MICOS",
+          "ALS"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "MM 4/5",
+    "groups": [
+      {
+        "group": "2/3",
+        "items": [
+          "AMROR",
+          "PENOR",
+          "SALLO",
+          "ROE"
+        ]
+      },
+      {
+        "group": "ESOS 3",
+        "items": [
+          "LINSA",
+          "TORVA",
+          "TUSNI",
+          "UXETI (must enter EFIN S of KELAS)"
+        ]
+      },
+      {
+        "group": "EKDK",
+        "items": [
+          "BAVTA",
+          "AAL",
+          "ALS"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "MM 6/7/Y",
+    "groups": [
+      {
+        "group": "2/3",
+        "items": [
+          "XENTA"
+        ]
+      },
+      {
+        "group": "W/Y",
+        "items": [
+          "ALAMI",
+          "EVONA",
+          "NEREN",
+          "NILUG",
+          "TRS"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "MM 8/9",
+    "groups": [
+      {
+        "group": "2/3",
+        "items": [
+          "XENTA"
+        ]
+      },
+      {
+        "group": "6/7/Y",
+        "items": [
+          "ALAMI",
+          "EVONA",
+          "IVGOR",
+          "LATMI",
+          "NEREN",
+          "NILUG",
+          "NINTA",
+          "VADRU",
+          "TRS"
+        ]
+      },
+      {
+        "group": "EKDK",
+        "items": [
+          "KOPEX",
+          "MICOS",
+          "BAVTA",
+          "CDA",
+          "ODN"
+        ]
+      },
+      {
+        "group": "EDUU",
+        "items": [
+          "PEROM",
+          "ARGAD",
+          "POBOX",
+          "ROSOK",
+          "BERIM",
+          "BUMIL",
+          "AMOSA",
+          "MAG",
+          "TABAT",
+          "LABES",
+          "RENKI",
+          "RODEP",
+          "HDO",
+          "MAREM",
+          "WRB",
+          "TOPDI",
+          "TADUV",
+          "BKD",
+          "BINKA",
+          "HLZ",
+          "POVEL (ADES EDDF)",
+          "DENOL (ADES EDDL/EDLV)",
+          "PODER (ADES EDDK)",
+          "EBASA (ADES LKPR)",
+          "ABAMI (ADES EBBR)",
+          "NVO (ADES LFPG)",
+          "KETAP (ADES EDDB (RWY 24))",
+          "OGBER (ADES EDDB (RWY 06))"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "MM K",
+    "groups": [
+      {
+        "group": "2/ESOS",
+        "items": [
+          "MIKNA",
+          "NILUG",
+          "TRS"
+        ]
+      },
+      {
+        "group": "L",
+        "items": [
+          "AMROR",
+          "SALLO",
+          "ROE"
+        ]
+      },
+      {
+        "group": "EKDK",
+        "items": [
+          "BAVTA",
+          "AAL",
+          "ALS"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "MM L",
+    "groups": [
+      {
+        "group": "K",
+        "items": [
+          "NILUG",
+          "TRS"
+        ]
+      },
+      {
+        "group": "7/8",
+        "items": [
+          "NILUG",
+          "TRS",
+          "ALAMI",
+          "EVONA",
+          "IVGOR",
+          "LATMI",
+          "NEREN",
+          "NINTA",
+          "VADRU"
+        ]
+      },
+      {
+        "group": "EKDK",
+        "items": [
+          "KOPEX",
+          "MICOS",
+          "BAVTA",
+          "CDA",
+          "ODN"
+        ]
+      },
+      {
+        "group": "EDWW",
+        "items": [
+          "PEROM",
+          "ARGAD",
+          "BINKA",
+          "HDO",
+          "MAREM",
+          "KETAP (ADES EDDB (RWYs 24))",
+          "OGBER (ADES EDDB (RWYs 06))"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "MM W",
+    "groups": [
+      {
+        "group": "ESOS",
+        "items": [
+          "NILUG",
+          "TRS"
+        ]
+      },
+      {
+        "group": "EKDK",
+        "items": [
+          "MICOS",
+          "ALS"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "OS ACC",
+    "groups": [
+      {
+        "group": "3->ENOR",
+        "items": [
+          "KEMIV",
+          "BARUD",
+          "IPTON",
+          "ERSER",
+          "VALDI",
+          "GUNPA",
+          "PEPIN"
+        ]
+      },
+      {
+        "group": "4/6->EFIN",
+        "items": [
+          "UXETI (must enter EFIN S of KELAS)"
+        ]
+      },
+      {
+        "group": "2->E",
+        "items": [
+          "ESSA: SA630"
+        ]
+      },
+      {
+        "group": "2->S",
+        "items": [
+          "DUXNO (ADEP ESSV)"
+        ]
+      },
+      {
+        "group": "7->S",
+        "items": [
+          "PETEV"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "OS APP",
+    "groups": [
+      {
+        "group": "2",
+        "items": [
+          "ESSV: VSB (ESSB: 12)"
+        ]
+      },
+      {
+        "group": "6",
+        "items": [
+          "Any FPL point within sector 6 (except NISIX)"
+        ]
+      }
+    ]
+  }
+]

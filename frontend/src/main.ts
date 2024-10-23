@@ -58,6 +58,7 @@ import { usePresetStore } from "@/stores/preset"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useAuthStore } from "@/stores/auth"
 import { useSettingsStore } from "@/stores/settings"
+import { useDctStore } from "@/stores/dct"
 import { useMetarStore } from "@/stores/metar"
 import { useTafStore } from "@/stores/taf"
 import moment from "moment"
@@ -77,3 +78,4 @@ global.metar = useMetarStore()
 global.taf = useTafStore()
 global.moment = moment
 global.axios = axios
+global.dct = useDctStore()

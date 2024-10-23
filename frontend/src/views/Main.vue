@@ -39,6 +39,7 @@ import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import Iframe from "@/components/Iframe.vue"
+import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
 
@@ -46,8 +47,11 @@ import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 
 const windows = useWindowsStore()
+const dct = useDctStore()
 
 import { wxAirports } from "@/stores/wx"
+import { useDctStore } from "@/stores/dct"
+import directsData from '@/data/dct/directs.json'
 
 export interface WindowSpec {
     title: string
@@ -169,6 +173,17 @@ for (const name of ["open-position", "close-position", "handover-takeover", "rwy
             height: checklist.height || 700,
         }
     })
+}
+
+for (const direct of directsData) {
+    const id = direct.id.toLowerCase().replace(/\s+/g, '-')
+    availableWindows[`coord-${id}`] = {
+        title: `${direct.id} Directs`,
+        component: DCT,
+        props: { id: direct.id },
+        width: 550,
+        height: 700,
+    }
 }
 
 function select(id: string | object) {
