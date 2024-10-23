@@ -18,13 +18,12 @@
                 :class="action in windows.winbox ? '' : 'text-grey'"
                 :key="action"
                 @click="click($event, action)"
+                @contextmenu.prevent="unselect(action)"
             >
                 <v-list-item-title
                     >{{ label }}
                     <v-icon
-                        v-if="
-                            typeof action == 'object'
-                        "
+                        v-if="typeof action == 'object'"
                         color="grey-darken-2"
                         class="ml-2 float-right"
                         style="margin-top: 2px; margin-right: -3px"
@@ -45,10 +44,16 @@
                     >
                 </v-list-item-title>
                 <template v-if="typeof action == 'object' && Object.keys(filteredItems).length > 1">
-                    <submenu :items="action" :sub="true" @select="select" />
+                    <submenu :items="action" :sub="true" @select="select" @unselect="unselect" />
                 </template>
                 <template v-else-if="typeof action == 'object'">
-                    <submenu v-model="open" :items="action" :sub="true" @select="select" />
+                    <submenu
+                        v-model="open"
+                        :items="action"
+                        :sub="true"
+                        @select="select"
+                        @unselect="unselect"
+                    />
                 </template>
             </v-list-item>
         </v-list>
@@ -63,7 +68,7 @@ const props = defineProps<{
     items: { [key: string]: string }
     sub?: boolean
 }>()
-const emit = defineEmits(["select"])
+const emit = defineEmits(["select", "unselect"])
 const windows = useWindowsStore()
 
 const filter = ref("")
@@ -101,7 +106,10 @@ function click(event: MouseEvent, id: string) {
     if (event.shiftKey) event.stopPropagation()
     if (event.ctrlKey || event.altKey || event.metaKey) id = "ctrl+" + id
     emit("select", id)
+}
 
+function unselect(id: string) {
+    emit("unselect", id)
 }
 
 function select(id: string) {

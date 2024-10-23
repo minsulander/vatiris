@@ -1,0 +1,116 @@
+import { defineStore } from "pinia"
+import { reactive, ref } from "vue"
+import { v4 as uuid } from "uuid"
+import axios from "axios"
+import useEventBus from "@/eventbus"
+import { parseTAF } from "metar-taf-parser"
+
+export const tafAirports = [
+    "ESCF",
+    "ESDF",
+    "ESGG",
+    "ESGJ",
+    "ESGT",
+    "ESGP",
+    "ESKN",
+    "ESMK",
+    "ESMQ",
+    "ESMS",
+    "ESMT",
+    "ESMX",
+    "ESNG",
+    "ESNK",
+    "ESNN",
+    "ESNO",
+    "ESNQ",
+    "ESNS",
+    "ESNU",
+    "ESNZ",
+    "ESNX",
+    "ESOE",
+    "ESPA",
+    "ESSA",
+    "ESSB",
+    "ESSL",
+    "ESSV",
+    "ESTA",
+    "ESTL",
+]
+
+export const useTafStore = defineStore("taf", () => {
+    const bus = useEventBus()
+
+    const taf = reactive({} as { [key: string]: string })
+    const subscriptions = reactive({} as { [key: string]: string })
+    const lastFetch = ref(0)
+
+    const parse = (icao: string) => (icao in taf ? parseTAF(taf[icao]) : undefined)
+
+    let fetchOnSubscribeTimeout: any = undefined
+    function subscribe(icao: string) {
+        const subscriptionId = uuid()
+        subscriptions[subscriptionId] = icao
+        if (!(icao in taf)) {
+            taf[icao] = `TAF ${icao} Loading...`
+            if (fetchOnSubscribeTimeout) clearTimeout(fetchOnSubscribeTimeout)
+            fetchOnSubscribeTimeout = setTimeout(() => {
+                fetchOnSubscribeTimeout = undefined
+                fetch()
+            }, 500)
+        }
+        return subscriptionId
+    }
+
+    function unsubscribe(subscription: string) {
+        if (subscription in subscriptions) {
+            const icao = subscriptions[subscription]
+            delete subscriptions[subscription]
+            if (!Object.values(subscriptions).includes(icao)) {
+                delete taf[icao]
+            }
+        }
+    }
+
+    function fetch() {
+        if (Object.values(subscriptions).length == 0) return
+        lastFetch.value = Date.now()
+        const airports = [...new Set(Object.values(subscriptions))]
+        const icaos = airports.join(",")
+        console.log(`Fetch taf`, icaos)
+        axios.get(`https://api.vatiris.se/taf?ids=${icaos}&sep=true`).then((response) => {
+            for (const section of (response.data as string).split("\n\n")) {
+                const text = section.trim()
+                const m = text.match(/^TAF (\w{4})/)
+                if (m && m[1]) {
+                    const icao = m[1]
+                    taf[icao] = text
+                }
+            }
+            for (const icao of airports) {
+                if (taf[icao] && taf[icao].includes("Loading")) taf[icao] = ""
+            }
+            lastFetch.value = Date.now()
+        })
+    }
+
+    if ((window as any).tafRefreshInterval) clearInterval((window as any).tafRefreshInterval)
+    ;(window as any).tafRefreshInterval = setInterval(() => {
+        if (Date.now() - lastFetch.value > 600000) fetch()
+    }, 1000)
+
+    function refresh() {
+        for (const icao in taf) taf[icao] = `TAF ${icao} Loading...`
+        setTimeout(fetch, 300)
+    }
+
+    bus.on("refresh", () => refresh())
+
+    return {
+        taf,
+        parse,
+        subscribe,
+        unsubscribe,
+        fetch,
+        refresh,
+    }
+})

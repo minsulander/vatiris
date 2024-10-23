@@ -27,9 +27,18 @@
                 @click="header = !header"
                 >Header</v-btn
             >
-            <v-btn variant="text" rounded="0" size="small" :color="ad.length > 0 ? 'white' : 'grey-lighten-1'"
+            <v-btn
+                variant="text"
+                rounded="0"
+                size="small"
+                :color="ad.length > 0 ? 'white' : 'grey-lighten-1'"
+                @click="adFilter = ''"
                 >Aerodromes
-                <v-menu activator="parent" transition="slide-y-transition">
+                <v-menu
+                    activator="parent"
+                    transition="slide-y-transition"
+                    :close-on-content-click="false"
+                >
                     <v-list density="compact">
                         <v-list-item
                             @click="clickAdAll"
@@ -50,8 +59,9 @@
                                 density="compact"
                                 hide-details
                                 autofocus
-                                @keydown.esc="adFilter = ''"
-                                @keydown.enter="filterEnter"/>
+                                @keydown.esc="filterEsc"
+                                @keydown.enter.stop="filterEnter"
+                            />
                         </v-list-item>
                         <v-list-item
                             v-for="id in filteredAd"
@@ -181,14 +191,18 @@ const adFilter = ref("")
 const filteredAd = computed(() => {
     if (adFilter.value) {
         const lower = adFilter.value.toLowerCase()
-        return Object.keys(notam.ad).filter((id) => id.toLowerCase().includes(lower)).sort()
+        return Object.keys(notam.ad)
+            .filter((id) => id.toLowerCase().includes(lower))
+            .sort()
     }
     return Object.keys(notam.ad).sort()
 })
 
 const filteredNotams = (notams: any[]) => {
     if (future.value) return notams.sort((a, b) => a.from - b.from)
-    return notams.filter((n) => !n.from || n.from.getTime() < Date.now()).sort((a, b) => a.from - b.from)
+    return notams
+        .filter((n) => !n.from || n.from.getTime() < Date.now())
+        .sort((a, b) => a.from - b.from)
 }
 
 function clickAd(id: string) {
@@ -243,10 +257,16 @@ function saveOptions() {
     })
 }
 
+function filterEsc(e: KeyboardEvent) {
+    if (adFilter.value.length > 0) {
+        adFilter.value = ""
+        e.stopPropagation()
+    }
+}
+
 function filterEnter() {
     if (filteredAd.value.length == 1) {
         clickAd(filteredAd.value[0])
-        adFilter.value = ""
     }
 }
 </script>

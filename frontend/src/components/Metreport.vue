@@ -44,16 +44,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, ref, watch } from "vue"
-import { useWxStore } from "@/stores/wx"
-import { useVatsimStore } from "@/stores/vatsim"
 import useEventBus from "@/eventbus"
+import { useMetarStore } from "@/stores/metar"
 import { useSettingsStore } from "@/stores/settings"
+import { useVatsimStore } from "@/stores/vatsim"
+import { atisAirports, useWxStore } from "@/stores/wx"
 import moment from "moment"
+import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
+const metarStore = useMetarStore()
 const settings = useSettingsStore()
 const vatsim = useVatsimStore()
 const bus = useEventBus()
@@ -65,6 +67,20 @@ const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
 
 const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
+
+const qnhTrend = computed(() => {
+    if (metar.value && props.id in metarStore.metar) {
+        const cm = metar.value.match(/Q(\d{4})/)
+        const pm = metarStore.metar[props.id].match(/Q(\d{4})/)
+        if (cm && pm) {
+            const current = parseInt(cm[1])
+            const previous = parseInt(pm[1])
+            if (isFinite(current) && isFinite(previous) && current != previous)
+                return current - previous
+        }
+    }
+    return metarStore.qnhTrend(props.id)
+})
 
 const firstUpdate = ref(true)
 const outdated = ref(false)
@@ -110,8 +126,6 @@ const rwyDiffersToVatsim = computed(() => {
         return rwyInUse && !rwyText.endsWith(rwyInUse)
     }
 })
-
-import { atisAirports } from "@/stores/wx"
 
 // List of keywords to be styled. X-R not working
 const keywords = [
@@ -162,7 +176,8 @@ const formatMetreport = (report: string) => {
 
     // QNH styling
     let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
-        return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${p2}</div>`
+        const trend = !qnhTrend.value ? "" : qnhTrend.value > 0 ? " ⯅" : " ⯆"
+        return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px; margin-bottom: 7px">${p2}${trend}</div>`
     })
 
     // Issuing time styling
@@ -199,7 +214,8 @@ const changed = ref(false)
 const changedLong = ref(false)
 let changeTimeouts: any[] = []
 
-let subscription = ""
+let wxSubscription = ""
+let metarSubscription = ""
 
 function click() {
     for (const timeout of changeTimeouts) clearTimeout(timeout)
@@ -209,15 +225,18 @@ function click() {
 
 let checkOutdatedInterval: any = undefined
 onMounted(() => {
-    subscription = wx.subscribe(props.id)
+    wxSubscription = wx.subscribe(props.id)
+    metarSubscription = metarStore.subscribe(props.id)
     checkOutdatedInterval = setInterval(() => {
-        outdated.value = time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
+        outdated.value =
+            time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
     }, 5000)
 })
 
 onUnmounted(() => {
     clearInterval(checkOutdatedInterval)
-    wx.unsubscribe(subscription)
+    metarStore.unsubscribe(metarSubscription)
+    wx.unsubscribe(wxSubscription)
 })
 
 bus.on("refresh", () => {

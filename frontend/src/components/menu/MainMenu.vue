@@ -10,13 +10,13 @@
         </v-btn>
         <v-btn v-else type="text" class="text-grey">
             {{ title }}
-            <submenu :items="options" @select="select"/>
+            <submenu :items="options" @select="select" @unselect="unselect" />
         </v-btn>
     </template>
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits(["select"])
+const emit = defineEmits(["select", "unselect"])
 
 import Submenu from "@/components/menu/Submenu.vue"
 import { reactive } from "vue"
@@ -32,6 +32,7 @@ const menuItems = reactive({
         METSENSOR: {
             // filled in code
         } as { [key: string]: string },
+        "METAR/TAF": "metartaf",
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
@@ -139,7 +140,7 @@ const menuItems = reactive({
             // filled in code
         },
         "AIRCRAFT TYPES": "aircraft",
-        "NOTEPAD": "notepad",
+        NOTEPAD: "notepad",
     },
     DCT: {},  // We'll populate this dynamically
 } as any)
@@ -168,5 +169,9 @@ import("@/data/aip-airports.json").then((module) => {
 
 function select(id: string) {
     emit("select", id)
+}
+
+function unselect(id: string) {
+    emit("unselect", id)
 }
 </script>
