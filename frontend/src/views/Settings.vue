@@ -22,7 +22,7 @@
                 <v-container v-if="settings.plsLogic === 'CID'" class="mt-4">
                     <v-checkbox v-model="settings.useVatsimConnect" label="Use VATSIM Connect" @change="handleVatsimConnectChange"></v-checkbox>
                     <v-text-field v-if="!settings.useVatsimConnect" label="CID 1" v-model="settings.cid1" outlined dense @input="handleCIDChange"></v-text-field>
-                    <v-text-field v-if="!settings.useVatsimConnect" label="CID 2" v-model="settings.cid2" outlined dense @input="handleCIDChange"></v-text-field>
+                    <v-text-field disabled v-if="!settings.useVatsimConnect" label="CID 2 (Not yet available)" v-model="settings.cid2" outlined dense @input="handleCIDChange"></v-text-field>
                 </v-container>
 
                 <v-container v-if="settings.plsLogic === 'Position'" class="mt-4">
@@ -30,7 +30,10 @@
                     <v-text-field label="Position 2" v-model="settings.position2" outlined dense @input="handlePositionChange"></v-text-field>
                 </v-container>
 
-                <v-btn color="primary" class="mt-4" @click="applyChanges">Apply PLS Logic</v-btn>
+                <v-btn color="primary" class="mt-4" @click="applyChanges" :disabled="!hasChanges">
+                    Apply PLS Logic
+                </v-btn>
+                <v-chip v-if="hasChanges" color="warning" class="ml-2">Unsaved changes</v-chip>
             </div>
         </v-container>
     </v-main>
@@ -76,6 +79,15 @@ const handleEnablePLSChange = (newValue: boolean) => {
 const handleLogicChange = () => {
     if (settings.enablePLS) {
         hasChanges.value = true
+        // Clear values when switching logic
+        if (settings.plsLogic === 'CID') {
+            settings.position1 = ''
+            settings.position2 = ''
+        } else if (settings.plsLogic === 'Position') {
+            settings.cid1 = ''
+            settings.cid2 = ''
+            settings.useVatsimConnect = false
+        }
     }
 }
 
