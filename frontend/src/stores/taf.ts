@@ -5,6 +5,38 @@ import axios from "axios"
 import useEventBus from "@/eventbus"
 import { parseTAF } from "metar-taf-parser"
 
+export const tafAirports = [
+    "ESCF",
+    "ESDF",
+    "ESGG",
+    "ESGJ",
+    "ESGT",
+    "ESGP",
+    "ESKN",
+    "ESMK",
+    "ESMQ",
+    "ESMS",
+    "ESMT",
+    "ESMX",
+    "ESNG",
+    "ESNK",
+    "ESNN",
+    "ESNO",
+    "ESNQ",
+    "ESNS",
+    "ESNU",
+    "ESNZ",
+    "ESNX",
+    "ESOE",
+    "ESPA",
+    "ESSA",
+    "ESSB",
+    "ESSL",
+    "ESSV",
+    "ESTA",
+    "ESTL",
+]
+
 export const useTafStore = defineStore("taf", () => {
     const bus = useEventBus()
 
@@ -19,7 +51,7 @@ export const useTafStore = defineStore("taf", () => {
         const subscriptionId = uuid()
         subscriptions[subscriptionId] = icao
         if (!(icao in taf)) {
-            taf[icao] = "Loading..."
+            taf[icao] = `TAF ${icao} Loading...`
             if (fetchOnSubscribeTimeout) clearTimeout(fetchOnSubscribeTimeout)
             fetchOnSubscribeTimeout = setTimeout(() => {
                 fetchOnSubscribeTimeout = undefined
@@ -42,8 +74,9 @@ export const useTafStore = defineStore("taf", () => {
     function fetch() {
         if (Object.values(subscriptions).length == 0) return
         lastFetch.value = Date.now()
-        const icaos = [...new Set(Object.values(subscriptions))].join(",")
-        console.log(`Fetch tafs`, icaos)
+        const airports = [...new Set(Object.values(subscriptions))]
+        const icaos = airports.join(",")
+        console.log(`Fetch taf`, icaos)
         axios.get(`https://api.vatiris.se/taf?ids=${icaos}&sep=true`).then((response) => {
             for (const section of (response.data as string).split("\n\n")) {
                 const text = section.trim()
@@ -53,18 +86,21 @@ export const useTafStore = defineStore("taf", () => {
                     taf[icao] = text
                 }
             }
+            for (const icao of airports) {
+                if (taf[icao] && taf[icao].includes("Loading")) taf[icao] = ""
+            }
             lastFetch.value = Date.now()
         })
     }
 
     if ((window as any).tafRefreshInterval) clearInterval((window as any).tafRefreshInterval)
     ;(window as any).tafRefreshInterval = setInterval(() => {
-        if (Date.now() - lastFetch.value > 300000) fetch()
+        if (Date.now() - lastFetch.value > 600000) fetch()
     }, 1000)
 
     function refresh() {
-        for (const icao in taf) delete taf[icao]
-        fetch()
+        for (const icao in taf) taf[icao] = `TAF ${icao} Loading...`
+        setTimeout(fetch, 300)
     }
 
     bus.on("refresh", () => refresh())

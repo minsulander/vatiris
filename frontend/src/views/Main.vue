@@ -1,7 +1,7 @@
 <template>
     <v-app-bar color="#2b2d31" height="30" elevation="0">
         <system-menu />
-        <main-menu @select="select" />
+        <main-menu @select="select" @unselect="unselect" />
         <v-spacer />
         <main-toolbar />
     </v-app-bar>
@@ -10,7 +10,7 @@
             <Window
                 v-if="id in windows.layout && windows.layout[id].enabled"
                 :key="id"
-                :id="''+id"
+                :id="'' + id"
                 :title="win.title"
                 :width="win.width"
                 :height="win.height"
@@ -115,6 +115,12 @@ const availableWindows = shallowReactive({
         width: 400,
         height: 500,
     },
+    metartaf: {
+        title: "METAR/TAF",
+        component: MetarTaf,
+        width: 700,
+        height: 500,
+    },
 } as any)
 
 for (const icao of wxAirports) {
@@ -136,7 +142,6 @@ for (const icao of wxAirports) {
     }
 }
 
-
 import("@/data/aip-airports.json").then((module) => {
     for (const airport of module.default) {
         for (const document of airport.documents) {
@@ -152,6 +157,7 @@ import("@/data/aip-airports.json").then((module) => {
 })
 
 import Checklist from "@/components/Checklist.vue"
+import MetarTaf from "@/components/MetarTaf.vue"
 for (const name of ["open-position", "close-position", "handover-takeover", "rwy-change"]) {
     import(`@/data/checklist/${name}.json`).then((module) => {
         const checklist = module.default
@@ -160,7 +166,7 @@ for (const name of ["open-position", "close-position", "handover-takeover", "rwy
             component: Checklist,
             props: { id: name, checklist },
             width: checklist.width || 600,
-            height: checklist.height || 700
+            height: checklist.height || 700,
         }
     })
 }
@@ -192,6 +198,13 @@ function select(id: string | object) {
         window.open(url, target || "_blank")
     } else {
         console.error(`Unknown menu selection: ${id}`)
+    }
+}
+
+function unselect(id: string) {
+    console.log("unselect", id)
+    if (id in windows.winbox) {
+        windows.winbox[id].close()
     }
 }
 

@@ -3,7 +3,13 @@ import { reactive, ref, watch } from "vue"
 import { useAuthStore } from "./auth"
 import useEventBus from "@/eventbus"
 
-export const presetKeys = ["layout", "smhiMapCenter", "smhiMapZoom", "notamOptions"]
+export const presetKeys = [
+    "layout",
+    "smhiMapCenter",
+    "smhiMapZoom",
+    "notamOptions",
+    "metartafOptions",
+]
 
 export function defaultPresets() {
     return {
