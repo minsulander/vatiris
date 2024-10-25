@@ -95,6 +95,14 @@ export const useWxStore = defineStore("wx", () => {
     const metsensor = (key: string) => wxPart(key, 4)
     const metar = (key: string) => wxPart(key, 5)
 
+    const qnh = (key: string) => {
+        const metarText = metar(key)
+        if (!metarText) return undefined
+        const m = metarText.match(/Q(\d{4})/)
+        if (!m || !m[1]) return undefined
+        return parseInt(m[1])
+    }
+
     function subscribe(icao: string) {
         const subscriptionId = uuid()
         subscriptions[subscriptionId] = icao
@@ -148,6 +156,7 @@ export const useWxStore = defineStore("wx", () => {
         info,
         metsensor,
         metar,
+        qnh,
         subscribe,
         unsubscribe,
         fetch,

@@ -33,19 +33,19 @@
         <pre
             class="pa-1"
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
-            v-html="info"
+            v-html="infoWithoutTaf"
         ></pre>
         <pre
             class="pa-1"
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
             v-html="metar"
+            v-if="!formattedMetreport"
         ></pre>
     </div>
 </template>
 
 <script setup lang="ts">
 import useEventBus from "@/eventbus"
-import { useMetarStore } from "@/stores/metar"
 import { useSettingsStore } from "@/stores/settings"
 import { useVatsimStore } from "@/stores/vatsim"
 import { atisAirports, useWxStore } from "@/stores/wx"
@@ -55,7 +55,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 const props = defineProps<{ id: string }>()
 
 const wx = useWxStore()
-const metarStore = useMetarStore()
 const settings = useSettingsStore()
 const vatsim = useVatsimStore()
 const bus = useEventBus()
@@ -65,21 +64,22 @@ const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => wx.metreport(props.id))
 const info = computed(() => wx.info(props.id))
 const metar = computed(() => wx.metar(props.id))
+const qnh = computed(() => wx.qnh(props.id))
+const lastQnh = ref(undefined as number | undefined)
 
 const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
 
 const qnhTrend = computed(() => {
-    if (metar.value && props.id in metarStore.metar) {
-        const cm = metar.value.match(/Q(\d{4})/)
-        const pm = metarStore.metar[props.id].match(/Q(\d{4})/)
-        if (cm && pm) {
-            const current = parseInt(cm[1])
-            const previous = parseInt(pm[1])
-            if (isFinite(current) && isFinite(previous) && current != previous)
-                return current - previous
-        }
-    }
-    return metarStore.qnhTrend(props.id)
+    if (qnh.value && lastQnh.value) return qnh.value - lastQnh.value
+    return undefined
+})
+
+const infoWithoutTaf = computed(() => {
+    const info = wx.info(props.id)
+    if (!info) return ""
+    const tafIndex = info.indexOf(`TAF ${props.id}`)
+    if (tafIndex >= 0) return info.substring(0, tafIndex)
+    return info
 })
 
 const firstUpdate = ref(true)
@@ -222,7 +222,6 @@ const changedLong = ref(false)
 let changeTimeouts: any[] = []
 
 let wxSubscription = ""
-let metarSubscription = ""
 
 function click() {
     for (const timeout of changeTimeouts) clearTimeout(timeout)
@@ -233,7 +232,6 @@ function click() {
 let checkOutdatedInterval: any = undefined
 onMounted(() => {
     wxSubscription = wx.subscribe(props.id)
-    metarSubscription = metarStore.subscribe(props.id)
     checkOutdatedInterval = setInterval(() => {
         outdated.value =
             time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
@@ -242,7 +240,6 @@ onMounted(() => {
 
 onUnmounted(() => {
     clearInterval(checkOutdatedInterval)
-    metarStore.unsubscribe(metarSubscription)
     wx.unsubscribe(wxSubscription)
 })
 
@@ -256,6 +253,10 @@ watch([rwy, metreport, info, metar], (newValues, oldValues) => {
     if (firstUpdate.value) {
         firstUpdate.value = false
         return
+    }
+    if (oldValues[3] && newValues[3] != oldValues[3]) {
+        const m = oldValues[3].match(/Q(\d{4})/)
+        if (m && m[1]) lastQnh.value = parseInt(m[1])
     }
     changed.value = false
     if (!settings.metreportFlash) return
