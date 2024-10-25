@@ -42,6 +42,8 @@ import Iframe from "@/components/Iframe.vue"
 import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
+import Alias from "@/components/Alias.vue"
+
 
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -124,6 +126,12 @@ const availableWindows = shallowReactive({
         component: MetarTaf,
         width: 700,
         height: 500,
+    },
+    alias: {
+    title: "Text Alias",
+    component: Alias,
+    width: 650,
+    height: 750,
     },
 } as any)
 

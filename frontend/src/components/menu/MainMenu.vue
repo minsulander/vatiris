@@ -139,6 +139,7 @@ const menuItems = reactive({
         AIP: {
             // filled in code
         },
+        "TEXT ALIAS": "alias",
         "AIRCRAFT TYPES": "aircraft",
         NOTEPAD: "notepad",
     },

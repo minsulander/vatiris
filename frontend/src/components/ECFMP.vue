@@ -475,7 +475,3 @@ tbody tr:nth-child(even) {
   background-color: #f9f9f9; /* Light gray background for even rows */
 }
 </style>
-
-
-
-

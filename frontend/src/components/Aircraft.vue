@@ -1,46 +1,53 @@
 //TODO Clear search button (as in SApush)
 <template>
-  <div>
+  <div class="aircraft-container">
     <!-- Filter Input -->
-    <div style="background-color: #9E9E9E; padding: 2px; display: flex; align-items: center; justify-content: space-between;">
-      <div style="display: flex; align-items: center;">
-        <input 
-          v-model="searchQuery" 
-          placeholder="Search" 
-          style="margin-left: 4px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc;"
-        />
+    <div class="sticky-header">
+      <div class="search-bar">
+        <div class="search-container">
+          <input 
+            v-model="searchQuery" 
+            placeholder="Search" 
+            class="search-input"
+          />
+          <button @click="clearSearch" class="clear-button">
+            <span class="mdi mdi-close"></span>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Data Table -->
-    <table v-if="!error && columns.length > 0">
-      <thead>
-        <tr>
-          <th v-for="column in displayColumns" :key="column" @click="sortBy(column)" :title="getColumnHeaderTooltip(column)">
-            {{ getColumnHeader(column) }}
-          </th>
-        </tr>
-      </thead>
-      <tbody v-if="searchQuery.trim() !== ''">
-      <tr v-for="aircraft in sortedAircraft" :key="aircraft.ICAO">
-        <td v-for="column in displayColumns" :key="column" 
-            :class="{ 'highlighted-wtc': isHighlightedWTC(aircraft, column) }"
-            :title="getColumnTooltip(aircraft, column)">
-          {{ getColumnValue(aircraft, column) }}
-        </td>
-      </tr>
-      </tbody>
-      <tbody v-else>
-        <tr>
-          <td :colspan="displayColumns.length" style="text-align: center; padding: 10px;">
+    <div class="table-container">
+      <table v-if="!error && columns.length > 0">
+        <thead>
+          <tr>
+            <th v-for="column in displayColumns" :key="column" @click="sortBy(column)" :title="getColumnHeaderTooltip(column)">
+              {{ getColumnHeader(column) }}
+            </th>
+          </tr>
+        </thead>
+        <tbody v-if="searchQuery.trim() !== ''">
+        <tr v-for="aircraft in sortedAircraft" :key="aircraft.ICAO">
+          <td v-for="column in displayColumns" :key="column" 
+              :class="{ 'highlighted-wtc': isHighlightedWTC(aircraft, column) }"
+              :title="getColumnTooltip(aircraft, column)">
+            {{ getColumnValue(aircraft, column) }}
           </td>
         </tr>
-      </tbody>
-    </table>
+        </tbody>
+        <tbody v-else>
+          <tr>
+            <td :colspan="displayColumns.length" style="text-align: center; padding: 10px;">
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-    <div v-if="loading">Loading...</div>
-    <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="sortedAircraft.length === 0 && searchQuery.trim() !== ''" style="padding: 10px;">No records found</div>
+      <div v-if="loading">Loading...</div>
+      <div v-else-if="error">{{ error }}</div>
+      <div v-else-if="sortedAircraft.length === 0 && searchQuery.trim() !== ''" style="padding: 10px;">No records found</div>
+    </div>
   </div>
 </template>
 
@@ -215,19 +222,95 @@ export default {
         'Description': 'Aircraft type, number of engines, and engine type'
       };
       return tooltips[column] || '';
+    },
+
+    clearSearch() {
+      this.searchQuery = '';
     }
   }
 };
 </script>
 
 <style scoped>
+.aircraft-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #9E9E9E;
+}
+
+.search-bar {
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  margin-left: 4px;
+  padding: 4px 8px;
+  padding-right: 30px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 300px;
+}
+
+.clear-button {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-button .mdi {
+  font-size: 18px;
+  color: #616161;
+}
+
+.clear-button:hover .mdi {
+  color: #424242;
+}
+
+.table-container {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
 }
+
+thead {
+  position: sticky;
+  top: 0;
+  background-color: #9E9E9E;
+  z-index: 5;
+}
+
 table td.highlighted-wtc {
   background-color: #ffa500;
 }
+
 th {
   cursor: pointer;
   background-color: #9E9E9E;
@@ -236,9 +319,11 @@ th {
   text-align: left;
   font-weight: bold;
 }
+
 td {
   padding: 6px;
 }
+
 tbody tr:nth-child(even) {
   background-color: #f9f9f9;
 }
