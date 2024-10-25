@@ -151,7 +151,12 @@ for (const icao of wxAirports) {
 }
 
 for (const icao of atisAirports) {
-    menuItems.MET.ATIS[icao] = `atis${icao}`
+    if (icao === "ESSA") {
+        menuItems.MET.ATIS["ESSA ARR"] = `atisESSA_ARR`
+        menuItems.MET.ATIS["ESSA DEP"] = `atisESSA_DEP`
+    } else {
+        menuItems.MET.ATIS[icao] = `atis${icao}`
+    }
 }
 
 import("@/data/aip-airports.json").then((module) => {

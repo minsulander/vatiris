@@ -30,7 +30,7 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useSettingsStore } from "@/stores/settings"
 import moment from "moment"
 
-const props = defineProps<{ id: string }>()
+const props = defineProps<{ id: string; type?: 'ARR' | 'DEP' }>()
 
 const vatsim = useVatsimStore()
 const settings = useSettingsStore()
@@ -42,13 +42,12 @@ const atis = computed(() => {
     if (localAtis.value) return localAtis.value
 
     if (props.id === "ESSA") {
-        const arrAtis = vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_A"))
-        const depAtis = vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_D"))
-        if (arrAtis && depAtis) {
+        const atisType = props.type === 'DEP' ? 'ESSA_D' : 'ESSA_A'
+        const atisData = vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(atisType))
+        if (atisData) {
             return {
-                arr: arrAtis.text_atis || [],
-                dep: depAtis.text_atis || [],
-                last_updated: Math.max(arrAtis.last_updated, depAtis.last_updated)
+                text: atisData.text_atis || [],
+                last_updated: atisData.last_updated
             }
         }
     } else {
@@ -60,7 +59,7 @@ const atis = computed(() => {
             }
         }
     }
-    return { text: [], last_updated: 0 }
+    return null
 })
 
 const time = computed(() => {
@@ -74,11 +73,7 @@ const time = computed(() => {
 const formattedAtis = computed(() => {
     if (localAtis.value) return formatAtisText(localAtis.value.text.join("\n"))
     if (!atis.value) return ""
-    if (props.id === "ESSA") {
-        return formatAtisText(atis.value.arr?.join("\n") || "") + "\n\n" + formatAtisText(atis.value.dep?.join("\n") || "")
-    } else {
-        return formatAtisText(atis.value.text?.join("\n") || "")
-    }
+    return formatAtisText(atis.value.text?.join("\n") || "")
 })
 
 const atisLetters = {
@@ -94,6 +89,22 @@ const formatRunwayInUse = (text: string) => {
         return `<span style="font-size: 18px; font-weight: bold;">RWY ${runway}</span>`;
     });
 }
+
+const extractExtraRunway = (text: string) => {
+    if (props.type === 'ARR') {
+        const match = text.match(/DEP RWY (\d{2}[LCR]?)\./)
+        return match ? match[0].slice(0, -1) : ""
+    } else if (props.type === 'DEP') {
+        const match = text.match(/ARR RWY (\d{2}[LCR]?)\./)
+        return match ? match[0].slice(0, -1) : ""
+    }
+    return ""
+}
+
+const extraRunway = computed(() => {
+    if (!atis.value) return ""
+    return extractExtraRunway(atis.value.text.join("\n"))
+})
 
 const extractWind = (text: string) => {
     const windPatterns = [
@@ -274,16 +285,32 @@ const formatAtisText = (text: string) => {
         return match ? match[1] : defaultValue
     }
 
-    const extractOther = (text: string) => {
-        const match = text.match(/IN USE\.([\s\S]*?)TRL/i)
-        return match ? match[1].trim() : ""
+const extractOther = (text: string) => {
+    let match;
+    if (props.id === "ESSA" && props.type === 'DEP') {
+        match = text.match(/ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i);
+    } else if (props.type === 'ARR') {
+        match = text.match(/DEP RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=\s+TRL|$)/i);
+    } else {
+        match = text.match(/IN USE\.([\s\S]*?)TRL/i);
     }
+    return match ? match[1].trim() : "";
+}
+
+const otherDisplay = computed(() => {
+    let processedOther = other
+        .replace("SINGLE RWY OPERATIONS.", "")
+        .replace("ADDNL SPACING ON FINAL DUE TO RWYS IN USE.", "")
+        .trim();
+    return processedOther;
+});
 
     const icao = extractInfo(/^(ES[A-Z]{2})/)
-    const time = extractInfo(/TIME (\d{4})Z/, "")
     const atisLetter = extractInfo(/ATIS ([A-Z])/)
     const atisCode = atisLetters[atisLetter as keyof typeof atisLetters] || ""
+    const atisType = props.id === "ESSA" ? (props.type === 'DEP' ? 'DEP' : 'ARR') : ''
     const runway = extractInfo(/RWY\s+(\d{2}[LCR]?)/)
+    const time = extractInfo(/TIME (\d{4})Z/, "")
     const date = extractInfo(/(\d{6}Z)/)
     const wind = extractWind(text)
     const vis = extractVisibility(text)
@@ -299,9 +326,12 @@ const formatAtisText = (text: string) => {
     const formattedDate = currentDate.format("YYMMDD")
     const formattedTime = `${currentDate.format("DD")}${time}`
 
+    //Conditional for ARR/DEP
+    const trlDisplay = props.type === 'DEP' ? '' : `TRL ${trl}`
+
     return `
-${icao.padEnd(15)} <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 5 - atisCode.length))} ${formattedDate}
-RWY ${runway.padEnd(7)}MET REPORT  <b>${formattedTime}Z</b>
+${icao}     ${atisType}      <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 5 - atisCode.length))} ${formattedDate}
+RWY ${runway.padEnd(7)}MET REPORT  <b>${formattedTime}Z</b>  ${extraRunway.value}
 WIND ${wind}
 
 ${vis}
@@ -310,9 +340,9 @@ ${conditions}
 
 ${clouds}
 ${temperature.padEnd(9)}${dewpoint}
-QNH <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnh.split('').join(' ')}</div> HPA   TRL ${trl}
+QNH <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnh.split('').join(' ')}</div> HPA   ${trlDisplay}
 
-${other}
+${otherDisplay.value}
   `.trim()
 }
 
@@ -388,3 +418,4 @@ onMounted(() => {
     transition: color 0.5s;
 }
 </style>
+

@@ -130,13 +130,32 @@ for (const icao of wxAirports) {
 }
 
 for (const icao of atisAirports) {
-    availableWindows[`atis${icao}`] = {
-        title: `ATIS ${icao}`,
-        component: ATIS,
-        props: { id: icao },
-        width: 420,
-        height: 380,
-        class: "no-max",
+    if (icao === "ESSA") {
+        availableWindows[`atisESSA_ARR`] = {
+            title: `ATIS ESSA ARR`,
+            component: ATIS,
+            props: { id: icao, type: 'ARR' },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+        availableWindows[`atisESSA_DEP`] = {
+            title: `ATIS ESSA DEP`,
+            component: ATIS,
+            props: { id: icao, type: 'DEP' },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+    } else {
+        availableWindows[`atis${icao}`] = {
+            title: `ATIS ${icao}`,
+            component: ATIS,
+            props: { id: icao },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
     }
 }
 
@@ -199,3 +218,4 @@ onUnmounted(() => {
 })
 ;(window as any).select = select
 </script>
+
