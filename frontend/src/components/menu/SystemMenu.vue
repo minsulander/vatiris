@@ -47,7 +47,27 @@
                                 <v-list-item class="text-grey" @click="showSavePresetDialog = true"
                                     >NEW...</v-list-item
                                 >
-                                </template>
+                            </template>
+                        </v-list>
+                    </v-menu>
+                </v-list-item>
+                <v-list-item class="text-grey" @click="true"
+                    >DEFAULT<v-icon
+                        color="grey-darken-2"
+                        class="ml-2 float-right"
+                        style="margin-top: 2px; margin-right: -3px"
+                        size="small"
+                        >mdi-chevron-right</v-icon
+                    >
+                    <v-menu activator="parent" location="end">
+                        <v-list density="compact">
+                            <v-list-item
+                                v-for="name in Object.keys(defaultPresets)"
+                                :key="name"
+                                class="text-grey"
+                                @click="preset.loadDefault(name, defaultPresets[name])"
+                                >{{ name }}</v-list-item
+                            >
                         </v-list>
                     </v-menu>
                 </v-list-item>
@@ -127,6 +147,8 @@ import { useWindowsStore } from "@/stores/windows"
 import { usePresetStore } from "@/stores/preset"
 import { useAuthStore } from "@/stores/auth"
 import useEventBus from "@/eventbus"
+
+import defaultPresets from "@/data/defaultPresets.json"
 
 const windows = useWindowsStore()
 const preset = usePresetStore()

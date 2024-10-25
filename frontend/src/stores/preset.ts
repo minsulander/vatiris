@@ -11,16 +11,6 @@ export const presetKeys = [
     "metartafOptions",
 ]
 
-export function defaultPresets() {
-    return {
-        // "ESOS_APP": {
-        //     "layout": "{\"metrepESSA\":{\"enabled\":true,\"x\":781,\"y\":86},\"metrepESSB\":{\"enabled\":true,\"x\":350,\"y\":85},\"smhi\":{\"enabled\":true,\"x\":223,\"y\":382}}",
-        //     "smhiMapCenter": "[17.951429357434204,59.57143999874103]",
-        //     "smhiMapZoom": "7.559999999999997"
-        // }
-    }
-}
-
 export const usePresetStore = defineStore("preset", () => {
     const current = ref(localStorage.preset || "")
     const presets = reactive({} as { [key: string]: { [key: string]: string } })
@@ -29,7 +19,39 @@ export const usePresetStore = defineStore("preset", () => {
 
     let lastFetchTime = Date.now()
 
-    Object.assign(presets, defaultPresets())
+    function loadDefault(name: string, preset: any) {
+        console.log("Load default", name, preset)
+        console.log(`Screen size ${window.innerWidth}x${window.innerHeight}`)
+        let bestLayout = undefined
+        let minDiff = 9999999
+        for (const layout of preset.layouts) {
+            const screenSizeDiff =
+                Math.abs(window.innerWidth - layout.width) +
+                Math.abs(window.innerHeight - layout.height)
+            if (screenSizeDiff < minDiff) {
+                minDiff = screenSizeDiff
+                bestLayout = layout
+            }
+        }
+        if (bestLayout) {
+            console.log(`Best layout ${bestLayout.width}x${bestLayout.height}`)
+            const windows = bestLayout.layout
+            for (const id in windows) {
+                const win = windows[id]
+                win.x *= window.innerWidth / bestLayout.width
+                win.y = (win.y - 30) * (window.innerHeight - 30) / (bestLayout.height - 30) + 30
+                win.width *= window.innerWidth / bestLayout.width
+                win.height *= (window.innerHeight - 30) / (bestLayout.height - 30)
+            }
+            localStorage.layout = JSON.stringify(windows)
+        }
+        // TODO remove timeout - for debugging
+        setTimeout(() => {
+            current.value = ""
+            delete localStorage.preset
+            location.reload()
+        }, 500)
+    }
 
     function load(name: string) {
         if (name in presets) {
@@ -110,6 +132,7 @@ export const usePresetStore = defineStore("preset", () => {
     return {
         current,
         presets,
+        loadDefault,
         load,
         save,
         remove,
