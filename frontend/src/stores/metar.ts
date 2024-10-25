@@ -69,13 +69,10 @@ export const useMetarStore = defineStore("metar", () => {
         const cm = metar[icao].match(/Q(\d{4})/)
         if (!cm || !cm[1] || !isFinite(parseInt(cm[1]))) return undefined
         const current = parseInt(cm[1])
-        for (const line of history[icao]) {
-            const m = line.match(/Q(\d{4})/)
-            if (!m || !m[1] || !isFinite(parseInt(m[1]))) continue
-            const qnh = parseInt(m[1])
-            if (qnh != current) return current - qnh
-        }
-        return 0
+        const m = history[icao][0].match(/Q(\d{4})/)
+        if (!m || !m[1] || !isFinite(parseInt(m[1]))) return undefined
+        const qnh = parseInt(m[1])
+        return current - qnh
     }
 
     let fetchOnSubscribeTimeout: any = undefined
@@ -109,7 +106,7 @@ export const useMetarStore = defineStore("metar", () => {
         const airports = [...new Set(Object.values(subscriptions))]
         const icaos = airports.join(",")
         console.log(`Fetch metar`, icaos)
-        axios.get(`https://api.vatiris.se/metar?ids=${icaos}&hours=6&sep=true`).then((response) => {
+        axios.get(`https://api.vatiris.se/metar?ids=${icaos}&hours=3&sep=true`).then((response) => {
             for (const section of (response.data as string).split("\n\n")) {
                 let first = true
                 for (const line of section.trim().split("\n")) {
