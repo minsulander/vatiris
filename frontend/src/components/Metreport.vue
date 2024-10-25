@@ -176,7 +176,14 @@ const formatMetreport = (report: string) => {
 
     // QNH styling
     let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
-        const trend = !qnhTrend.value ? "" : qnhTrend.value > 0 ? " ⯅" : " ⯆"
+        const trend =
+            typeof qnhTrend.value == "undefined"
+                ? ""
+                : qnhTrend.value > 0
+                  ? " <div style='display: inline-block; transform: rotate(-90deg);'><i class='mdi mdi-play'></i></div>"
+                  : qnhTrend.value < 0
+                    ? " <div style='display: inline-block; transform: rotate(90deg);'><i class='mdi mdi-play'></i></div>"
+                    : " <i class='mdi mdi-play'></i>"
         return `${p1}<div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px; margin-bottom: 7px">${p2}${trend}</div>`
     })
 
