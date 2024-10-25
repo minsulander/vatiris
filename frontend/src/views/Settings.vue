@@ -22,7 +22,7 @@
                 <v-container v-if="settings.plsLogic === 'CID'" class="mt-4">
                     <v-checkbox v-model="settings.useVatsimConnect" label="Use VATSIM Connect" @change="handleVatsimConnectChange"></v-checkbox>
                     <v-text-field v-if="!settings.useVatsimConnect" label="CID 1" v-model="settings.cid1" outlined dense @input="handleCIDChange"></v-text-field>
-                    <v-text-field disabled v-if="!settings.useVatsimConnect" label="CID 2 (Not yet available)" v-model="settings.cid2" outlined dense @input="handleCIDChange"></v-text-field>
+                    <v-text-field v-if="!settings.useVatsimConnect" label="CID 2" v-model="settings.cid2" outlined dense @input="handleCIDChange"></v-text-field>
                 </v-container>
 
                 <v-container v-if="settings.plsLogic === 'Position'" class="mt-4">
