@@ -3,7 +3,7 @@
     <div
         v-else
         class="atis"
-        :class="changed ? 'flash' : ''"
+        :class="{ flash: changed && settings.metreportFlash, 'flash-long': changedLong && settings.metreportFlash }"
         style="height: 100%"
         @click="click"
     >
@@ -11,6 +11,7 @@
             {{ time }}
         </div>
         <v-text-field
+            v-if="settings.enableLocalAtis"
             v-model="localAtisInput"
             label="Enter local ATIS"
             @input="updateLocalAtis"
@@ -145,24 +146,49 @@ const extractVisibility = (text: string) => {
     return `VIS ${visData}`
 }
 
-const extractTemperature = (text: string) => {
-    const match = text.match(/T(?:M)?(-?\d+)/)
-    if (match) {
-        const temp = match[1].padStart(2, '0')
-        return text.includes('TM') ? `TMS${temp}` : `T${temp}`
-    }
-    return ''
-}
+const extractWeatherConditions = (text: string) => {
+    const visToCloudRegex = /VIS.*?(?=CLD)/s;
+    const match = text.match(visToCloudRegex);
+    
+    if (!match) return "";
 
-const extractDewpoint = (text: string) => {
-    const match = text.match(/DP(?:M)?(-?\d+)/)
-    if (match) {
-        const dewpoint = match[1].padStart(2, '0')
-        return text.includes('DPM') ? `DPMS${dewpoint}` : `DP${dewpoint}`
-    }
-    return ''
-}
+    const conditionText = match[0];
+    const conditionRegex = /(RE)?(\+|-|VC)?(MI|BC|PR|DR|BL|SH|TS|FZ)?(DZ|RA|SN|SG|IC|PL|GR|GS|UP|BR|FG|FU|VA|DU|SA|HZ|PY|PO|SQ|FC|SS|DS){1,3}/g;
+    const conditions = [];
 
+    let conditionMatch;
+    while ((conditionMatch = conditionRegex.exec(conditionText)) !== null) {
+        let condition = '';
+        
+        // Recent
+        if (conditionMatch[1]) {
+            condition += conditionMatch[1];
+        }
+
+        // Intensity or proximity
+        if (conditionMatch[2]) {
+            condition += conditionMatch[2];
+        }
+
+        // Descriptor
+        if (conditionMatch[3]) {
+            condition += conditionMatch[3];
+        }
+
+        // Precipitation, Obscuration, or Other (up to 3)
+        if (conditionMatch[4]) {
+            condition += conditionMatch[4];
+        }
+
+        conditions.push(condition);
+    }
+
+    if (conditionText.includes('NSW')) {
+        conditions.push('NSW');
+    }
+
+    return conditions.join(' ');
+}
 const extractClouds = (text: string) => {
     const cloudRegex = /(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?/g;
     const vvRegex = /VV(\d{3}|\/{3})/;
@@ -206,7 +232,7 @@ const extractClouds = (text: string) => {
     }
 
     if (vertVisibility) {
-        return vertVisibility;
+        return `CLD ${vertVisibility}`;
     }
 
     if (specialCloud) {
@@ -219,6 +245,22 @@ const extractClouds = (text: string) => {
     }
 
     return '';
+}
+
+const extractTemperature = (text: string) => {
+    const match = text.match(/T(\d{2})\//)
+    if (match) {
+        return `T${match[1]}`
+    }
+    return ''
+}
+
+const extractDewpoint = (text: string) => {
+    const match = text.match(/\/DP(\d{2})/)
+    if (match) {
+        return `DP${match[1]}`
+    }
+    return ''
 }
 
 const formatAtisText = (text: string) => {
@@ -245,8 +287,7 @@ const formatAtisText = (text: string) => {
     const date = extractInfo(/(\d{6}Z)/)
     const wind = extractWind(text)
     const vis = extractVisibility(text)
-    //TODO Precipitation/Weather
-    const precipitation = extractInfo(/(FBL|MOD)\s+(RA|DZ)/)
+    const conditions = extractWeatherConditions(text)
     const clouds = extractClouds(text)
     const temperature = extractTemperature(text)
     const dewpoint = extractDewpoint(text)
@@ -265,7 +306,7 @@ WIND ${wind}
 
 ${vis}
 
-${precipitation}
+${conditions}
 
 ${clouds}
 ${temperature.padEnd(9)}${dewpoint}
@@ -276,36 +317,64 @@ ${other}
 }
 
 const changed = ref(false)
-let changeTimeout: any = null
+const changedLong = ref(false)
+let changeTimeouts: any[] = []
 
 function click() {
-    if (changeTimeout) clearTimeout(changeTimeout)
-    changed.value = false
+    for (const timeout of changeTimeouts) clearTimeout(timeout)
+    changeTimeouts.splice(0)
+    changed.value = changedLong.value = false
 }
 
-function updateLocalAtis() {
-    if (localAtisInput.value) {
-        localAtis.value = {
-            text: localAtisInput.value.split("\n"),
-            last_updated: moment().unix()
+const firstUpdate = ref(true)
+
+watch([
+    time,
+    () => atis.value?.text,  // This covers the entire ATIS text, including atisLetter, atisCode, runway, etc.
+    () => localAtis.value?.text
+], (newValues, oldValues) => {
+    if (firstUpdate.value) {
+        firstUpdate.value = false
+        return
+    }
+    changed.value = false
+    if (!settings.metreportFlash) return
+    for (let i = 0; i < newValues.length; i++) {
+        if (oldValues[i] && oldValues[i].length > 0 && JSON.stringify(newValues[i]) !== JSON.stringify(oldValues[i])) {
+            changed.value = true
+            break
         }
-    } else {
+    }
+    if (changed.value) {
+        changeTimeouts.splice(0)
+        changeTimeouts.push(setTimeout(() => (changed.value = false), 1000))
+        changeTimeouts.push(setTimeout(() => (changed.value = true), 2000))
+        changeTimeouts.push(
+            setTimeout(() => {
+                changed.value = false
+                changedLong.value = true
+            }, 3000)
+        )
+        changeTimeouts.push(
+            setTimeout(() => {
+                changed.value = false
+                changedLong.value = false
+            }, 63000)
+        )
+    }
+})
+
+watch(() => settings.enableLocalAtis, (newValue) => {
+    if (!newValue) {
+        localAtisInput.value = ""
         localAtis.value = null
     }
-}
-
-watch(atis, (newValue, oldValue) => {
-    if (oldValue && newValue && !settings.atisFlash) return
-    changed.value = true
-    if (changeTimeout) clearTimeout(changeTimeout)
-    changeTimeout = setTimeout(() => {
-        changed.value = false
-    }, 3000)
 })
 
 onMounted(() => {
     if (!vatsim.data.general) vatsim.fetchData()
 })
+
 </script>
 
 <style scoped>
@@ -314,5 +383,8 @@ onMounted(() => {
     color: #ddd;
     transition: background-color 0.5s, color 0.5s;
 }
+.atis.flash-long {
+    color: #33f;
+    transition: color 0.5s;
+}
 </style>
-

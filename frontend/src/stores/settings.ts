@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const windowSnapping = ref(true)
     const metreportFlash = ref(true)
     const metsensorFlash = ref(false)
+    const enableLocalAtis = ref(false)
 
     if ("settings" in localStorage) {
         try {
@@ -12,6 +13,7 @@ export const useSettingsStore = defineStore("settings", () => {
             if ("windowSnapping" in settings) windowSnapping.value = settings.windowSnapping
             if ("metreportFlash" in settings) metreportFlash.value = settings.metreportFlash
             if ("metsensorFlash" in settings) metsensorFlash.value = settings.metsensorFlash
+            if ("enableLocalAtis" in settings) enableLocalAtis.value = settings.enableLocalAtis
         } catch (e: any) {
             console.error("Failed to parse settings", e)
             delete localStorage.settings
@@ -30,5 +32,6 @@ export const useSettingsStore = defineStore("settings", () => {
         windowSnapping,
         metreportFlash,
         metsensorFlash,
+        enableLocalAtis,
     }
 })
