@@ -17,8 +17,8 @@
         <button 
           v-for="(group, groupName) in filteredGroups" 
           :key="groupName"
-          @click="toggleGroup(groupName)"
-          :style="getButtonStyle(groupName)"
+          @click="toggleGroup(''+groupName)"
+          :style="getButtonStyle(''+groupName)"
         >
           {{ groupName }}
         </button>
@@ -53,11 +53,11 @@
 import { ref, computed, onMounted } from 'vue';
 import aliasData from '@/data/alias.txt?raw';
 
-const aliasGroups = ref({});
+const aliasGroups = ref({} as {[key: string]: {[key: string]: string}});
 const search = ref('');
-const visibleGroups = ref({});
+const visibleGroups = ref({} as {[key: string]: boolean});
 const loading = ref(true);
-const error = ref(null);
+const error = ref(null as string | null);
 const sortKey = ref('trigger');
 const sortOrder = ref(1);
 
@@ -99,8 +99,8 @@ const loadAliases = () => {
       }
     });
     loading.value = false;
-  } catch (error) {
-    console.error('Error loading aliases:', error);
+  } catch (err) {
+    console.error('Error loading aliases:', err);
     error.value = 'Failed to load aliases. Please try again later.';
     loading.value = false;
   }
@@ -115,7 +115,7 @@ const filteredGroups = computed(() => {
 });
 
 const filteredAliases = computed(() => {
-  const aliases = [];
+  const aliases: any[] = [];
   Object.entries(aliasGroups.value).forEach(([groupName, group]) => {
     if (visibleGroups.value[groupName] || groupName === 'Sweden') {
       Object.entries(group).forEach(([trigger, expansion]) => {
