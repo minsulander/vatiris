@@ -1,0 +1,142 @@
+{
+    "layouts": [
+        {
+            "width": 1024,
+            "height": 768,
+            "layout": {
+                "metrepESOW": {
+                    "x": 0,
+                    "y": 30,
+                    "width": 300,
+                    "height": 350,
+                    "enabled": true
+                },
+                "metrepESSB": {
+                    "x": 300,
+                    "y": 30,
+                    "width": 300,
+                    "height": 350,
+                    "enabled": true
+                },
+                "metrepESSA": {
+                    "x": 600,
+                    "y": 30,
+                    "width": 424,
+                    "height": 350,
+                    "enabled": true
+                },
+                "metsenESSA": {
+                    "x": 600,
+                    "y": 380,
+                    "width": 424,
+                    "height": 388,
+                    "enabled": true
+                },
+                "smhi": {
+                    "x": 0,
+                    "y": 380,
+                    "width": 600,
+                    "height": 388,
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "width": 1920,
+            "height": 1080,
+            "layout": {
+                "notam": {
+                    "x": 0,
+                    "y": 30,
+                    "width": 710,
+                    "height": 525,
+                    "enabled": true
+                },
+                "metrepESOW": {
+                    "x": 710,
+                    "y": 30,
+                    "width": 390,
+                    "height": 350,
+                    "enabled": true
+                },
+                "metrepESSB": {
+                    "x": 1100,
+                    "y": 30,
+                    "width": 390,
+                    "height": 350,
+                    "enabled": true
+                },
+                "metsenESSB": {
+                    "x": 1100,
+                    "y": 380,
+                    "width": 390,
+                    "height": 380,
+                    "enabled": true
+                },
+                "metrepESSA": {
+                    "x": 1490,
+                    "y": 30,
+                    "width": 430,
+                    "height": 350,
+                    "enabled": true
+                },
+                "metsenESSA": {
+                    "x": 1490,
+                    "y": 380,
+                    "width": 430,
+                    "height": 380,
+                    "enabled": true
+                },
+                "smhi": {
+                    "x": 0,
+                    "y": 555,
+                    "width": 710,
+                    "height": 525,
+                    "enabled": true
+                },
+                "notepad": {
+                    "x": 710,
+                    "y": 380,
+                    "width": 390,
+                    "height": 525,
+                    "enabled": true
+                },
+                "coord-os-app": {
+                    "x": 710,
+                    "y": 905,
+                    "width": 390,
+                    "height": 175,
+                    "enabled": true
+                },
+                "ECFMP": {
+                    "x": 1100,
+                    "y": 760,
+                    "width": 820,
+                    "height": 320,
+                    "enabled": true
+                }
+            }
+        }
+    ],
+    "smhiMapCenter": [17.9514, 59.5714],
+    "smhiMapZoom": 7.6,
+    "notamOptions": {
+        "raw": false,
+        "header": false,
+        "ad": ["ESSA", "ESSB", "ESOW"],
+        "enroute": true,
+        "nav": true,
+        "footer": false,
+        "future": false
+    },
+    "metartafOptions": {
+        "metar": true,
+        "taf": true,
+        "ad": [
+            "ESSA",
+            "ESSB",
+            "ESOW"
+        ]
+    }
+
+}
