@@ -7,7 +7,7 @@
                 <v-list-item to="/settings">
                     <v-list-item-title class="text-grey">SETTINGS</v-list-item-title>
                 </v-list-item>
-                <v-list-item class="text-grey" @click="true" v-if="auth.user || Object.keys(preset.presets).length > 0">
+                <v-list-item class="text-grey" @click="true" v-if="auth.user || Object.keys(preset.presets || {}).length > 0">
                     <v-list-item-title>
                         PRESET
                         <v-icon
@@ -47,7 +47,27 @@
                                 <v-list-item class="text-grey" @click="showSavePresetDialog = true"
                                     >NEW...</v-list-item
                                 >
-                                </template>
+                            </template>
+                        </v-list>
+                    </v-menu>
+                </v-list-item>
+                <v-list-item class="text-grey" @click="true"
+                    >DEFAULT<v-icon
+                        color="grey-darken-2"
+                        class="ml-2 float-right"
+                        style="margin-top: 2px; margin-right: -3px"
+                        size="small"
+                        >mdi-chevron-right</v-icon
+                    >
+                    <v-menu activator="parent" location="end">
+                        <v-list density="compact">
+                            <v-list-item
+                                v-for="name in Object.keys(preset.defaults || {})"
+                                :key="name"
+                                class="text-grey"
+                                @click="preset.loadDefault(name)"
+                                >{{ name }}</v-list-item
+                            >
                         </v-list>
                     </v-menu>
                 </v-list-item>
@@ -122,7 +142,7 @@
 <script setup lang="ts">
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue"
 
-import { ref } from "vue"
+import { reactive, ref } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import { usePresetStore } from "@/stores/preset"
 import { useAuthStore } from "@/stores/auth"
@@ -164,11 +184,11 @@ function savePreset() {
 }
 
 function resetLayout() {
-    // localStorage.removeItem("layout")
-    // localStorage.removeItem("preset")
-    // location.reload()
+    localStorage.removeItem("layout")
+    localStorage.removeItem("preset")
     for (const id in windows.layout) {
         windows.layout[id].enabled = false
+        delete windows.layout[id]
     }
     preset.current = ""
 }

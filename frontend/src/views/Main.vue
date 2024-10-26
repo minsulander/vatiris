@@ -161,8 +161,8 @@ import("@/data/aip-airports.json").then((module) => {
                 title: `AIP ${document.prefix} ${document.name}`,
                 component: Iframe,
                 props: { src: `${document.url}#toolbar=0` },
-                width: 500,
-                height: 700,
+                width: 800,
+                height: 600,
             }
         }
     }
