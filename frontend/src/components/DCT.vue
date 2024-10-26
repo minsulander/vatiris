@@ -124,7 +124,7 @@ onMounted(() => {
 
 .item-chip {
   z-index: 2;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   padding: 0 2px;
   height: 20px;
   min-width: 20px;
