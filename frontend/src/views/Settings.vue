@@ -21,8 +21,24 @@
 
                 <v-container v-if="settings.plsLogic === 'CID'" class="mt-4">
                     <v-checkbox v-model="settings.useVatsimConnect" label="Use VATSIM Connect" @change="handleVatsimConnectChange"></v-checkbox>
-                    <v-text-field v-if="!settings.useVatsimConnect" label="CID 1" v-model="settings.cid1" outlined dense @input="handleCIDChange"></v-text-field>
-                    <v-text-field v-if="!settings.useVatsimConnect" label="CID 2" v-model="settings.cid2" outlined dense @input="handleCIDChange"></v-text-field>
+                    <v-text-field
+                        v-if="!settings.useVatsimConnect"
+                        label="CID 1"
+                        v-model="settings.cid1"
+                        outlined
+                        dense
+                        @input="handleCIDChange"
+                        :rules="[cidRules]"
+                    ></v-text-field>
+                    <v-text-field
+                        v-if="!settings.useVatsimConnect"
+                        label="CID 2"
+                        v-model="settings.cid2"
+                        outlined
+                        dense
+                        @input="handleCIDChange"
+                        :rules="[cidRules]"
+                    ></v-text-field>
                 </v-container>
 
                 <v-container v-if="settings.plsLogic === 'Position'" class="mt-4">
@@ -50,6 +66,12 @@ const auth = useAuthStore()
 const bus = useEventBus()
 
 const hasChanges = ref(false)
+
+const cidRules = (value: string) => {
+    if (!value) return true // Allow empty field
+    const regex = /^\d{5,8}$/
+    return regex.test(value) || 'CID must be 5-8 digits'
+}
 
 const emitLogicChanged = () => {
     let type = settings.plsLogic.toUpperCase()
@@ -100,6 +122,12 @@ const handleVatsimConnectChange = () => {
 const handleCIDChange = () => {
     if (settings.enablePLS && settings.plsLogic === 'CID') {
         hasChanges.value = true
+        // Validate CID format
+        const isValidCID1 = !settings.cid1 || cidRules(settings.cid1) === true
+        const isValidCID2 = !settings.cid2 || cidRules(settings.cid2) === true
+        if (!isValidCID1 || !isValidCID2) {
+            hasChanges.value = false // Prevent applying changes if CIDs are invalid
+        }
     }
 }
 
