@@ -138,6 +138,12 @@ const menuItems = reactive({
                 EETT: "https://wiki.vatsim-scandinavia.org/books/loa/page/tallinn-fir-sweden-fir",
                 EPWW: "https://wiki.vatsim-scandinavia.org/books/loa/page/warsaw-fir-sweden-fir",
             },
+            QuickRef: {
+                "ESGG TWR/APP": "wikipdf-quickref-esgg-twr-app",
+                "ESSA TWR": "wikipdf-quickref-essa-twr",
+                "ESSA APP": "wikipdf-quickref-essa-app",
+                "ESSB TWR/APP": "wikipdf-quickref-essb-twr-app",
+            }
         },
         OTHER: {
             "ESSA PUSH": "SApush",

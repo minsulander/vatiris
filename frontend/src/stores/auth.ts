@@ -6,7 +6,7 @@ import { ref } from "vue"
 const clientId = import.meta.env.VITE_CLIENT_ID || "682"
 const redirectUri = import.meta.env.VITE_REDIRECT_URI || "http://localhost:5173/login"
 const vatsimAuthBaseUri = import.meta.env.VITE_VATSIM_AUTH_BASE_URI || "https://auth-dev.vatsim.net"
-const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
+export const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
 
 export const useAuthStore = defineStore("auth", () => {
     const pending = ref(true)
