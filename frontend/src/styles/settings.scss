@@ -20,6 +20,13 @@ body {
     scrollbar-width: thin;
 }
 
+/* Fix meny width for fierfox */
+@supports (-moz-appearance:none) {
+    .v-list {
+        width: 130%;
+    }
+}
+
 /*
 ::-webkit-scrollbar {
     width: 8px;
