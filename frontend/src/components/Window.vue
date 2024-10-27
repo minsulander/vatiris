@@ -76,18 +76,25 @@ function move(move: any) {
         if (moveTimeout) clearTimeout(moveTimeout)
         moveTimeout = setTimeout(() => {
             moveTimeout = undefined
-            if (windows.winbox[move.id].min || windows.winbox[move.id].max) return
-            windows.layout[move.id].x = move.x
-            windows.layout[move.id].y = move.y
+            if (windows.winbox[move.id].min) {
+                windows.layout[move.id].min = true
+                windows.layout[move.id].max = false
+            } else if (windows.winbox[move.id].max) {
+                windows.layout[move.id].max = true
+                windows.layout[move.id].min = false
+            } else {
+                windows.layout[move.id].x = move.x
+                windows.layout[move.id].y = move.y
 
-            // snapping
-            if (settings.windowSnapping && Date.now() - lastSnap >= 300)
-                setTimeout(() => {
-                    if (wb.value && wb.value.winbox) {
-                        const own = wb.value.winbox
-                        snap(own)
-                    }
-                }, 150)
+                // snapping
+                if (settings.windowSnapping && Date.now() - lastSnap >= 300)
+                    setTimeout(() => {
+                        if (wb.value && wb.value.winbox) {
+                            const own = wb.value.winbox
+                            snap(own)
+                        }
+                    }, 150)
+            }
         }, 100)
     }
 }
