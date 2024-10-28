@@ -46,7 +46,7 @@ import Checklist from "@/components/Checklist.vue"
 import MetarTaf from "@/components/met/MetarTaf.vue"
 import Sun from "@/components/met/Sun.vue"
 import Airport from "@/components/met/Airport.vue"
-import WikiHtml from "@/components/WikiHtml.vue"
+import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
 import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -143,8 +143,8 @@ const availableWindows = shallowReactive({
     },
     wikitest2: {
         title: "WIKI TEST 2",
-        component: WikiHtml,
-        props: { id: 890 },
+        component: WikiPage,
+        props: { book: "lop", page: "esgt" },
         width: 800,
         height: 600,
     }
@@ -230,6 +230,18 @@ import("@/data/wiki-pdfs.json").then((module) => {
             title: pdf.title,
             component: WikiPdf,
             props: { id: pdf.attachmentId },
+            width: 800,
+            height: 600,
+        }
+    }
+})
+import("@/data/wiki-pages.json").then((module) => {
+    for (const id in module.default) {
+        const page = (module.default as any)[id]
+        availableWindows[`wiki-${id}`] = {
+            title: page.title,
+            component: WikiPage,
+            props: { book: page.book, page: page.page },
             width: 800,
             height: 600,
         }

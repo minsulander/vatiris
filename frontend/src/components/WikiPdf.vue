@@ -1,6 +1,6 @@
 <template>
     <iframe v-if="auth.user" ref="iframe" :src="src" style="width: 100%; height: 100%; border: none"></iframe>
-    <div v-else class="pa-2">Please login to view WIKI content</div>
+    <div v-else-if="!auth.pending" class="pa-2">Please login to view WIKI content</div>
 </template>
 
 <script setup lang="ts">

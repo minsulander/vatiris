@@ -1,17 +1,24 @@
 <template>
-    <div v-if="auth.user" ref="div" class="wiki-div pa-2" :class="loading ? '' : 'bg-white'" v-html="content"></div>
+    <div
+        v-if="auth.user"
+        ref="div"
+        class="wiki-div pa-2"
+        :class="loading ? '' : 'bg-white'"
+        v-html="content"
+    ></div>
+    <div v-else-if="!auth.pending" class="pa-2">Please login to view WIKI content</div>
 </template>
 
 <script setup lang="ts">
 import useEventBus from "@/eventbus"
-import { backendBaseUrl, useAuthStore } from "@/stores/auth";
-import { computed, onMounted, ref } from "vue"
+import { backendBaseUrl, useAuthStore } from "@/stores/auth"
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue"
 import axios from "axios"
 
-const props = defineProps<{ id: number }>()
+const props = defineProps<{ book: string; page: string }>()
 const auth = useAuthStore()
 const div = ref()
-const src = computed(() => `${backendBaseUrl}/wiki/pagehtml/${props.id}`)
+const src = computed(() => `${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}/html`)
 const content = ref("Loading...")
 const loading = ref(true)
 
@@ -21,24 +28,56 @@ bus.on("refresh", () => {
 })
 
 onMounted(() => {
+    ;(window as any).div = div.value
     fetch()
 })
 
+onBeforeUnmount(() => {
+    if (div.value) div.value.parentElement?.removeEventListener("scroll", onScroll)
+})
+
+watch(div, (newValue, oldValue) => {
+    if (div.value && !oldValue) {
+        ;(window as any).div = div.value
+        div.value.parentElement.addEventListener("scroll", onScroll)
+    }
+})
+
+function onScroll(e: any) {
+    localStorage[`wikiPage_scroll_${props.book}_${props.page}`] = e.target.scrollTop
+}
+
+watch(() => auth.user, fetch)
+
 function fetch() {
-    axios.get(src.value, { headers: { Authorization: `Bearer ${auth.token.access_token}`}}).then((response) => {
-        loading.value = false
-        content.value = response.data
-    })
+    if (!auth.user) return
+    axios
+        .get(src.value, { headers: { Authorization: `Bearer ${auth.token.access_token}` } })
+        .then((response) => {
+            loading.value = false
+            content.value = response.data
+            if (div.value && `wikiPage_scroll_${props.book}_${props.page}` in localStorage) {
+                console.log(
+                    "set scroll",
+                    localStorage[`wikiPage_scroll_${props.book}_${props.page}`],
+                )
+                setTimeout(() => {
+                    div.value.parentElement.scrollTop = parseInt(
+                        localStorage[`wikiPage_scroll_${props.book}_${props.page}`],
+                    )
+                }, 10)
+            } else {
+                console.log("no scroll")
+            }
+        })
     // TODO error handling
 }
 </script>
 
 <style lang="scss">
-
 /* This is copy-pasted and bastardized CSS from the wiki HTML export */
 
 .wiki-div {
-
     h1 {
         font-size: 28px !important;
         color: #011328 !important;
@@ -1095,4 +1134,3 @@ function fetch() {
     } /*# sourceMappingURL=export-styles.css.map */
 }
 </style>
-
