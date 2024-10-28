@@ -45,6 +45,8 @@ import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
 import ATIS from "@/components/ATIS.vue"
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
+import Sun from "@/components/Sun.vue"
+import Full from "@/components/Full.vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
 import directsData from '@/data/dct/directs.json'
@@ -149,6 +151,27 @@ for (const icao of wxAirports) {
         props: { id: icao },
         width: 360,
         height: 380,
+        class: "no-max",
+        
+    }
+}
+for (const icao of wxAirports) {
+    availableWindows[`sun${icao}`] = {
+        title: `SUN ${icao}`,
+        component: Sun,
+        props: { id: icao },
+        width: 340,
+        height: 150,
+        class: "no-max",
+    }
+}
+for (const icao of wxAirports) {
+    availableWindows[`full${icao}`] = {
+        title: `FULL ${icao}`,
+        component: Full,
+        props: { id: icao },
+        width: 380,
+        height: 800,
         class: "no-max",
     }
 }
@@ -268,5 +291,6 @@ onUnmounted(() => {
     windows.unmounting = false
 })
 ;(window as any).select = select
+
 </script>
 

@@ -26,22 +26,25 @@ const dct = useDctStore()
 
 const menuItems = reactive({
     MET: {
+        FULL: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
         METREPORT: {
             // filled in code
         } as { [key: string]: string },
         METSENSOR: {
             // filled in code
         } as { [key: string]: string },
-<<<<<<< HEAD
         "METAR/TAF": "metartaf",
-=======
         ATIS: {
             // This will be filled in the same way as METREPORT and METSENSOR
         } as { [key: string]: string },
->>>>>>> github/atis-view
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
+        SUN: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
     },
     NOTAM: "notam",
     eCharts: "echarts",
@@ -155,16 +158,17 @@ const menuItems = reactive({
 import { wxAirports, atisAirports } from "@/stores/wx"
 
 for (const icao of wxAirports) {
+    menuItems.MET.FULL[icao] = `full${icao}`
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
+     menuItems.MET.SUN[icao] = `sun${icao}`
 }
 
-<<<<<<< HEAD
 import { useDctStore } from "@/stores/dct"
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups
-=======
+}
 for (const icao of atisAirports) {
     if (icao === "ESSA") {
         menuItems.MET.ATIS["ESSA ARR"] = `atisESSA_ARR`
@@ -172,7 +176,6 @@ for (const icao of atisAirports) {
     } else {
         menuItems.MET.ATIS[icao] = `atis${icao}`
     }
->>>>>>> github/atis-view
 }
 
 import("@/data/aip-airports.json").then((module) => {

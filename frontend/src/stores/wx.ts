@@ -122,7 +122,14 @@ export const useWxStore = defineStore("wx", () => {
     }
 
     function fetch(icao: string) {
-        if (!(icao in viewIdByIcao)) throw `No viewId for icao ${icao}`
+        if (!icao) {
+            console.error("Attempted to fetch weather data with undefined ICAO");
+            return;
+        }
+        if (!(icao in viewIdByIcao)) {
+            console.error(`No viewId for icao ${icao}`);
+            return;
+        }
         if (!(icao in wx)) wx[icao] = "Loading..."
         lastFetch[icao] = new Date()
         console.log(`Fetch wx ${icao}`)
