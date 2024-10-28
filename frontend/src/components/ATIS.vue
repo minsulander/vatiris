@@ -1,5 +1,5 @@
 <template>
-    <div v-if="!atis && !localAtisInput" class="pa-3 text-center">NO DATA</div>
+    <div v-if="!atis" class="pa-3 text-center">NO DATA</div>
     <div
         v-else
         class="atis"
@@ -7,14 +7,9 @@
         style="height: 100%"
         @click="click"
     >
-        <div class="float-right text-caption text-grey-darken-2">
-            {{ time }}
+    <div class="float-right text-caption font-weight-bold text-orange-darken-4" v-if="outdated">
+            {{ time.replace("T", " ") }}
         </div>
-        <v-text-field
-            v-if="settings.enableLocalAtis"
-            v-model="localAtisInput"
-            label="Enter local ATIS"
-        ></v-text-field>
         <pre
             class="pa-1"
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
@@ -24,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref, watch } from "vue"
+import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useSettingsStore } from "@/stores/settings"
 import moment from "moment"
@@ -34,11 +29,8 @@ const props = defineProps<{ id: string; type?: 'ARR' | 'DEP' }>()
 const vatsim = useVatsimStore()
 const settings = useSettingsStore()
 
-const localAtisInput = ref("")
-
+const outdated = ref(false)
 const atis = computed(() => {
-    if (localAtisInput.value) return { text: [localAtisInput.value], last_updated: moment().toISOString() }
-
     if (props.id === "ESSA") {
         const atisType = props.type === 'DEP' ? 'ESSA_D' : 'ESSA_A'
         const atisData = vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith(atisType))
@@ -61,15 +53,11 @@ const atis = computed(() => {
 })
 
 const time = computed(() => {
-    if (localAtisInput.value) return moment().format("YYYY-MM-DD HH:mm:ss")
-    if (atis.value) {
-        return moment(atis.value.last_updated).format("YYYY-MM-DD HH:mm:ss")
-    }
+    if (atis.value) return moment(atis.value.last_updated).utc().toISOString()
     return ""
 })
 
 const formattedAtis = computed(() => {
-    if (localAtisInput.value) return formatAtisText(localAtisInput.value)
     if (!atis.value) return ""
     return formatAtisText(atis.value.text?.join("\n") || "")
 })
@@ -288,7 +276,7 @@ const extractOther = (text: string) => {
     if (props.id === "ESSA" && props.type === 'DEP') {
         match = text.match(/ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i);
     } else if (props.type === 'ARR') {
-        match = text.match(/DEP RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=\s+TRL|$)/i);
+        match = text.match(/DEP RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=TRL \d\d|$)/i);
     } else {
         match = text.match(/IN USE\.([\s\S]*?)TRL/i);
     }
@@ -357,7 +345,6 @@ function click() {
 const firstUpdate = ref(true)
 
 watch([
-    localAtisInput,
     () => atis.value?.text,  // This covers the entire ATIS text, including atisLetter, atisCode, runway, etc.
 ], (newValues, oldValues) => {
     if (firstUpdate.value) {
@@ -366,12 +353,11 @@ watch([
     }
     changed.value = false
     if (!settings.metreportFlash) return
-    for (let i = 0; i < newValues.length; i++) {
-        if (oldValues[i] && JSON.stringify(newValues[i]) !== JSON.stringify(oldValues[i])) {
-            console.log("ATIS changed", newValues[i], oldValues[i])
-            changed.value = true
-            break
-        }
+    const newValue = newValues.join(" ")
+    const oldValue = oldValues.join(" ")
+    if (oldValue && newValue !== oldValue) {
+        console.log("ATIS changed", newValue, oldValue)
+        changed.value = true
     }
     if (changed.value) {
         changeTimeouts.splice(0)
@@ -392,14 +378,17 @@ watch([
     }
 })
 
-watch(() => settings.enableLocalAtis, (newValue) => {
-    if (!newValue) {
-        localAtisInput.value = ""
-    }
-})
-
+let checkOutdatedInterval: any = undefined
 onMounted(() => {
     if (!vatsim.data.general) vatsim.fetchData()
+    checkOutdatedInterval = setInterval(() => {
+        outdated.value =
+            time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
+    }, 5000)
+})
+
+onUnmounted(() => {
+    clearInterval(checkOutdatedInterval)
 })
 
 </script>
