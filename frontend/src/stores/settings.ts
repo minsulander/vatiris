@@ -7,6 +7,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const windowSnapping = ref(true)
     const metreportFlash = ref(true)
     const metsensorFlash = ref(false)
+    const enableLocalAtis = ref(false)
 
     const auth = useAuthStore()
 
@@ -27,6 +28,7 @@ export const useSettingsStore = defineStore("settings", () => {
             windowSnapping: windowSnapping.value,
             metreportFlash: metreportFlash.value,
             metsensorFlash: metsensorFlash.value,
+            enableLocalAtis: enableLocalAtis.value,
         }
         localStorage.settings = JSON.stringify(settings)
         if (Date.now() - lastLoadTime > 3000 && auth.user) {
@@ -60,11 +62,13 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("windowSnapping" in settings) windowSnapping.value = settings.windowSnapping
         if ("metreportFlash" in settings) metreportFlash.value = settings.metreportFlash
         if ("metsensorFlash" in settings) metsensorFlash.value = settings.metsensorFlash
+        if ("enableLocalAtis" in settings) enableLocalAtis.value = settings.enableLocalAtis
     }
 
     return {
         windowSnapping,
         metreportFlash,
         metsensorFlash,
+        enableLocalAtis,
     }
 })

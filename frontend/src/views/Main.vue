@@ -43,17 +43,16 @@ import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
-
-
+import ATIS from "@/components/ATIS.vue"
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
+import { useDctStore } from "@/stores/dct"
+import directsData from '@/data/dct/directs.json'
+import { wxAirports, atisAirports } from "@/stores/wx"
+
 
 const windows = useWindowsStore()
 const dct = useDctStore()
-
-import { wxAirports } from "@/stores/wx"
-import { useDctStore } from "@/stores/dct"
-import directsData from '@/data/dct/directs.json'
 
 export interface WindowSpec {
     title: string
@@ -154,6 +153,36 @@ for (const icao of wxAirports) {
     }
 }
 
+for (const icao of atisAirports) {
+    if (icao === "ESSA") {
+        availableWindows[`atisESSA_ARR`] = {
+            title: `ATIS ESSA ARR`,
+            component: ATIS,
+            props: { id: icao, type: 'ARR' },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+        availableWindows[`atisESSA_DEP`] = {
+            title: `ATIS ESSA DEP`,
+            component: ATIS,
+            props: { id: icao, type: 'DEP' },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+    } else {
+        availableWindows[`atis${icao}`] = {
+            title: `ATIS ${icao}`,
+            component: ATIS,
+            props: { id: icao },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+    }
+}
+
 import("@/data/aip-airports.json").then((module) => {
     for (const airport of module.default) {
         for (const document of airport.documents) {
@@ -240,3 +269,4 @@ onUnmounted(() => {
 })
 ;(window as any).select = select
 </script>
+
