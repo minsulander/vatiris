@@ -1,3 +1,7 @@
+
+// Endpoints interacting with the VATSCA wiki
+// https://wiki.vatsim-scandinavia.org/api/docs
+
 import { Router, Request, Response } from "express"
 
 import auth from "../auth"
