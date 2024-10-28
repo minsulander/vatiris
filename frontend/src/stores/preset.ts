@@ -59,6 +59,22 @@ export const usePresetStore = defineStore("preset", () => {
             current.value = ""
             localStorage.removeItem("preset")
         }
+        if (name in presets) {
+            delete presets[name]
+            auth.postUserData("presets", presets)
+        }
+    }
+
+    function rename(from: string, to:string) {
+        if (current.value == from) {
+            current.value = to
+            localStorage.preset = to
+        }
+        if (from in presets) {
+            presets[to] = presets[from]
+            delete presets[from]
+            auth.postUserData("presets", presets)
+        }
     }
 
     watch(
@@ -189,6 +205,7 @@ export const usePresetStore = defineStore("preset", () => {
         load,
         save,
         remove,
+        rename,
         makeDefault,
     }
 })

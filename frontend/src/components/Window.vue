@@ -7,7 +7,7 @@
         @close="close"
         @focus="focus"
     >
-        <slot></slot>
+        <slot v-if="showContent"></slot>
     </VueWinBox>
 </template>
 
@@ -28,6 +28,7 @@ const props = defineProps<{
 const windows = useWindowsStore()
 const settings = useSettingsStore()
 
+const showContent = ref(false)
 const wb = ref()
 const options = computed(() => {
     const id = props.id
@@ -76,18 +77,30 @@ function move(move: any) {
         if (moveTimeout) clearTimeout(moveTimeout)
         moveTimeout = setTimeout(() => {
             moveTimeout = undefined
-            if (windows.winbox[move.id].min || windows.winbox[move.id].max) return
-            windows.layout[move.id].x = move.x
-            windows.layout[move.id].y = move.y
+            if (windows.winbox[move.id].min) {
+                showContent.value = false
+                windows.layout[move.id].min = true
+                windows.layout[move.id].max = false
+            } else if (windows.winbox[move.id].max) {
+                showContent.value = true
+                windows.layout[move.id].max = true
+                windows.layout[move.id].min = false
+            } else {
+                showContent.value = true
+                windows.layout[move.id].min = false
+                windows.layout[move.id].max = false
+                windows.layout[move.id].x = move.x
+                windows.layout[move.id].y = move.y
 
-            // snapping
-            if (settings.windowSnapping && Date.now() - lastSnap >= 300)
-                setTimeout(() => {
-                    if (wb.value && wb.value.winbox) {
-                        const own = wb.value.winbox
-                        snap(own)
-                    }
-                }, 150)
+                // snapping
+                if (settings.windowSnapping && Date.now() - lastSnap >= 300)
+                    setTimeout(() => {
+                        if (wb.value && wb.value.winbox) {
+                            const own = wb.value.winbox
+                            snap(own)
+                        }
+                    }, 150)
+            }
         }, 100)
     }
 }
@@ -100,12 +113,15 @@ function resize(resize: any) {
         moveTimeout = setTimeout(() => {
             moveTimeout = undefined
             if (windows.winbox[resize.id].min) {
+                showContent.value = false
                 windows.layout[resize.id].min = true
                 windows.layout[resize.id].max = false
             } else if (windows.winbox[resize.id].max) {
+                showContent.value = true
                 windows.layout[resize.id].max = true
                 windows.layout[resize.id].min = false
             } else {
+                showContent.value = true
                 windows.layout[resize.id].min = false
                 windows.layout[resize.id].max = false
                 windows.layout[resize.id].width = resize.width
@@ -238,10 +254,14 @@ onMounted(() => {
         if (wb.value && wb.value.winbox) {
             windows.winbox[props.id] = wb.value.winbox
             if (windows.focusId && props.id == windows.focusId) wb.value.winbox.focus()
-            if (props.id in windows.layout && windows.layout[props.id].min)
+            if (props.id in windows.layout && windows.layout[props.id].min) {
                 wb.value.winbox.minimize()
-            if (props.id in windows.layout && windows.layout[props.id].max)
+            } else if (props.id in windows.layout && windows.layout[props.id].max) {
                 wb.value.winbox.maximize()
+                showContent.value = true
+            } else {
+                showContent.value = true
+            }
         }
     })
 })

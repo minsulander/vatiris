@@ -7,7 +7,11 @@
                 <v-list-item to="/settings">
                     <v-list-item-title class="text-grey">SETTINGS</v-list-item-title>
                 </v-list-item>
-                <v-list-item class="text-grey" @click="true" v-if="auth.user || Object.keys(preset.presets || {}).length > 0">
+                <v-list-item
+                    class="text-grey"
+                    @click="true"
+                    v-if="auth.user || Object.keys(preset.presets || {}).length > 0"
+                >
                     <v-list-item-title>
                         PRESET
                         <v-icon
@@ -43,6 +47,12 @@
                                     class="text-grey"
                                     @click="deleteCurrentPreset"
                                     >DELETE {{ preset.current }}</v-list-item
+                                >
+                                <v-list-item
+                                    v-if="preset.current"
+                                    class="text-grey"
+                                    @click="showRenamePresetDialog = true"
+                                    >RENAME...</v-list-item
                                 >
                                 <v-list-item class="text-grey" @click="showSavePresetDialog = true"
                                     >NEW...</v-list-item
@@ -136,6 +146,30 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    <v-dialog v-model="showRenamePresetDialog" max-width="500">
+        <v-card>
+            <v-card-title class="font-weight-light text-grey"
+                >Rename preset {{ preset.current }}</v-card-title
+            >
+            <v-card-text>
+                <v-text-field
+                    variant="underlined"
+                    autofocus
+                    v-model="presetName"
+                    label="Name"
+                    @keyup.enter="renamePreset"
+                    @input="presetName = presetName.toUpperCase()"
+                ></v-text-field>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn variant="text" color="secondary" @click="showRenamePresetDialog = false"
+                    >Cancel</v-btn
+                >
+                <v-spacer />
+                <v-btn variant="text" color="primary" @click="renamePreset">Rename</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
     <confirmation-dialog v-model="confirmation" />
 </template>
 
@@ -154,6 +188,7 @@ const auth = useAuthStore()
 const bus = useEventBus()
 
 const showSavePresetDialog = ref(false)
+const showRenamePresetDialog = ref(false)
 const presetName = ref("")
 const confirmation = ref({})
 
@@ -163,6 +198,12 @@ function refresh() {
 
 function saveCurrentPreset() {
     preset.save(preset.current)
+}
+
+function renamePreset() {
+    if (!presetName.value) return
+    preset.rename(preset.current, presetName.value)
+    showRenamePresetDialog.value = false
 }
 
 function deleteCurrentPreset() {
