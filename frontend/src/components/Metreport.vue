@@ -174,6 +174,26 @@ const isATISAirport = computed(() => atisAirports.includes(airportCode.value))
 const formatMetreport = (report: string) => {
     if (!report) return ""
 
+    // Removes \n in text after TRL
+        //Finds where the "free text" starts
+    for (let i = report.length; i > 2; i--) {
+        var value = report[i-2] + report[i-1] + report[i];
+        if (value == "TRL"){
+            var start = i + 5
+
+            // Splits string into pre "free text" and "free text"
+            var s1 = report.slice(0 , start)
+            var s2 = report.slice(start)
+
+            // Removes all backspaces
+            s2 = s2.replaceAll('\n', ' ')
+
+            // Merge back the report
+            report = s1 + s2;
+            break
+        }
+    } 
+
     // QNH styling
     let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
         const trend =
