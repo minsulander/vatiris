@@ -1,5 +1,5 @@
 <template>
-    <div v-if="!atis && !localAtis" class="pa-3 text-center">NO DATA</div>
+    <div v-if="!atis && !localAtisInput" class="pa-3 text-center">NO DATA</div>
     <div
         v-else
         class="atis"
@@ -14,7 +14,6 @@
             v-if="settings.enableLocalAtis"
             v-model="localAtisInput"
             label="Enter local ATIS"
-            @input="updateLocalAtis"
         ></v-text-field>
         <pre
             class="pa-1"
@@ -36,10 +35,9 @@ const vatsim = useVatsimStore()
 const settings = useSettingsStore()
 
 const localAtisInput = ref("")
-const localAtis = ref(null)
 
 const atis = computed(() => {
-    if (localAtis.value) return localAtis.value
+    if (localAtisInput.value) return { text: [localAtisInput.value], last_updated: moment().toISOString() }
 
     if (props.id === "ESSA") {
         const atisType = props.type === 'DEP' ? 'ESSA_D' : 'ESSA_A'
@@ -63,15 +61,15 @@ const atis = computed(() => {
 })
 
 const time = computed(() => {
-    if (localAtis.value) return moment().format("YYYY-MM-DD HH:mm:ss")
+    if (localAtisInput.value) return moment().format("YYYY-MM-DD HH:mm:ss")
     if (atis.value) {
-        return moment.unix(atis.value.last_updated).format("YYYY-MM-DD HH:mm:ss")
+        return moment(atis.value.last_updated).format("YYYY-MM-DD HH:mm:ss")
     }
     return ""
 })
 
 const formattedAtis = computed(() => {
-    if (localAtis.value) return formatAtisText(localAtis.value.text.join("\n"))
+    if (localAtisInput.value) return formatAtisText(localAtisInput.value)
     if (!atis.value) return ""
     return formatAtisText(atis.value.text?.join("\n") || "")
 })
@@ -359,9 +357,8 @@ function click() {
 const firstUpdate = ref(true)
 
 watch([
-    time,
+    localAtisInput,
     () => atis.value?.text,  // This covers the entire ATIS text, including atisLetter, atisCode, runway, etc.
-    () => localAtis.value?.text
 ], (newValues, oldValues) => {
     if (firstUpdate.value) {
         firstUpdate.value = false
@@ -370,7 +367,8 @@ watch([
     changed.value = false
     if (!settings.metreportFlash) return
     for (let i = 0; i < newValues.length; i++) {
-        if (oldValues[i] && oldValues[i].length > 0 && JSON.stringify(newValues[i]) !== JSON.stringify(oldValues[i])) {
+        if (oldValues[i] && JSON.stringify(newValues[i]) !== JSON.stringify(oldValues[i])) {
+            console.log("ATIS changed", newValues[i], oldValues[i])
             changed.value = true
             break
         }
@@ -397,7 +395,6 @@ watch([
 watch(() => settings.enableLocalAtis, (newValue) => {
     if (!newValue) {
         localAtisInput.value = ""
-        localAtis.value = null
     }
 })
 

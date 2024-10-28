@@ -32,6 +32,9 @@ export default defineConfig({
         VitePWA({
             registerType: "autoUpdate",
             devOptions: { enabled: true },
+            workbox: {
+                maximumFileSizeToCacheInBytes: 50 * 1024 * 1024,
+            },
             manifest: {
                 name: "VatIRIS",
                 short_name: "VatIRIS",
