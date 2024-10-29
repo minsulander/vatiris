@@ -15,18 +15,6 @@
         </div>
         <pre
             class="pa-1"
-            :class="
-                rwyDiffersToVatsim && !metarAuto
-                    ? 'text-orange-darken-4'
-                    : hasVatsimAtis && !changed
-                      ? 'text-grey-darken-1'
-                      : ''
-            "
-            style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
-            v-html="rwy"
-        ></pre>
-        <pre
-            class="pa-1"
             style="font-size: 14px; line-height: 16px; white-space: pre-wrap"
             v-html="formattedMetreport"
         ></pre>
@@ -46,23 +34,70 @@
 
 <script setup lang="ts">
 import useEventBus from "@/eventbus"
+import { useMetarStore } from "@/stores/metar"
 import { useSettingsStore } from "@/stores/settings"
 import { useVatsimStore } from "@/stores/vatsim"
 import { atisAirports, useWxStore } from "@/stores/wx"
 import moment from "moment"
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 
-const props = defineProps<{ id: string }>()
+const props = defineProps<{ id: string; type?: "ARR" | "DEP" }>()
 
 const wx = useWxStore()
+const metarStore = useMetarStore()
 const settings = useSettingsStore()
 const vatsim = useVatsimStore()
 const bus = useEventBus()
 
 const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
-const metreport = computed(() => wx.metreport(props.id))
-const info = computed(() => wx.info(props.id))
+const metreport = computed(() => {
+    if (props.id == "ESSA" && !wx.metreport(props.id)) {
+        let metreport = metarStore.formattedMetreport(props.id)
+        let runway = rwy.value.replaceAll("RUNWAY IN USE: <b>", "").replaceAll("</b>", "")
+        let otherRunway = ""
+        if (props.type) {
+            metreport = metreport.replace("ESSA        ", `ESSA     ${props.type}`)
+            const m = runway.match(/ARR: (.*) DEP: (.*)/)
+            if (m && props.type == "ARR") {
+                runway = m[1]
+                otherRunway = m[2]
+            } else if (m && props.type == "DEP") {
+                runway = m[2]
+                otherRunway = m[1]
+            }
+        } else {
+            runway = runway.replaceAll("ARR: ", "").replaceAll(" DEP: ", "/")
+        }
+        if (hasVatsimAtis.value && rwyDiffersToVatsim.value) {
+            runway = `<span class="text-orange-darken-3 font-weight-bold">${runway}</span>`
+            if (otherRunway) otherRunway = `<span class="text-orange-darken-3 font-weight-bold">${otherRunway}</span>`
+        } else if (hasVatsimAtis.value) {
+            runway = `<span class="text-grey-darken-1">${runway}</span>`
+            if (otherRunway) otherRunway = `<span class="text-grey-darken-1">${otherRunway}</span>`
+        }
+        metreport = metreport.replace("RWY --", `RWY ${runway}`)
+        if (otherRunway) {
+            let lines = metreport.split("\n")
+            lines[1] += (props.type == "ARR" ? " DEP" : " ARR") + " RWY " + otherRunway
+            metreport = lines.join("\n")
+        }
+        return metreport
+    }
+    let metreport = wx.metreport(props.id)
+    metreport = metreport.replace("                        ", "              ")
+    if (hasVatsimAtis.value && rwyDiffersToVatsim.value) {
+        metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-orange-darken-3 font-weight-bold'>$1</span>")
+    } else if (hasVatsimAtis.value) {
+        metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-grey-darken-1'>$1</span>")
+    }
+    return metreport
+})
+const info = computed(() => {
+    if (props.id == "ESSA")
+        return wx.info(props.id).replaceAll("\n \n", "\n").replace("SIGMET: \n", "")
+    return wx.info(props.id)
+})
 const metar = computed(() => wx.metar(props.id))
 const qnh = computed(() => wx.qnh(props.id))
 const lastQnh = ref(undefined as number | undefined)
@@ -75,11 +110,11 @@ const qnhTrend = computed(() => {
 })
 
 const infoWithoutTaf = computed(() => {
-    const info = wx.info(props.id)
-    if (!info) return ""
-    const tafIndex = info.indexOf(`TAF ${props.id}`)
-    if (tafIndex >= 0) return info.substring(0, tafIndex)
-    return info
+    if (!info.value) return ""
+    let text = info.value
+    const tafIndex = text.indexOf(`TAF ${props.id}`)
+    if (tafIndex >= 0) return text.substring(0, tafIndex)
+    return text
 })
 
 const firstUpdate = ref(true)
@@ -175,24 +210,24 @@ const formatMetreport = (report: string) => {
     if (!report) return ""
 
     // Removes \n in text after TRL
-        //Finds where the "free text" starts
+    //Finds where the "free text" starts
     for (let i = report.length; i > 2; i--) {
-        var value = report[i-2] + report[i-1] + report[i];
-        if (value == "TRL"){
+        var value = report[i - 2] + report[i - 1] + report[i]
+        if (value == "TRL") {
             var start = i + 5
 
             // Splits string into pre "free text" and "free text"
-            var s1 = report.slice(0 , start)
+            var s1 = report.slice(0, start)
             var s2 = report.slice(start)
 
             // Removes all backspaces
-            s2 = s2.replaceAll('\n', ' ')
+            s2 = s2.replaceAll("\n", " ")
 
             // Merge back the report
-            report = s1 + s2;
+            report = s1 + s2
             break
         }
-    } 
+    }
 
     // QNH styling
     let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
@@ -242,6 +277,7 @@ const changedLong = ref(false)
 let changeTimeouts: any[] = []
 
 let wxSubscription = ""
+let metarSubscription = ""
 
 function click() {
     for (const timeout of changeTimeouts) clearTimeout(timeout)
@@ -252,6 +288,7 @@ function click() {
 let checkOutdatedInterval: any = undefined
 onMounted(() => {
     wxSubscription = wx.subscribe(props.id)
+    metarSubscription = metarStore.subscribe(props.id)
     checkOutdatedInterval = setInterval(() => {
         outdated.value =
             time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
@@ -261,6 +298,7 @@ onMounted(() => {
 onUnmounted(() => {
     clearInterval(checkOutdatedInterval)
     wx.unsubscribe(wxSubscription)
+    metarStore.unsubscribe(metarSubscription)
 })
 
 bus.on("refresh", () => {

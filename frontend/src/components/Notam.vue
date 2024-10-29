@@ -1,5 +1,5 @@
 <template>
-    <div style="height: 30px; background: #666">
+    <div style="height: 25px; margin-top: -5px; background: #777">
         <v-btn
             variant="text"
             rounded="0"

@@ -23,9 +23,11 @@ import { onMounted, onUnmounted, computed, ref, watch } from "vue"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useSettingsStore } from "@/stores/settings"
 import moment from "moment"
+import { useWxStore } from "@/stores/wx";
 
 const props = defineProps<{ id: string; type?: 'ARR' | 'DEP' }>()
 
+const wx = useWxStore()
 const vatsim = useVatsimStore()
 const settings = useSettingsStore()
 
@@ -68,6 +70,35 @@ const atisLetters = {
     Q: "QUE", R: "ROM", S: "SIE", T: "TAN", U: "UNI", V: "VIC", W: "WHI", X: "X-R",
     Y: "YAN", Z: "ZUL"
 }
+
+const rwyDiffersToVatsim = computed(() => {
+    const rwy = wx.rwy(props.id)
+    if (props.id == "ESSA") {
+        const arrAtis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_A"))
+        const depAtis =
+            vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_D"))
+        if (!arrAtis || !arrAtis.text_atis || arrAtis.text_atis.length == 0) return false
+        if (!depAtis || !depAtis.text_atis || depAtis.text_atis.length == 0) return false
+        const arrRwyInUse = arrAtis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
+        const depRwyInUse = depAtis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
+        const rwyText = rwy.replace(/<[^>]*>?/gm, "")
+        return (
+            arrRwyInUse &&
+            depRwyInUse &&
+            (!rwyText.includes(`ARR: ${arrRwyInUse}`) || !rwyText.includes(`DEP: ${depRwyInUse}`))
+        )
+    } else {
+        const atis =
+            vatsim.data.atis &&
+            vatsim.data.atis.find((atis) => atis.callsign.startsWith(props.id + "_"))
+        if (!atis || !atis.text_atis || atis.text_atis.length == 0) return false
+        const rwyInUse = atis.text_atis.join(" ")?.match(/RWY\s+(\d+[LRC]?) IN USE/)?.[1]
+        const rwyText = rwy.replace(/<[^>]*>?/gm, "")
+        return rwyInUse && !rwyText.endsWith(rwyInUse)
+    }
+})
+
 
 const formatRunwayInUse = (text: string) => {
     const regex = /\b(?:RNP|RNP Z|ILS)?\s*RWY\s+(\d{2}[LCR]?)\s+IN USE\b/gi;
@@ -295,7 +326,7 @@ const otherDisplay = computed(() => {
     const atisLetter = extractInfo(/ATIS ([A-Z])/)
     const atisCode = atisLetters[atisLetter as keyof typeof atisLetters] || ""
     const atisType = props.id === "ESSA" ? (props.type === 'DEP' ? 'DEP' : 'ARR') : ''
-    const runway = extractInfo(/RWY\s+(\d{2}[LCR]?)/)
+    let runway = extractInfo(/RWY\s+(\d{2}[LCR]?)/)
     const time = extractInfo(/TIME (\d{4})Z/, "")
     const date = extractInfo(/(\d{6}Z)/)
     const wind = extractWind(text)
@@ -312,12 +343,16 @@ const otherDisplay = computed(() => {
     const formattedDate = currentDate.format("YYMMDD")
     const formattedTime = `${currentDate.format("DD")}${time}`
 
+    const runwayClass = rwyDiffersToVatsim.value ? "text-orange-darken-3 font-weight-bold" : ""
+    let otherRunway = extraRunway.value
+    if (runwayClass) otherRunway = otherRunway.replace("RWY ", `RWY <span class="${runwayClass}">`) + "</span>"
+
     //Conditional for ARR/DEP
     const trlDisplay = props.type === 'DEP' ? '' : `TRL ${trl}`
 
     return `
-${icao}     ${atisType}      <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 5 - atisCode.length))} ${formattedDate}
-RWY ${runway.padEnd(7)}MET REPORT  <b>${formattedTime}Z</b>  ${extraRunway.value}
+${icao}     ${atisType || '   '}      <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 5 - atisCode.length))} ${formattedDate}
+RWY <span class="${runwayClass}">${runway.padEnd(8)}</span>MET REPORT  <b>${formattedTime}Z</b> ${otherRunway}
 WIND ${wind}
 
 ${vis}
@@ -356,7 +391,6 @@ watch([
     const newValue = newValues.join(" ")
     const oldValue = oldValues.join(" ")
     if (oldValue && newValue !== oldValue) {
-        console.log("ATIS changed", newValue, oldValue)
         changed.value = true
     }
     if (changed.value) {
@@ -378,9 +412,11 @@ watch([
     }
 })
 
+let wxSubscription = ""
 let checkOutdatedInterval: any = undefined
 onMounted(() => {
     if (!vatsim.data.general) vatsim.fetchData()
+    wxSubscription = wx.subscribe(props.id)
     checkOutdatedInterval = setInterval(() => {
         outdated.value =
             time.value.length > 0 && moment(time.value).isBefore(moment().subtract(5, "minutes"))
@@ -389,6 +425,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     clearInterval(checkOutdatedInterval)
+    wx.unsubscribe(wxSubscription)
 })
 
 </script>

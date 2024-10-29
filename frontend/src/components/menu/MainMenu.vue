@@ -152,16 +152,24 @@ const menuItems = reactive({
         "AIRCRAFT TYPES": "aircraft",
         NOTEPAD: "notepad",
     },
-    DCT: {},  // We'll populate this dynamically
+    DCT: {}, // We'll populate this dynamically
 } as any)
 
 import { wxAirports, atisAirports } from "@/stores/wx"
+import { metarAirports } from "@/stores/metar";
 
 for (const icao of wxAirports) {
     menuItems.MET.FULL[icao] = `full${icao}`
-    menuItems.MET.METREPORT[icao] = `metrep${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
-     menuItems.MET.SUN[icao] = `sun${icao}`
+    menuItems.MET.SUN[icao] = `sun${icao}`
+}
+
+for (const icao of metarAirports) {
+    menuItems.MET.METREPORT[icao] = `metrep${icao}`
+    if (icao == "ESSA") {
+        menuItems.MET.METREPORT[`${icao} ARR`] = `metrep${icao}arr`
+        menuItems.MET.METREPORT[`${icao} DEP`] = `metrep${icao}dep`
+    }
 }
 
 import { useDctStore } from "@/stores/dct"

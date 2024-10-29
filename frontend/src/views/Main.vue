@@ -29,12 +29,12 @@ import MainMenu from "@/components/menu/MainMenu.vue"
 import MainToolbar from "@/components/menu/MainToolbar.vue"
 import Window from "@/components/Window.vue"
 import Welcome from "@/components/Welcome.vue"
-import Metreport from "@/components/Metreport.vue"
-import Metsensor from "@/components/Metsensor.vue"
+import Metreport from "@/components/met/Metreport.vue"
+import MetreportWX from "@/components/met/MetreportWX.vue"
+import MetsensorWX from "@/components/met/MetsensorWX.vue"
 import Notam from "@/components/Notam.vue"
 import LfvEcharts from "@/components/LfvEcharts.vue"
-import Smhi from "@/components/Smhi.vue"
-import About from "@/components/About.vue"
+import Smhi from "@/components/met/Smhi.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
@@ -43,15 +43,17 @@ import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
-import ATIS from "@/components/ATIS.vue"
+import MetreportATIS from "@/components/met/MetreportATIS.vue"
+import Checklist from "@/components/Checklist.vue"
+import MetarTaf from "@/components/met/MetarTaf.vue"
 import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
-import Sun from "@/components/Sun.vue"
-import Full from "@/components/Full.vue"
+import Sun from "@/components/met/Sun.vue"
+import Full from "@/components/met/Full.vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
-import directsData from '@/data/dct/directs.json'
+import directsData from "@/data/dct/directs.json"
 import { wxAirports, atisAirports } from "@/stores/wx"
-
+import { metarAirports } from "@/stores/metar"
 
 const windows = useWindowsStore()
 const dct = useDctStore()
@@ -129,14 +131,32 @@ const availableWindows = shallowReactive({
         height: 500,
     },
     alias: {
-    title: "Text Alias",
-    component: Alias,
-    width: 650,
-    height: 750,
+        title: "Text Alias",
+        component: Alias,
+        width: 650,
+        height: 750,
     },
 } as any)
 
-for (const icao of wxAirports) {
+for (const icao of metarAirports) {
+    if (icao == "ESSA") {
+        availableWindows[`metrep${icao}arr`] = {
+            title: `METREPORT ${icao} ARR`,
+            component: Metreport,
+            props: { id: icao, type: "ARR" },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+        availableWindows[`metrep${icao}dep`] = {
+            title: `METREPORT ${icao} DEP`,
+            component: Metreport,
+            props: { id: icao, type: "DEP" },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+    }
     availableWindows[`metrep${icao}`] = {
         title: `METREPORT ${icao}`,
         component: Metreport,
@@ -145,14 +165,15 @@ for (const icao of wxAirports) {
         height: 380,
         class: "no-max",
     }
-    availableWindows[`metsen${icao}`] = {
+}
+for (const icao of wxAirports) {
+        availableWindows[`metsen${icao}`] = {
         title: `METSENSOR ${icao}`,
-        component: Metsensor,
+        component: MetsensorWX,
         props: { id: icao },
         width: 360,
         height: 380,
         class: "no-max",
-        
     }
 }
 for (const icao of wxAirports) {
@@ -180,16 +201,16 @@ for (const icao of atisAirports) {
     if (icao === "ESSA") {
         availableWindows[`atisESSA_ARR`] = {
             title: `ATIS ESSA ARR`,
-            component: ATIS,
-            props: { id: icao, type: 'ARR' },
+            component: MetreportATIS,
+            props: { id: icao, type: "ARR" },
             width: 420,
             height: 380,
             class: "no-max",
         }
         availableWindows[`atisESSA_DEP`] = {
             title: `ATIS ESSA DEP`,
-            component: ATIS,
-            props: { id: icao, type: 'DEP' },
+            component: MetreportATIS,
+            props: { id: icao, type: "DEP" },
             width: 420,
             height: 380,
             class: "no-max",
@@ -197,7 +218,7 @@ for (const icao of atisAirports) {
     } else {
         availableWindows[`atis${icao}`] = {
             title: `ATIS ${icao}`,
-            component: ATIS,
+            component: MetreportATIS,
             props: { id: icao },
             width: 420,
             height: 380,
@@ -220,8 +241,6 @@ import("@/data/aip-airports.json").then((module) => {
     }
 })
 
-import Checklist from "@/components/Checklist.vue"
-import MetarTaf from "@/components/MetarTaf.vue"
 for (const name of ["open-position", "close-position", "handover-takeover", "rwy-change"]) {
     import(`@/data/checklist/${name}.json`).then((module) => {
         const checklist = module.default
@@ -236,7 +255,7 @@ for (const name of ["open-position", "close-position", "handover-takeover", "rwy
 }
 
 for (const direct of directsData) {
-    const id = direct.id.toLowerCase().replace(/\s+/g, '-')
+    const id = direct.id.toLowerCase().replace(/\s+/g, "-")
     availableWindows[`coord-${id}`] = {
         title: `${direct.id} Directs`,
         component: DCT,
@@ -291,6 +310,4 @@ onUnmounted(() => {
     windows.unmounting = false
 })
 ;(window as any).select = select
-
 </script>
-
