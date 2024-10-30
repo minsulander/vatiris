@@ -77,8 +77,9 @@ TAF {{ icao }} N/A</pre
 </template>
 
 <script setup lang="ts">
-import { useMetarStore, metarAirports } from "@/stores/metar"
+import { useMetarStore } from "@/stores/metar"
 import { useTafStore } from "@/stores/taf"
+import { metarAirports } from "@/metcommon";
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 
 const metarStore = useMetarStore()

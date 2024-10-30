@@ -29,12 +29,12 @@ import MainMenu from "@/components/menu/MainMenu.vue"
 import MainToolbar from "@/components/menu/MainToolbar.vue"
 import Window from "@/components/Window.vue"
 import Welcome from "@/components/Welcome.vue"
-import Metreport from "@/components/Metreport.vue"
-import Metsensor from "@/components/Metsensor.vue"
+import Metreport from "@/components/met/Metreport.vue"
+import MetreportWX from "@/components/met/MetreportWX.vue"
+import MetsensorWX from "@/components/met/MetsensorWX.vue"
 import Notam from "@/components/Notam.vue"
 import LfvEcharts from "@/components/LfvEcharts.vue"
-import Smhi from "@/components/Smhi.vue"
-import About from "@/components/About.vue"
+import Smhi from "@/components/met/Smhi.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
@@ -43,17 +43,16 @@ import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
-
-
-import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
+import Checklist from "@/components/Checklist.vue"
+import MetarTaf from "@/components/met/MetarTaf.vue"
+import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
+import Sun from "@/components/met/Sun.vue"
+import Airport from "@/components/met/Airport.vue"
 import { useWindowsStore } from "@/stores/windows"
+import directsData from "@/data/dct/directs.json"
+import { metarAirports, wxAirports } from "@/metcommon"
 
 const windows = useWindowsStore()
-const dct = useDctStore()
-
-import { wxAirports } from "@/stores/wx"
-import { useDctStore } from "@/stores/dct"
-import directsData from '@/data/dct/directs.json'
 
 export interface WindowSpec {
     title: string
@@ -128,14 +127,32 @@ const availableWindows = shallowReactive({
         height: 500,
     },
     alias: {
-    title: "Text Alias",
-    component: Alias,
-    width: 650,
-    height: 750,
+        title: "Text Alias",
+        component: Alias,
+        width: 650,
+        height: 750,
     },
 } as any)
 
-for (const icao of wxAirports) {
+for (const icao of metarAirports) {
+    if (icao == "ESSA") {
+        availableWindows[`metrep${icao}arr`] = {
+            title: `METREPORT ${icao} ARR`,
+            component: Metreport,
+            props: { id: icao, type: "ARR" },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+        availableWindows[`metrep${icao}dep`] = {
+            title: `METREPORT ${icao} DEP`,
+            component: Metreport,
+            props: { id: icao, type: "DEP" },
+            width: 420,
+            height: 380,
+            class: "no-max",
+        }
+    }
     availableWindows[`metrep${icao}`] = {
         title: `METREPORT ${icao}`,
         component: Metreport,
@@ -144,12 +161,34 @@ for (const icao of wxAirports) {
         height: 380,
         class: "no-max",
     }
-    availableWindows[`metsen${icao}`] = {
+}
+for (const icao of wxAirports) {
+        availableWindows[`metsen${icao}`] = {
         title: `METSENSOR ${icao}`,
-        component: Metsensor,
+        component: MetsensorWX,
         props: { id: icao },
         width: 360,
         height: 380,
+        class: "no-max",
+    }
+}
+for (const icao of metarAirports) {
+    availableWindows[`sun${icao}`] = {
+        title: `SUN ${icao}`,
+        component: Sun,
+        props: { id: icao },
+        width: 340,
+        height: 150,
+        class: "no-max",
+    }
+}
+for (const icao of wxAirports) {
+    availableWindows[`airport${icao}`] = {
+        title: `${icao}`,
+        component: Airport,
+        props: { id: icao },
+        width: 380,
+        height: 800,
         class: "no-max",
     }
 }
@@ -168,8 +207,6 @@ import("@/data/aip-airports.json").then((module) => {
     }
 })
 
-import Checklist from "@/components/Checklist.vue"
-import MetarTaf from "@/components/MetarTaf.vue"
 for (const name of ["open-position", "close-position", "handover-takeover", "rwy-change"]) {
     import(`@/data/checklist/${name}.json`).then((module) => {
         const checklist = module.default
@@ -184,7 +221,7 @@ for (const name of ["open-position", "close-position", "handover-takeover", "rwy
 }
 
 for (const direct of directsData) {
-    const id = direct.id.toLowerCase().replace(/\s+/g, '-')
+    const id = direct.id.toLowerCase().replace(/\s+/g, "-")
     availableWindows[`coord-${id}`] = {
         title: `${direct.id} Directs`,
         component: DCT,

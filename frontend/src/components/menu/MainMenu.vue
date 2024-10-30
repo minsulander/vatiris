@@ -26,6 +26,9 @@ const dct = useDctStore()
 
 const menuItems = reactive({
     MET: {
+        AIRPORT: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
         METREPORT: {
             // filled in code
         } as { [key: string]: string },
@@ -36,6 +39,9 @@ const menuItems = reactive({
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
+        SUN: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
     },
     NOTAM: "notam",
     eCharts: "echarts",
@@ -143,14 +149,23 @@ const menuItems = reactive({
         "AIRCRAFT TYPES": "aircraft",
         NOTEPAD: "notepad",
     },
-    DCT: {},  // We'll populate this dynamically
+    DCT: {}, // We'll populate this dynamically
 } as any)
 
-import { wxAirports } from "@/stores/wx"
+import { metarAirports, wxAirports } from "@/metcommon"
 
 for (const icao of wxAirports) {
-    menuItems.MET.METREPORT[icao] = `metrep${icao}`
+    menuItems.MET.AIRPORT[icao] = `airport${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
+}
+
+for (const icao of metarAirports) {
+    menuItems.MET.METREPORT[icao] = `metrep${icao}`
+    if (icao == "ESSA") {
+        menuItems.MET.METREPORT[`${icao} ARR`] = `metrep${icao}arr`
+        menuItems.MET.METREPORT[`${icao} DEP`] = `metrep${icao}dep`
+    }
+    menuItems.MET.SUN[icao] = `sun${icao}`
 }
 
 import { useDctStore } from "@/stores/dct"

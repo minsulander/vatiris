@@ -4,44 +4,6 @@ import { v4 as uuid } from "uuid"
 import axios from "axios"
 import useEventBus from "@/eventbus"
 
-export const wxAirports = [
-    "ESSA",
-    "ESSB",
-    "ESOW",
-    "ESGG",
-    "ESGP",
-    "ESGT",
-    "ESGJ",
-    "ESMS",
-    "ESMK",
-    "ESMQ",
-    "ESMX",
-    "ESOH",
-    "ESOE",
-    "ESOK",
-    "ESSL",
-    "ESKN",
-    "ESKM",
-    "ESNL",
-    "ESND",
-    "ESNX",
-    "ESNK",
-    "ESNV",
-    "ESNG",
-    "ESUP",
-]
-
-export const atisAirports = [
-    "ESGG",
-    "ESKN",
-    "ESMS",
-    "ESNN",
-    "ESOW",
-    "ESSA",
-    "ESSB",
-    "ESTL"
-]
-
 const viewIdByIcao: { [key: string]: string } = {
     ESSA: "arlanda-overview.html",
     ESSB: "bromma-overview.html",
@@ -75,6 +37,7 @@ export const useWxStore = defineStore("wx", () => {
     const wx = reactive({} as { [key: string]: string })
     const subscriptions = reactive({} as { [key: string]: string })
     const lastFetch = reactive({} as { [key: string]: Date })
+    const lastQnh = reactive({} as { [key: string]: number })
 
     const wxPart = (key: string, spanIndex: number) => {
         if (key in wx) {
@@ -103,6 +66,12 @@ export const useWxStore = defineStore("wx", () => {
         return parseInt(m[1])
     }
 
+    const qnhTrend = (icao: string) => {
+        const q = qnh(icao)
+        if (q && icao in lastQnh) return q - lastQnh[icao]
+        return undefined
+    }
+
     function subscribe(icao: string) {
         const subscriptionId = uuid()
         subscriptions[subscriptionId] = icao
@@ -122,13 +91,26 @@ export const useWxStore = defineStore("wx", () => {
     }
 
     function fetch(icao: string) {
-        if (!(icao in viewIdByIcao)) throw `No viewId for icao ${icao}`
+        if (!icao) {
+            console.error("Attempted to fetch weather data with undefined ICAO");
+            return;
+        }
+        if (!(icao in viewIdByIcao)) {
+            console.error(`No viewId for icao ${icao}`);
+            return;
+        }
         if (!(icao in wx)) wx[icao] = "Loading..."
         lastFetch[icao] = new Date()
         console.log(`Fetch wx ${icao}`)
+        const previousMetar = metar(icao)
+        const previousQnh = qnh(icao)
         axios.get(`https://api.vatiris.se/wx?viewId=${viewIdByIcao[icao]}`).then((response) => {
             wx[icao] = response.data
             lastFetch[icao] = new Date()
+            if (previousMetar && metar(icao) != previousMetar) {
+                console.log(`  METAR updated QNH ${qnh(icao)}`)
+                if (previousQnh) lastQnh[icao] = previousQnh
+            }
         })
     }
 
@@ -149,6 +131,7 @@ export const useWxStore = defineStore("wx", () => {
 
     return {
         wx,
+        lastQnh,
         noData,
         time,
         rwy,
@@ -157,6 +140,7 @@ export const useWxStore = defineStore("wx", () => {
         metsensor,
         metar,
         qnh,
+        qnhTrend,
         subscribe,
         unsubscribe,
         fetch,
