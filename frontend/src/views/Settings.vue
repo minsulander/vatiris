@@ -10,7 +10,6 @@
             <v-switch color="white" base-color="grey-darken-1" hide-details label="Window snapping" v-model="settings.windowSnapping" />
             <v-switch color="white" base-color="grey-darken-1" hide-details label="METREPORT/ATIS flash when changed" v-model="settings.metreportFlash" />
             <v-switch color="white" base-color="grey-darken-1" hide-details label="METSENSOR flash changed values" v-model="settings.metsensorFlash" />
-            <v-switch color="white" base-color="grey-darken-1" hide-details label="Enable local ATIS input" v-model="settings.enableLocalAtis" />
         </v-container>
     </v-main>
 </template>
