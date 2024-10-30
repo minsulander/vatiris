@@ -16,7 +16,7 @@ export const usePresetStore = defineStore("preset", () => {
     const presets = reactive({} as { [key: string]: { [key: string]: string } })
 
     // TODO find a better way to load defaults
-    const defaults = reactive({ ESOS_APP: {}, ESGG_APP: {}, ESMS_APP: {} } as {
+    const defaults = reactive({} as {
         [key: string]: any
     })
     import("@/data/default/ESOS_APP.json").then((data) => (defaults.ESOS_APP = data))

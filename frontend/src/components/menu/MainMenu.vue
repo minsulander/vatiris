@@ -1,5 +1,5 @@
 <template>
-    <template v-for="(options, title) in menuItems" :key="title">
+    <template v-for="(options, title) in authorizedMenuItems" :key="title">
         <v-btn
             v-if="typeof options == 'string'"
             type="text"
@@ -19,10 +19,24 @@
 const emit = defineEmits(["select", "unselect"])
 
 import Submenu from "@/components/menu/Submenu.vue"
-import { reactive } from "vue"
+import { computed, reactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
+import { useDctStore } from "@/stores/dct"
+import { useAuthStore } from "@/stores/auth";
+
 const windows = useWindowsStore()
 const dct = useDctStore()
+const auth = useAuthStore()
+
+const authorizedMenuItems = computed(() => {
+    const items = { ...menuItems }
+    if (!auth.user) {
+        delete items.ATFM
+        delete items.Documents
+        delete items.DCT
+    }
+    return items
+})
 
 const menuItems = reactive({
     MET: {
@@ -117,7 +131,6 @@ const menuItems = reactive({
                 ESST: "wiki-lop-esst",
                 ESSU: "wiki-lop-essu",
                 ESSV: "wiki-lop-essv",
-                "ESSV APP": "wiki-lop-essv-app",
                 ESTA: "wiki-lop-esta",
                 ESTL: "wiki-lop-estl",
                 ESUP: "wiki-lop-esup",
@@ -171,7 +184,6 @@ for (const icao of metarAirports) {
     menuItems.MET.SUN[icao] = `sun${icao}`
 }
 
-import { useDctStore } from "@/stores/dct"
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups

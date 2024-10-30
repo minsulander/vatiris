@@ -18,7 +18,7 @@ let bookIdCache = {} as { [key: string]: number }
 let pageIdCache = {} as { [key: string]: number }
 
 wiki.get("/attachment/:id", async (req: Request, res: Response) => {
-    if (!authorize(req, res)) return
+    if (!await authorize(req, res)) return
     const id = parseInt(req.params.id)
     if (!id) return res.status(400).send("Invalid page ID")
     const response = await wikiAxios.get(`${wikiBaseUrl}/attachments/${id}`)
@@ -29,7 +29,7 @@ wiki.get("/attachment/:id", async (req: Request, res: Response) => {
 })
 
 wiki.get("/pagehtml/:id", async (req: Request, res: Response) => {
-    if (!authorize(req, res)) return
+    if (!await authorize(req, res)) return
     const id = parseInt(req.params.id)
     if (!id) return res.status(400).send("Invalid page ID")
     // const response = await wikiAxios.get(`${wikiBaseUrl}/pages/${id}/export/html`)
@@ -39,7 +39,7 @@ wiki.get("/pagehtml/:id", async (req: Request, res: Response) => {
 })
 
 wiki.get("/book/:book/page/:page/html", async (req: Request, res: Response) => {
-    if (!authorize(req, res)) return
+    if (!await authorize(req, res)) return
     let bookId = bookIdCache[req.params.book]
     if (!bookId) {
         const booksResponse = await wikiAxios.get(`${wikiBaseUrl}/books`)
@@ -64,10 +64,10 @@ wiki.get("/book/:book/page/:page/html", async (req: Request, res: Response) => {
 async function authorize(req: Request, res: Response) {
     if (!wikiToken || !wikiSecret) {
         res.status(500).send("Wiki token and secret not set")
-        return
+        return false
     }
     const cid = await auth.requireCid(req, res)
-    if (!cid) return
+    if (!cid) return false
     return true
 }
 

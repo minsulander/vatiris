@@ -7,11 +7,7 @@
                 <v-list-item to="/settings">
                     <v-list-item-title class="text-grey">SETTINGS</v-list-item-title>
                 </v-list-item>
-                <v-list-item
-                    class="text-grey"
-                    @click="true"
-                    v-if="auth.user || Object.keys(preset.presets || {}).length > 0"
-                >
+                <v-list-item class="text-grey" @click="true" v-if="auth.user">
                     <v-list-item-title>
                         PRESET
                         <v-icon
@@ -34,50 +30,48 @@
                                     >{{ id }}</v-list-item-title
                                 >
                             </v-list-item>
-                            <template v-if="auth.user">
-                                <v-divider v-if="Object.keys(preset.presets).length > 0" />
-                                <v-list-item
-                                    v-if="preset.current"
-                                    class="text-grey"
-                                    @click="saveCurrentPreset"
-                                    >UPDATE {{ preset.current }}</v-list-item
-                                >
-                                <v-list-item
-                                    v-if="preset.current"
-                                    class="text-grey"
-                                    @click="deleteCurrentPreset"
-                                    >DELETE {{ preset.current }}</v-list-item
-                                >
-                                <v-list-item
-                                    v-if="preset.current"
-                                    class="text-grey"
-                                    @click="showRenamePresetDialog = true"
-                                    >RENAME...</v-list-item
-                                >
-                                <v-list-item class="text-grey" @click="showSavePresetDialog = true"
-                                    >NEW...</v-list-item
-                                >
-                            </template>
-                        </v-list>
-                    </v-menu>
-                </v-list-item>
-                <v-list-item class="text-grey" @click="true"
-                    >DEFAULT<v-icon
-                        color="grey-darken-2"
-                        class="ml-2 float-right"
-                        style="margin-top: 2px; margin-right: -3px"
-                        size="small"
-                        >mdi-chevron-right</v-icon
-                    >
-                    <v-menu activator="parent" location="end">
-                        <v-list density="compact">
+                            <v-divider v-if="Object.keys(preset.presets).length > 0" />
                             <v-list-item
-                                v-for="name in Object.keys(preset.defaults || {})"
-                                :key="name"
+                                v-if="preset.current"
                                 class="text-grey"
-                                @click="preset.loadDefault(name)"
-                                >{{ name }}</v-list-item
+                                @click="saveCurrentPreset"
+                                >UPDATE {{ preset.current }}</v-list-item
                             >
+                            <v-list-item
+                                v-if="preset.current"
+                                class="text-grey"
+                                @click="deleteCurrentPreset"
+                                >DELETE {{ preset.current }}</v-list-item
+                            >
+                            <v-list-item
+                                v-if="preset.current"
+                                class="text-grey"
+                                @click="showRenamePresetDialog = true"
+                                >RENAME...</v-list-item
+                            >
+                            <v-list-item class="text-grey" @click="showSavePresetDialog = true"
+                                >NEW...</v-list-item
+                            >
+                            <v-list-item class="text-grey" @click="true"
+                                >DEFAULT<v-icon
+                                    color="grey-darken-2"
+                                    class="ml-2 float-right"
+                                    style="margin-top: 2px; margin-right: -3px"
+                                    size="small"
+                                    >mdi-chevron-right</v-icon
+                                >
+                                <v-menu activator="parent" location="end">
+                                    <v-list density="compact">
+                                        <v-list-item
+                                            v-for="name in Object.keys(preset.defaults || {})"
+                                            :key="name"
+                                            class="text-grey"
+                                            @click="preset.loadDefault(name)"
+                                            >{{ name.replaceAll("_", " ") }}</v-list-item
+                                        >
+                                    </v-list>
+                                </v-menu>
+                            </v-list-item>
                         </v-list>
                     </v-menu>
                 </v-list-item>
