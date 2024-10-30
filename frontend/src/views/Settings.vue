@@ -8,7 +8,7 @@
         <v-container>
             <h1>Options</h1>
             <v-switch color="white" base-color="grey-darken-1" hide-details label="Window snapping" v-model="settings.windowSnapping" />
-            <v-switch color="white" base-color="grey-darken-1" hide-details label="METREPORT/ATIS flash when changed" v-model="settings.metreportFlash" />
+            <v-switch color="white" base-color="grey-darken-1" hide-details label="METREPORT flash when changed" v-model="settings.metreportFlash" />
             <v-switch color="white" base-color="grey-darken-1" hide-details label="METSENSOR flash changed values" v-model="settings.metsensorFlash" />
         </v-container>
     </v-main>
