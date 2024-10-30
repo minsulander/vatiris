@@ -194,7 +194,7 @@ for (const icao of metarAirports) {
         component: Sun,
         props: { id: icao },
         width: 340,
-        height: 150,
+        height: 155,
         class: "no-max",
     }
 }

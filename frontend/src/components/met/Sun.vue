@@ -22,7 +22,12 @@
                 </div>
                 <div class="airport-info">
                     <h1 class="airport-code">{{ airportCode }}</h1>
-                    <p v-if="isNightTime" class="separation-vfr"><strong>Separation VFR</strong></p>
+                    <div v-if="isNightTime">
+                        <p class="nighttext"><strong>Separation VFR</strong></p>
+                    </div>
+                    <div v-else-if="isDuskTime">
+                        <p class="nighttext">Night: {{ duskTime }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -45,6 +50,8 @@ const sunsetTime = ref("")
 const loading = ref(false)
 const error = ref("")
 const isNightTime = ref(false)
+const isDuskTime = ref(false)
+const currentTime = ref("")
 
 const airports = ref<Record<string, { lat: number; lon: number }>>({})
 
@@ -87,7 +94,9 @@ const calculateAeronauticalTimes = (lat: number, date: Date, sunrise: Date, suns
 }
 
 const formatTime = (date: Date): string => {
-    return date.toUTCString().split(" ")[4].slice(0, -3)
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
 }
 
 const calculateSunriseSunset = () => {
@@ -121,8 +130,11 @@ const calculateSunriseSunset = () => {
             times.sunset,
         )
 
-        const currentTime = new Date()
-        isNightTime.value = currentTime >= nightStart || currentTime < dayStart
+        const currentDateTime = new Date()
+        isNightTime.value = currentDateTime >= nightStart || currentDateTime < dayStart
+        isDuskTime.value = currentDateTime >= times.sunset && currentDateTime <= times.dusk
+        currentTime.value = formatTime(currentDateTime)
+
 
         // Ensure dawnTime and sunriseTime are always set
         dawnTime.value = formatTime(times.dawn)
@@ -188,7 +200,7 @@ onUnmounted(() => {
     text-align: center;
 }
 
-.separation-vfr {
+.nighttext {
     margin: 0;
     font-size: 1.2em;
 }
