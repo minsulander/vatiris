@@ -18,18 +18,11 @@
                     "height": 350,
                     "enabled": true
                 },
-                "metrepESGG": {
+                "airportESGG": {
                     "x": 600,
                     "y": 30,
                     "width": 424,
-                    "height": 350,
-                    "enabled": true
-                },
-                "metsenESGG": {
-                    "x": 600,
-                    "y": 380,
-                    "width": 424,
-                    "height": 388,
+                    "height": 738,
                     "enabled": true
                 },
                 "smhi": {

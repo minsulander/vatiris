@@ -26,7 +26,7 @@ const dct = useDctStore()
 
 const menuItems = reactive({
     MET: {
-        FULL: {
+        AIRPORT: {
             // This will be filled in with ICAO codes
         } as { [key: string]: string },
         METREPORT: {
@@ -36,9 +36,6 @@ const menuItems = reactive({
             // filled in code
         } as { [key: string]: string },
         "METAR/TAF": "metartaf",
-        ATIS: {
-            // This will be filled in the same way as METREPORT and METSENSOR
-        } as { [key: string]: string },
         SMHI: "smhi",
         "SWC NORDEN": "swc",
         VFR: "vfr",
@@ -155,12 +152,11 @@ const menuItems = reactive({
     DCT: {}, // We'll populate this dynamically
 } as any)
 
-import { metarAirports, wxAirports, atisAirports } from "@/metcommon"
+import { metarAirports, wxAirports } from "@/metcommon"
 
 for (const icao of wxAirports) {
-    menuItems.MET.FULL[icao] = `full${icao}`
+    menuItems.MET.AIRPORT[icao] = `airport${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
-    menuItems.MET.SUN[icao] = `sun${icao}`
 }
 
 for (const icao of metarAirports) {
@@ -169,20 +165,13 @@ for (const icao of metarAirports) {
         menuItems.MET.METREPORT[`${icao} ARR`] = `metrep${icao}arr`
         menuItems.MET.METREPORT[`${icao} DEP`] = `metrep${icao}dep`
     }
+    menuItems.MET.SUN[icao] = `sun${icao}`
 }
 
 import { useDctStore } from "@/stores/dct"
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups
-}
-for (const icao of atisAirports) {
-    if (icao === "ESSA") {
-        menuItems.MET.ATIS["ESSA ARR"] = `atisESSA_ARR`
-        menuItems.MET.ATIS["ESSA DEP"] = `atisESSA_DEP`
-    } else {
-        menuItems.MET.ATIS[icao] = `atis${icao}`
-    }
 }
 
 import("@/data/aip-airports.json").then((module) => {

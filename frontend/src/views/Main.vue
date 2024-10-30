@@ -43,19 +43,16 @@ import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
-import MetreportATIS from "@/components/met/MetreportATIS.vue"
 import Checklist from "@/components/Checklist.vue"
 import MetarTaf from "@/components/met/MetarTaf.vue"
-import { onBeforeUnmount, onUnmounted, reactive, shallowReactive } from "vue"
+import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
 import Sun from "@/components/met/Sun.vue"
-import Full from "@/components/met/Full.vue"
+import Airport from "@/components/met/Airport.vue"
 import { useWindowsStore } from "@/stores/windows"
-import { useDctStore } from "@/stores/dct"
 import directsData from "@/data/dct/directs.json"
-import { metarAirports, wxAirports, atisAirports } from "@/metcommon"
+import { metarAirports, wxAirports } from "@/metcommon"
 
 const windows = useWindowsStore()
-const dct = useDctStore()
 
 export interface WindowSpec {
     title: string
@@ -175,7 +172,7 @@ for (const icao of wxAirports) {
         class: "no-max",
     }
 }
-for (const icao of wxAirports) {
+for (const icao of metarAirports) {
     availableWindows[`sun${icao}`] = {
         title: `SUN ${icao}`,
         component: Sun,
@@ -186,43 +183,13 @@ for (const icao of wxAirports) {
     }
 }
 for (const icao of wxAirports) {
-    availableWindows[`full${icao}`] = {
+    availableWindows[`airport${icao}`] = {
         title: `${icao}`,
-        component: Full,
+        component: Airport,
         props: { id: icao },
         width: 380,
         height: 800,
         class: "no-max",
-    }
-}
-
-for (const icao of atisAirports) {
-    if (icao === "ESSA") {
-        availableWindows[`atisESSA_ARR`] = {
-            title: `ATIS ESSA ARR`,
-            component: MetreportATIS,
-            props: { id: icao, type: "ARR" },
-            width: 420,
-            height: 380,
-            class: "no-max",
-        }
-        availableWindows[`atisESSA_DEP`] = {
-            title: `ATIS ESSA DEP`,
-            component: MetreportATIS,
-            props: { id: icao, type: "DEP" },
-            width: 420,
-            height: 380,
-            class: "no-max",
-        }
-    } else {
-        availableWindows[`atis${icao}`] = {
-            title: `ATIS ${icao}`,
-            component: MetreportATIS,
-            props: { id: icao },
-            width: 420,
-            height: 380,
-            class: "no-max",
-        }
     }
 }
 
