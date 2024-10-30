@@ -37,7 +37,8 @@ import useEventBus from "@/eventbus"
 import { useMetarStore } from "@/stores/metar"
 import { useSettingsStore } from "@/stores/settings"
 import { useVatsimStore } from "@/stores/vatsim"
-import { atisAirports, useWxStore } from "@/stores/wx"
+import { useWxStore } from "@/stores/wx"
+import { atisAirports } from "@/metcommon"
 import moment from "moment"
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 
@@ -104,8 +105,31 @@ const metreport = computed(() => {
 })
 const info = computed(() => {
     let text = wx.info(props.id)
-    if (props.id == "ESSA")
+    if (props.id == "ESSA") {
         text = text.replaceAll("\n \n", "\n").replace("SIGMET: \n", "")
+        if (props.type) {
+            // Filter surface condition codes for arr/dep runway
+            let runway = rwy.value.replaceAll("RUNWAY IN USE: <b>", "").replaceAll("</b>", "")
+            const m = runway.match(/ARR: (.*) DEP: (.*)/)
+            if (m && props.type == "ARR") {
+                runway = m[1]
+            } else if (m && props.type == "DEP") {
+                runway = m[2]
+            }
+            let lines = []
+            for (const line of text.split("\n")) {
+                const m = line.match(/^(\d\d[LR]?): /)
+                if (m) {
+                    if (m[1] == runway || (m[1] == "08" && runway == "26") || (m[1] == "01L" && runway == "19R" || (m[1] == "01R" && runway == "19L"))) {
+                        lines.push(line.substring(m[1].length + 2))
+                    }
+                    continue
+                }
+                lines.push(line)
+            }
+            text = lines.join("\n")
+        }
+    }
     text = text.replace("ATS LANDVETTER", "")
     return text
 })
@@ -294,8 +318,10 @@ function click() {
     changed.value = changedLong.value = false
 }
 
+let mountedTime = Date.now()
 let checkOutdatedInterval: any = undefined
 onMounted(() => {
+    mountedTime = Date.now()
     wxSubscription = wx.subscribe(props.id)
     metarSubscription = metarStore.subscribe(props.id)
     checkOutdatedInterval = setInterval(() => {
@@ -317,7 +343,7 @@ bus.on("refresh", () => {
 })
 
 watch([rwy, metreport, info, metar], (newValues, oldValues) => {
-    if (firstUpdate.value) {
+    if (firstUpdate.value || Date.now() - mountedTime < 5000) {
         firstUpdate.value = false
         return
     }

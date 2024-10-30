@@ -4,44 +4,6 @@ import { v4 as uuid } from "uuid"
 import axios from "axios"
 import useEventBus from "@/eventbus"
 
-export const wxAirports = [
-    "ESSA",
-    "ESSB",
-    "ESOW",
-    "ESGG",
-    "ESGP",
-    "ESGT",
-    "ESGJ",
-    "ESMS",
-    "ESMK",
-    "ESMQ",
-    "ESMX",
-    "ESOH",
-    "ESOE",
-    "ESOK",
-    "ESSL",
-    "ESKN",
-    "ESKM",
-    "ESNL",
-    "ESND",
-    "ESNX",
-    "ESNK",
-    "ESNV",
-    "ESNG",
-    "ESUP",
-]
-
-export const atisAirports = [
-    "ESGG",
-    "ESKN",
-    "ESMS",
-    "ESNN",
-    "ESOW",
-    "ESSA",
-    "ESSB",
-    "ESTL"
-]
-
 const viewIdByIcao: { [key: string]: string } = {
     ESSA: "arlanda-overview.html",
     ESSB: "bromma-overview.html",
@@ -145,8 +107,9 @@ export const useWxStore = defineStore("wx", () => {
         axios.get(`https://api.vatiris.se/wx?viewId=${viewIdByIcao[icao]}`).then((response) => {
             wx[icao] = response.data
             lastFetch[icao] = new Date()
-            if (metar(icao) != previousMetar && previousQnh) {
-                lastQnh[icao] = previousQnh
+            if (previousMetar && metar(icao) != previousMetar) {
+                console.log(`  METAR updated QNH ${qnh(icao)}`)
+                if (previousQnh) lastQnh[icao] = previousQnh
             }
         })
     }

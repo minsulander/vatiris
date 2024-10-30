@@ -5,38 +5,6 @@ import axios from "axios"
 import useEventBus from "@/eventbus"
 import { parseTAF } from "metar-taf-parser"
 
-export const tafAirports = [
-    "ESCF",
-    "ESDF",
-    "ESGG",
-    "ESGJ",
-    "ESGT",
-    "ESGP",
-    "ESKN",
-    "ESMK",
-    "ESMQ",
-    "ESMS",
-    "ESMT",
-    "ESMX",
-    "ESNG",
-    "ESNK",
-    "ESNN",
-    "ESNO",
-    "ESNQ",
-    "ESNS",
-    "ESNU",
-    "ESNZ",
-    "ESNX",
-    "ESOE",
-    "ESPA",
-    "ESSA",
-    "ESSB",
-    "ESSL",
-    "ESSV",
-    "ESTA",
-    "ESTL",
-]
-
 export const useTafStore = defineStore("taf", () => {
     const bus = useEventBus()
 

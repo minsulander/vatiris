@@ -4,56 +4,8 @@ import { v4 as uuid } from "uuid"
 import axios from "axios"
 import useEventBus from "@/eventbus"
 import { parseMetar } from "metar-taf-parser"
+import { calculateTrl } from "@/metcommon"
 import moment from "moment"
-
-export const metarAirports = [
-    "ESCF",
-    "ESCM",
-    "ESDF",
-    "ESGG",
-    "ESGJ",
-    "ESGT",
-    "ESGP",
-    "ESIA",
-    "ESIB",
-    "ESKM",
-    "ESKN",
-    "ESKS",
-    "ESMK",
-    "ESMQ",
-    "ESMS",
-    "ESMT",
-    "ESMX",
-    "ESND",
-    "ESNG",
-    "ESNK",
-    "ESNL",
-    "ESNN",
-    "ESNO",
-    "ESNQ",
-    "ESNS",
-    "ESNU",
-    "ESNV",
-    "ESNX",
-    "ESNZ",
-    "ESOE",
-    "ESOK",
-    "ESOH",
-    "ESOW",
-    "ESPA",
-    "ESPE",
-    "ESSA",
-    "ESSB",
-    "ESSD",
-    "ESSL",
-    "ESSP",
-    "ESST",
-    "ESSV",
-    "ESTA",
-    "ESTL",
-    "ESUP",
-    "ESUT",
-]
 
 export const useMetarStore = defineStore("metar", () => {
     const bus = useEventBus()
@@ -152,8 +104,9 @@ export const useMetarStore = defineStore("metar", () => {
                 let qnhValue = `${parsed.altimeter.value}`
                 if (qnhValue.length == 3) qnhValue = "0" + qnhValue
                 qnhValue = qnhValue.split("").join(" ")
-                qnh += ` <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnhValue}</div><span id="qnh-trend"></span> ${parsed.altimeter.unit.toUpperCase()}`
-                // TODO TRL
+                qnh += ` <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnhValue}<span id="qnh-trend"></span></div> ${parsed.altimeter.unit.toUpperCase()}`
+                const trl = calculateTrl(parsed.station, parsed.altimeter.value)
+                if (trl) qnh += `   TRL ${trl}`
             } else {
                 qnh += " ???"
             }

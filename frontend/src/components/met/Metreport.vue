@@ -35,9 +35,10 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import MetreportMETAR from "./MetreportMETAR.vue"
 import MetreportWX from "./MetreportWX.vue"
 import MetreportATIS from "./MetreportATIS.vue"
-import { wxAirports, atisAirports, useWxStore } from "@/stores/wx"
+import { useWxStore } from "@/stores/wx"
 import { useMetarStore } from "@/stores/metar"
 import { useVatsimStore } from "@/stores/vatsim"
+import { wxAirports, atisAirports } from "@/metcommon" 
 
 const props = defineProps<{ id: string; type?: "ARR" | "DEP" }>()
 
@@ -48,17 +49,23 @@ const vatsim = useVatsimStore()
 const source = ref("metar")
 
 const awosAvailable = computed(() =>
-    wxAirports.includes(props.id) && (wx.metreport(props.id) || wx.info(props.id) || wx.metar(props.id)) ? true : false,
+    wxAirports.includes(props.id) &&
+    (wx.metreport(props.id) || wx.info(props.id) || wx.metar(props.id))
+        ? true
+        : false,
 )
 const atisAvailable = computed(() =>
     atisAirports.includes(props.id) &&
     vatsim.data &&
     vatsim.data.atis &&
-    vatsim.data.atis.find((a) =>
-        a.callsign.startsWith(
-            props.id +
-                (props.type == "ARR" ? "_A_ATIS" : props.type == "DEP" ? "_D_ATIS" : "_ATIS"),
-        ),
+    vatsim.data.atis.find(
+        (a) =>
+            a.callsign.startsWith(
+                props.id +
+                    (props.type == "ARR" ? "_A_ATIS" : props.type == "DEP" ? "_D_ATIS" : "_ATIS"),
+            ) &&
+            a.text_atis &&
+            a.text_atis.length > 0,
     )
         ? true
         : false,

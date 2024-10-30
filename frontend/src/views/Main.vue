@@ -52,8 +52,7 @@ import Full from "@/components/met/Full.vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
 import directsData from "@/data/dct/directs.json"
-import { wxAirports, atisAirports } from "@/stores/wx"
-import { metarAirports } from "@/stores/metar"
+import { metarAirports, wxAirports, atisAirports } from "@/metcommon"
 
 const windows = useWindowsStore()
 const dct = useDctStore()
@@ -188,7 +187,7 @@ for (const icao of wxAirports) {
 }
 for (const icao of wxAirports) {
     availableWindows[`full${icao}`] = {
-        title: `FULL ${icao}`,
+        title: `${icao}`,
         component: Full,
         props: { id: icao },
         width: 380,

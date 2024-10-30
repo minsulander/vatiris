@@ -155,8 +155,7 @@ const menuItems = reactive({
     DCT: {}, // We'll populate this dynamically
 } as any)
 
-import { wxAirports, atisAirports } from "@/stores/wx"
-import { metarAirports } from "@/stores/metar";
+import { metarAirports, wxAirports, atisAirports } from "@/metcommon"
 
 for (const icao of wxAirports) {
     menuItems.MET.FULL[icao] = `full${icao}`

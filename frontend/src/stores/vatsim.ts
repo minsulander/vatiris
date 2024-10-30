@@ -1,7 +1,8 @@
 import axios from "axios"
 import moment from "moment"
 import { defineStore } from "pinia"
-import { computed, ref } from "vue"
+import { computed, reactive, ref } from "vue"
+import { atisAirports } from "@/metcommon"
 
 const apiBaseUrl = "https://api.vatiris.se"
 
@@ -145,15 +146,58 @@ export const useVatsimStore = defineStore("vatsim", () => {
     const timeUntilRefresh = ref(0)
     const refreshing = ref(0)
 
-    const refreshInterval = computed(() => 30000)
+    const refreshInterval = computed(() => 30000) // TODO lower interval when logged in
+
+    const atisTime = (icao: string) => {
+        if (!data.value || !data.value.atis) return undefined
+        const atis = data.value.atis.find((a) => a.callsign.startsWith(icao))
+        if (atis && atis.text_atis && atis.text_atis.length > 0) {
+            const m = atis.text_atis.join(" ").match(/TIME (\d{4})Z/)
+            if (m && m[1]) return parseInt(m[1])
+        }
+        return undefined
+    }
+    const atisQnh = (icao: string) => {
+        if (!data.value || !data.value.atis) return undefined
+        const atis = data.value.atis.find((a) => a.callsign.startsWith(icao))
+        if (atis && atis.text_atis && atis.text_atis.length > 0) {
+            const m = atis.text_atis.join(" ").match(/QNH (\d{4})/)
+            if (m && m[1]) return parseInt(m[1])
+        }
+        return undefined
+    }
+    const lastQnh = reactive({} as { [key: string]: number })
+
+    const qnhTrend = (icao: string) => {
+        const q = atisQnh(icao)
+        if (q && icao in lastQnh) return q - lastQnh[icao]
+        return undefined
+    }
 
     async function fetchData() {
         refreshing.value++
         try {
             const startRequest = new Date().getTime()
             const response = await axios.get(`${apiBaseUrl}/data`)
+            const previousAtisTime = {} as { [key: string]: number }
+            const previousAtisQnh = {} as { [key: string]: number }
+            for (const icao of atisAirports) {
+                if (!atisTime(icao) || !atisQnh(icao)) continue
+                previousAtisTime[icao] = atisTime(icao)!
+                previousAtisQnh[icao] = atisQnh(icao)!
+            }
+            if (response.data.general && response.data.general.update_timestamp && data.value.general && data.value.general.update_timestamp && response.data.general.update_timestamp == data.value.general?.update_timestamp) {
+                console.warn(`Got VATSIM data in ${(new Date().getTime() - startRequest).toFixed()} ms but it has the same general.update_timestamp`)
+            } else {
+                console.log(`Got VATSIM data in ${(new Date().getTime() - startRequest).toFixed()} ms`)
+            }
             data.value = response.data as VatsimData
-            console.log(`Got VATSIM data in ${(new Date().getTime() - startRequest).toFixed()} ms`)
+            for (const icao of atisAirports) {
+                if (atisTime(icao) && icao in previousAtisTime && atisTime(icao) != previousAtisTime[icao]) {
+                    console.log(`  ATIS updated for ${icao}`)
+                    if (icao in previousAtisQnh) lastQnh[icao] = previousAtisQnh[icao]
+                }
+            }
         } finally {
             refreshing.value--
         }
@@ -196,6 +240,10 @@ export const useVatsimStore = defineStore("vatsim", () => {
         refreshInterval,
         timeUntilRefresh,
         refreshing,
+        atisTime,
+        atisQnh,
+        lastQnh,
+        qnhTrend,
         fetchData,
     }
 })
