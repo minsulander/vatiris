@@ -52,8 +52,9 @@ const bus = useEventBus()
 const time = computed(() => wx.time(props.id))
 const rwy = computed(() => wx.rwy(props.id))
 const metreport = computed(() => {
-    if (props.id == "ESSA" && !wx.metreport(props.id)) {
-        let metreport = metarStore.formattedMetreport(props.id)
+    let metreport = wx.metreport(props.id)
+    if (!metreport && wx.metar(props.id)) {
+        metreport = metarStore.metreportFromMetar(wx.metar(props.id))
         let runway = rwy.value.replaceAll("RUNWAY IN USE: <b>", "").replaceAll("</b>", "")
         let otherRunway = ""
         if (props.type) {
@@ -69,7 +70,7 @@ const metreport = computed(() => {
         } else {
             runway = runway.replaceAll("ARR: ", "").replaceAll(" DEP: ", "/")
         }
-        if (hasVatsimAtis.value && rwyDiffersToVatsim.value) {
+        if (hasVatsimAtis.value && rwyDiffersToVatsim.value && !metarAuto.value) {
             runway = `<span class="text-orange-darken-3 font-weight-bold">${runway}</span>`
             if (otherRunway) otherRunway = `<span class="text-orange-darken-3 font-weight-bold">${otherRunway}</span>`
         } else if (hasVatsimAtis.value) {
@@ -82,21 +83,31 @@ const metreport = computed(() => {
             lines[1] += (props.type == "ARR" ? " DEP" : " ARR") + " RWY " + otherRunway
             metreport = lines.join("\n")
         }
-        return metreport
-    }
-    let metreport = wx.metreport(props.id)
-    metreport = metreport.replace("                        ", "              ")
-    if (hasVatsimAtis.value && rwyDiffersToVatsim.value) {
-        metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-orange-darken-3 font-weight-bold'>$1</span>")
-    } else if (hasVatsimAtis.value) {
-        metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-grey-darken-1'>$1</span>")
+        if (typeof qnhTrend.value != "undefined") {
+            const trend =
+                qnhTrend.value > 0
+                    ? " <div style='display: inline-block; transform: rotate(-90deg);'><i class='mdi mdi-play'></i></div>"
+                    : qnhTrend.value < 0
+                    ? " <div style='display: inline-block; transform: rotate(90deg);'><i class='mdi mdi-play'></i></div>"
+                    : " <i class='mdi mdi-play'></i>"
+            metreport = metreport.replace('id="qnh-trend">', `'id="qnh-trend">${trend}`)
+        }
+    } else {
+        metreport = metreport.replace("                        ", "              ")
+        if (hasVatsimAtis.value && rwyDiffersToVatsim.value) {
+            metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-orange-darken-3 font-weight-bold'>$1</span>")
+        } else if (hasVatsimAtis.value) {
+            metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-grey-darken-1'>$1</span>")
+        }
     }
     return metreport
 })
 const info = computed(() => {
+    let text = wx.info(props.id)
     if (props.id == "ESSA")
-        return wx.info(props.id).replaceAll("\n \n", "\n").replace("SIGMET: \n", "")
-    return wx.info(props.id)
+        text = text.replaceAll("\n \n", "\n").replace("SIGMET: \n", "")
+    text = text.replace("ATS LANDVETTER", "")
+    return text
 })
 const metar = computed(() => wx.metar(props.id))
 const qnh = computed(() => wx.qnh(props.id))
@@ -104,15 +115,13 @@ const lastQnh = ref(undefined as number | undefined)
 
 const metarAuto = computed(() => metar.value && metar.value.includes(" AUTO "))
 
-const qnhTrend = computed(() => {
-    if (qnh.value && lastQnh.value) return qnh.value - lastQnh.value
-    return undefined
-})
+const qnhTrend = computed(() => wx.qnhTrend(props.id))
 
 const infoWithoutTaf = computed(() => {
     if (!info.value) return ""
     let text = info.value
-    const tafIndex = text.indexOf(`TAF ${props.id}`)
+    let tafIndex = text.indexOf(`TAF ${props.id}`)
+    if (tafIndex < 0) tafIndex = text.indexOf(`TAF AMD ${props.id}`)
     if (tafIndex >= 0) return text.substring(0, tafIndex)
     return text
 })

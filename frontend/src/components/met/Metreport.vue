@@ -1,5 +1,5 @@
 <template>
-    <div v-if="awosAvailable || atisAvailable" class="float-right text-caption">
+    <div class="float-right text-caption">
         <a
             title="Source: METAR"
             class="mx-1 font-weight-bold"
@@ -9,11 +9,11 @@
         >
         <a
             v-if="awosAvailable"
-            title="Source: Real-world (AWOS)"
+            title="Source: WX.AWOS.SE"
             class="mx-1 font-weight-bold"
             @click="source = 'awos'"
             :style="{ color: source == 'awos' ? '#444' : '#999' }"
-            >R</a
+            >W</a
         >
         <a
             v-if="atisAvailable"
@@ -23,9 +23,6 @@
             :style="{ color: source == 'atis' ? '#444' : '#999' }"
             >A</a
         >
-    </div>
-    <div v-else class="float-right text-caption text-grey mr-1">
-        METAR
     </div>
     <MetreportMETAR v-if="source == 'metar'" :id="id" />
     <MetreportWX v-else-if="awosAvailable && source == 'awos'" :id="id" :type="type" />
@@ -51,7 +48,7 @@ const vatsim = useVatsimStore()
 const source = ref("metar")
 
 const awosAvailable = computed(() =>
-    wxAirports.includes(props.id) && (wx.metreport(props.id) || wx.info(props.id)) ? true : false,
+    wxAirports.includes(props.id) && (wx.metreport(props.id) || wx.info(props.id) || wx.metar(props.id)) ? true : false,
 )
 const atisAvailable = computed(() =>
     atisAirports.includes(props.id) &&

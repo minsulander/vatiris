@@ -64,7 +64,8 @@ export const useMetarStore = defineStore("metar", () => {
     const subscriptions = reactive({} as { [key: string]: string })
     const lastFetch = ref(0)
 
-    const parse = (icao: string) => (icao in metar && !metar[icao].includes("Loading") ? parseMetar(metar[icao]) : undefined)
+    const parse = (icao: string) =>
+        icao in metar && !metar[icao].includes("Loading") ? parseMetar(metar[icao]) : undefined
 
     const qnhTrend = (icao: string) => {
         if (!(icao in metar)) return undefined
@@ -78,84 +79,93 @@ export const useMetarStore = defineStore("metar", () => {
     }
 
     const formattedMetreport = (icao: string) => {
-        if (metar[icao] && metar[icao].includes("Loading")) return metar[icao]
-        const parsed = parse(icao)
-        if (!parsed) return `${icao} PARSE FAIL`
-        const header = `${parsed.station}                    ${moment(time.value).format("YYMMDD")}`
-        const rwy = "--"
-        const header2 = `RWY ${rwy.padEnd(8)}MET REPORT  <b>${parsed.day}${parsed.hour}${parsed.minute}Z</b>`
-        let wind = `WIND `
-        if (parsed.wind) {
-            wind += `${parsed.wind.degrees || parsed.wind.direction}/${parsed.wind.speed}${parsed.wind.unit}`
-            if (parsed.wind.minVariation && parsed.wind.maxVariation) {
-                wind += ` VAR BTN ${parsed.wind.minVariation}/ AND ${parsed.wind.maxVariation}/`
-            }
-            // TODO gust, min, max
-        } else {
-            wind += "???"
-        }
-        let visibility = `VIS `
-        if (parsed.cavok) {
-            visibility = "CAVOK"
-        } else if (parsed.visibility) {
-            if (parsed.visibility.value == 9999 && parsed.visibility.unit == "m") {
-                visibility += "10KM"
+        if (!metar[icao] || metar[icao].includes("Loading")) return metar[icao]
+        return metreportFromMetar(metar[icao])
+    }
+
+    const metreportFromMetar = (metar: string) => {
+        try {
+            const parsed = parseMetar(metar)
+            if (!parsed) return "PARSE FAIL"
+            const header = `${parsed.station}                    ${moment(time.value).format("YYMMDD")}`
+            const rwy = "--"
+            const header2 = `RWY ${rwy.padEnd(8)}MET REPORT  <b>${parsed.day}${parsed.hour}${parsed.minute}Z</b>`
+            let wind = `WIND `
+            if (parsed.wind) {
+                wind += `${parsed.wind.degrees || parsed.wind.direction}/${parsed.wind.speed}${parsed.wind.unit}`
+                if (parsed.wind.minVariation && parsed.wind.maxVariation) {
+                    wind += ` VAR BTN ${parsed.wind.minVariation}/ AND ${parsed.wind.maxVariation}/`
+                }
+                // TODO gust, min, max
             } else {
-                // TODO 5KM instead of 5000
-                visibility += `${parsed.visibility.value}`
-                if (parsed.visibility.unit != "m") visibility += ` ${parsed.visibility.unit}`
+                wind += "???"
             }
-        } else {
-            visibility += "???"
-        }
-        let conditions = ""
-        if (parsed.weatherConditions && parsed.weatherConditions.length > 0) {
-            // TODO verify different conditions with intensities etc
-            for (const condition of parsed.weatherConditions) {
-                conditions += `${condition.intensity || ""}${condition.phenomenons.join(" ")}`
+            let visibility = `VIS `
+            if (parsed.cavok) {
+                visibility = "CAVOK"
+            } else if (parsed.visibility) {
+                if (parsed.visibility.value == 9999 && parsed.visibility.unit == "m") {
+                    visibility += "10KM"
+                } else {
+                    // TODO 5KM instead of 5000
+                    visibility += `${parsed.visibility.value}`
+                    if (parsed.visibility.unit != "m") visibility += ` ${parsed.visibility.unit}`
+                }
+            } else {
+                visibility += "???"
             }
-        }
-        let clouds = "CLD"
-        if (parsed.clouds && parsed.clouds.length > 0) {
-            for (const cloud of parsed.clouds) {
-                clouds += ` ${cloud.quantity} ${cloud.height}FT`
-                if (cloud.type) clouds += ` ${cloud.type}`
-                if (cloud.secondaryType) clouds += ` ${cloud.secondaryType}`
+            let conditions = ""
+            if (parsed.weatherConditions && parsed.weatherConditions.length > 0) {
+                // TODO verify different conditions with intensities etc
+                for (const condition of parsed.weatherConditions) {
+                    conditions += `${condition.intensity || ""}${condition.phenomenons.join(" ")}`
+                }
             }
-        } else if (parsed.verticalVisibility) {
-            let vvValue = `${parsed.verticalVisibility/100}`
-            while (vvValue.length < 3) vvValue = "0" + vvValue
-            clouds = `VV${vvValue}`
-        } else if (parsed.cavok) {
-            clouds = ""
-        } else {
-            clouds = "NCLD"
+            let clouds = "CLD"
+            if (parsed.clouds && parsed.clouds.length > 0) {
+                for (const cloud of parsed.clouds) {
+                    clouds += ` ${cloud.quantity} ${cloud.height}FT`
+                    if (cloud.type) clouds += ` ${cloud.type}`
+                    if (cloud.secondaryType) clouds += ` ${cloud.secondaryType}`
+                }
+            } else if (parsed.verticalVisibility) {
+                let vvValue = `${parsed.verticalVisibility / 100}`
+                while (vvValue.length < 3) vvValue = "0" + vvValue
+                clouds = `VV${vvValue}`
+            } else if (parsed.cavok) {
+                clouds = ""
+            } else {
+                clouds = "NCLD"
+            }
+            let tempValue =
+                (typeof parsed.temperature == "number" && "" + Math.abs(parsed.temperature)) || "??"
+            if (tempValue.length == 1) tempValue = "0" + tempValue
+            if (parsed.temperature && parsed.temperature < 0) tempValue = "MS" + tempValue
+            let dewpointValue =
+                (typeof parsed.dewPoint == "number" && "" + Math.abs(parsed.dewPoint)) || "??"
+            if (dewpointValue.length == 1) dewpointValue = "0" + dewpointValue
+            if (parsed.dewPoint && parsed.dewPoint < 0) dewpointValue = "MS" + dewpointValue
+            const temp = `T${tempValue}      DP${dewpointValue}`
+
+            let qnh = "QNH"
+            if (parsed.altimeter) {
+                let qnhValue = `${parsed.altimeter.value}`
+                if (qnhValue.length == 3) qnhValue = "0" + qnhValue
+                qnhValue = qnhValue.split("").join(" ")
+                qnh += ` <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnhValue}</div><span id="qnh-trend"></span> ${parsed.altimeter.unit.toUpperCase()}`
+                // TODO TRL
+            } else {
+                qnh += " ???"
+            }
+            const info = ""
+            // TODO NOSIG = parsed.nosig, parsed.trends, parsed.remarks
+            // TODO RVR = parsed.runwaysInfo
+            const text = `${header}\n${header2}\n${wind}\n\n${visibility}\n\n${conditions}\n\n${clouds}\n${temp}\n${qnh}\n${info}`
+            return text
+        } catch (e) {
+            console.error("Error parsing metar", metar, e)
+            return "PARSE FAIL"
         }
-        let tempValue = typeof parsed.temperature == "number" && "" + Math.abs(parsed.temperature) || "??"
-        if (tempValue.length == 1) tempValue = "0" + tempValue
-        if (parsed.temperature && parsed.temperature < 0) tempValue = "MS" + tempValue
-        let dewpointValue = typeof parsed.dewPoint == "number" && "" + Math.abs(parsed.dewPoint) || "??"
-        if (dewpointValue.length == 1) dewpointValue = "0" + dewpointValue
-        if (parsed.dewPoint && parsed.dewPoint < 0) dewpointValue = "MS" + dewpointValue
-        const temp = `T${tempValue}      DP${dewpointValue}`
-    
-        let qnh = "QNH"
-        if (parsed.altimeter) {
-    
-            let qnhValue = `${parsed.altimeter.value}`
-            if (qnhValue.length == 3) qnhValue = "0" + qnhValue
-            qnhValue = qnhValue.split("").join(" ")
-            qnh += ` <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnhValue}</div> ${parsed.altimeter.unit.toUpperCase()}`
-            // TODO QNH trend
-            // TODO TRL
-        } else {
-            qnh += " ???"
-        }
-        const info = ""
-        // TODO NOSIG = parsed.nosig, parsed.trends, parsed.remarks
-        // TODO RVR = parsed.runwaysInfo
-        const text = `${header}\n${header2}\n${wind}\n\n${visibility}\n\n${conditions}\n\n${clouds}\n${temp}\n${qnh}\n${info}`
-        return text
     }
 
     let fetchOnSubscribeTimeout: any = undefined
@@ -230,6 +240,7 @@ export const useMetarStore = defineStore("metar", () => {
         parse,
         qnhTrend,
         formattedMetreport,
+        metreportFromMetar,
         subscribe,
         unsubscribe,
         fetch,
