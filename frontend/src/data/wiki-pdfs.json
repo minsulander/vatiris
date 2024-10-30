@@ -1,0 +1,110 @@
+{
+    "quickref-esgg-twr-app": {
+        "title": "ESGG TWR/APP Appendix A",
+        "attachmentId": 118
+    },
+    "quickref-essa-twr": {
+        "title": "ESSA TWR Appendix A",
+        "attachmentId": 119
+    },
+    "quickref-essa-app": {
+        "title": "ESSA APP Appendix B",
+        "attachmentId": 120
+    },
+    "quickref-essb-twr-app": {
+        "title": "ESSB TWR/APP Appendix C",
+        "attachmentId": 121
+    },
+    "lop-esos-acc": {
+        "title": "LOP ESOS ACC",
+        "attachmentId": 311
+    },
+    "lop-esmm-acc": {
+        "title": "LOP ESMM ACC",
+        "attachmentId": 312
+    },
+    "lop-esgg-app": {
+        "title": "LOP ESGG APP",
+        "attachmentId": 313
+    },
+    "lop-esgg": {
+        "title": "LOP ESGG",
+        "attachmentId": 314
+    },
+    "lop-esdf": {
+        "title": "LOP ESDF",
+        "attachmentId": 324
+    },
+    "lop-esdf-app": {
+        "title": "LOP ESDF APP",
+        "attachmentId": 325
+    },
+    "lop-esia": {
+        "title": "LOP ESIA",
+        "attachmentId": 317
+    },
+    "lpm-esos": {
+        "title": "LPM Stockholm TMA",
+        "attachmentId": 327
+    },
+    "lop-espa": {
+        "title": "LOP ESPA",
+        "attachmentId": 321
+    },
+    "lop-espa-app": {
+        "title": "LOP ESPA APP",
+        "attachmentId": 322
+    },
+    "lop-okc": {
+        "title": "LOP ÖKC",
+        "attachmentId": 331
+    },
+    "loa-edww": {
+        "title": "LOA EDWW",
+        "attachmentId": 369
+    },
+    "loa-ekdk": {
+        "title": "LOA EKDK",
+        "attachmentId": 217
+    },
+    "loa-efin": {
+        "title": "LOA EFIN",
+        "attachmentId": 224
+    },
+    "loa-umkk": {
+        "title": "LOA UMKK",
+        "attachmentId": 226
+    },
+    "loa-enor": {
+        "title": "LOA ENOR",
+        "attachmentId": 219
+    },
+    "loa-evrr": {
+        "title": "LOA EVRR",
+        "attachmentId": 228
+    },
+    "loa-eett": {
+        "title": "LOA EETT",
+        "attachmentId": 227
+    },
+    "loa-epww": {
+        "title": "LOA EPWW",
+        "attachmentId": 223
+    },
+    "gop-twr": {
+        "title": "GOP TWR/APP/AFIS",
+        "attachmentId": 333
+    },
+    "gop-acc": {
+        "title": "GOP ACC",
+        "attachmentId": 334
+    },
+    "gop-mil": {
+        "title": "GOP MIL",
+        "attachmentId": 335
+    },
+    "gop-ats-stri": {
+        "title": "GOP ATS-STRI",
+        "attachmentId": 336
+    }
+}

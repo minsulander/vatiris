@@ -30,7 +30,6 @@ import MainToolbar from "@/components/menu/MainToolbar.vue"
 import Window from "@/components/Window.vue"
 import Welcome from "@/components/Welcome.vue"
 import Metreport from "@/components/met/Metreport.vue"
-import MetreportWX from "@/components/met/MetreportWX.vue"
 import MetsensorWX from "@/components/met/MetsensorWX.vue"
 import Notam from "@/components/Notam.vue"
 import LfvEcharts from "@/components/LfvEcharts.vue"
@@ -45,14 +44,14 @@ import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
 import Checklist from "@/components/Checklist.vue"
 import MetarTaf from "@/components/met/MetarTaf.vue"
-import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
 import Sun from "@/components/met/Sun.vue"
 import Airport from "@/components/met/Airport.vue"
+import WikiPage from "@/components/WikiPage.vue"
+import WikiPdf from "@/components/WikiPdf.vue"
+import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
-
-const windows = useWindowsStore()
 
 export interface WindowSpec {
     title: string
@@ -62,6 +61,9 @@ export interface WindowSpec {
     width: string | number
     height: string | number
 }
+
+const windows = useWindowsStore()
+
 
 const availableWindows = shallowReactive({
     notam: {
@@ -132,6 +134,20 @@ const availableWindows = shallowReactive({
         width: 650,
         height: 750,
     },
+    wikitest: {
+        title: "WIKI TEST",
+        component: WikiPdf,
+        props: { id: 120 },
+        width: 800,
+        height: 600,
+    },
+    wikitest2: {
+        title: "WIKI TEST 2",
+        component: WikiPage,
+        props: { book: "lop", page: "esgt" },
+        width: 800,
+        height: 600,
+    }
 } as any)
 
 for (const icao of metarAirports) {
@@ -203,6 +219,31 @@ import("@/data/aip-airports.json").then((module) => {
                 width: 800,
                 height: 600,
             }
+        }
+    }
+})
+
+import("@/data/wiki-pdfs.json").then((module) => {
+    for (const id in module.default) {
+        const pdf = (module.default as any)[id]
+        availableWindows[`wikipdf-${id}`] = {
+            title: pdf.title,
+            component: WikiPdf,
+            props: { id: pdf.attachmentId },
+            width: 800,
+            height: 600,
+        }
+    }
+})
+import("@/data/wiki-pages.json").then((module) => {
+    for (const id in module.default) {
+        const page = (module.default as any)[id]
+        availableWindows[`wiki-${id}`] = {
+            title: page.title,
+            component: WikiPage,
+            props: { book: page.book, page: page.page },
+            width: 800,
+            height: 600,
         }
     }
 })

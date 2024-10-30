@@ -6,15 +6,16 @@ const vatsimAuthBaseUri = process.env.VATSIM_AUTH_BASE_URI || "https://auth-dev.
 const tokenCidCache = {} as { [key: string]: number }
 
 export async function requireCid(req: Request, res: Response) {
-    if (!req.headers.authorization?.startsWith("Bearer ")) {
+    const token = getToken(req)
+    if (!token) {
         res.status(401).send("Unauthorized")
         return undefined
     }
-    const token = req.headers.authorization.slice(7)
     if (tokenCidCache[token]) {
         return tokenCidCache[token]
     } else {
         const user = await requireUser(req, res)
+        if (!user) return undefined
         return user.cid
     }
 }
@@ -29,15 +30,23 @@ export async function requireUser(req: Request, res: Response) {
 }
 
 export async function getUser(req: Request) {
-    if (!req.headers.authorization?.startsWith("Bearer ")) {
-        console.warn("No Bearer token in Authorization header")
-        return undefined
-    }
-    const token = req.headers.authorization.slice(7)
+    const token = getToken(req)
+    if (!token) return undefined
     const result = await axios.get(`${vatsimAuthBaseUri}api/user`, { headers: { Authorization: `Bearer ${token}` } })
     const user = result.data.data
     tokenCidCache[token] = user.cid
     return user
+}
+
+function getToken(req: Request) {
+    let token = undefined
+    if (req.headers.authorization?.startsWith("Bearer ")) {
+        token = req.headers.authorization.slice(7)
+    } else if (req.query.token) {
+        token = req.query.token as string
+        if (token == "undefined") token = undefined
+    }
+    return token
 }
 
 export default {
