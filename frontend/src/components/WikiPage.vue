@@ -2,10 +2,11 @@
     <div
         v-if="auth.user"
         ref="div"
-        class="wiki-div pa-2"
+        class="wiki-div page-content pa-2"
         :class="loading ? '' : 'bg-white'"
-        v-html="content"
-    ></div>
+    >
+        <div class="page-content" v-html="content"></div>
+    </div>
     <div v-else-if="!auth.pending" class="pa-2">Please login to view WIKI content</div>
 </template>
 
@@ -73,6 +74,15 @@ function fetch() {
     // TODO error handling
 }
 </script>
+
+<style lang="scss">
+/* Additional fixes added in hindsight... */
+.wiki-div {
+    tr.mainposition td {
+        font-weight: bold;
+    }
+}
+</style>
 
 <style lang="scss">
 /* This is copy-pasted and bastardized CSS from the wiki HTML export */
