@@ -16,7 +16,7 @@
             <v-list-item
                 v-for="(action, label) in filteredItems"
                 :class="action in windows.winbox ? '' : 'text-grey'"
-                :key="action"
+                :key="label+action"
                 @click="click($event, action)"
                 @contextmenu.prevent="unselect(action)"
             >
