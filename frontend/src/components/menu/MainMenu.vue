@@ -22,7 +22,7 @@ import Submenu from "@/components/menu/Submenu.vue"
 import { computed, reactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "@/stores/auth"
 
 const windows = useWindowsStore()
 const dct = useDctStore()
@@ -120,8 +120,7 @@ const menuItems = reactive({
                 ESOK: "wiki-lop-esok",
                 "ESOS APP": "wikipdf-lpm-esos",
                 ESOW: "wikipdf-lpm-esos",
-                ESPA: "wikipdf-lop-espa",
-                "ESPA APP": "wikipdf-lop-espa-app",
+                ESPA: "wiki-lop-espa",
                 // ESPE // TO BE ADDED
                 ESSA: "wikipdf-lpm-esos",
                 ESSB: "wikipdf-lpm-esos",
@@ -183,7 +182,6 @@ for (const icao of metarAirports) {
     }
     menuItems.MET.SUN[icao] = `sun${icao}`
 }
-
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups

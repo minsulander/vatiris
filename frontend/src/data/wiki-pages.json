@@ -134,6 +134,11 @@
         "book": "lop",
         "page": "esok"
     },
+    "lop-espa": {
+        "title": "LOP ESPA",
+        "book": "lop",
+        "page": "espa"
+    },
     "lop-essd": {
         "title": "LOP ESSD",
         "book": "lop",
