@@ -3,6 +3,7 @@
         <v-list density="compact">
             <v-list-item v-if="Object.keys(items).length > 10" style="margin-top: -10px">
                 <v-text-field
+                    ref="filterField"
                     variant="underlined"
                     density="compact"
                     hide-details
@@ -16,7 +17,7 @@
             <v-list-item
                 v-for="(action, label) in filteredItems"
                 :class="action in windows.winbox ? '' : 'text-grey'"
-                :key="label+action"
+                :key="label + action"
                 @click="click($event, action)"
                 @contextmenu.prevent="unselect(action)"
             >
@@ -62,7 +63,7 @@
 
 <script setup lang="ts">
 import { useWindowsStore } from "@/stores/windows"
-import { computed, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 
 const props = defineProps<{
     items: { [key: string]: string }
@@ -71,6 +72,7 @@ const props = defineProps<{
 const emit = defineEmits(["select", "unselect"])
 const windows = useWindowsStore()
 
+const filterField = ref()
 const filter = ref("")
 const open = ref(false)
 
@@ -115,4 +117,15 @@ function unselect(id: string) {
 function select(id: string) {
     emit("select", id)
 }
+
+watch(filterField, () => {
+    // workaround for autofocus working when it feels like it...
+    setTimeout(() => {
+        if (filterField.value) filterField.value.focus()
+    }, 10)
+    setTimeout(() => {
+        if (filterField.value) filterField.value.focus()
+        else filter.value = ""
+    }, 100)
+})
 </script>
