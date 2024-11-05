@@ -64,8 +64,10 @@
                 <v-card-text> Are you sure you want to go on break? </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="primary" text @click="showBreakModal = false">Cancel</v-btn>
-                    <v-btn color="error" text @click="goOnBreak">Confirm</v-btn>
+                    <v-btn color="primary" variant="text" @click="showBreakModal = false"
+                        >Cancel</v-btn
+                    >
+                    <v-btn color="error" variant="text" @click="goOnBreak">Confirm</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -74,7 +76,11 @@
         <v-dialog v-model="showPositionModal" max-width="400">
             <v-card>
                 <v-card-title v-if="settings.plsLogic === 'CID'">
-                    {{ auth.user ? `${auth.user.name} (${auth.user.cid})` : "Go on position" }}
+                    {{
+                        auth.user
+                            ? `${auth.user.personal.name_full} (${auth.user.cid})`
+                            : "Go on position"
+                    }}
                 </v-card-title>
                 <v-card-title v-else>
                     Go on position:
@@ -143,8 +149,14 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="primary" text @click="showPositionModal = false">Cancel</v-btn>
-                    <v-btn color="blue" text @click="goOnPosition" :disabled="!canGoOnPosition"
+                    <v-btn color="primary" variant="text" @click="showPositionModal = false"
+                        >Cancel</v-btn
+                    >
+                    <v-btn
+                        color="blue"
+                        variant="text"
+                        @click="goOnPosition"
+                        :disabled="!canGoOnPosition"
                         >Confirm</v-btn
                     >
                 </v-card-actions>
