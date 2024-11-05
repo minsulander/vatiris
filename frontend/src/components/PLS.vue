@@ -160,6 +160,8 @@ import useEventBus from "@/eventbus"
 import { useSettingsStore } from "@/stores/settings"
 import { useAuthStore } from "@/stores/auth"
 
+const plsApiBaseUrl = import.meta.env.VITE_PLSAPI_BASE_URL || "http://localhost:3001/api"
+
 const settings = useSettingsStore()
 const auth = useAuthStore()
 const bus = useEventBus()
@@ -174,7 +176,7 @@ const controllerStatus2 = ref("")
 
 const showBreakModal = ref(false)
 const selectedControllerIndex = ref(null as number | null)
-const breakType = ref("paus")
+const breakType = ref("pause")
 
 const activeControllers = ref([])
 const availableControllers = ref([])
@@ -182,7 +184,7 @@ const awayControllers = ref([])
 
 const fetchControllers = async () => {
     try {
-        const response = await axios.get("http://localhost:3001/api/controllers")
+        const response = await axios.get(`${plsApiBaseUrl}/controllers`)
         const controllers = response.data
         activeControllers.value = controllers.activeControllers || []
         availableControllers.value = controllers.availableControllers || []
@@ -298,7 +300,7 @@ const goOnBreak = async () => {
                 },
             }
 
-            await axios.post("http://localhost:3001/api/controller", breakData)
+            await axios.post(`${plsApiBaseUrl}/controller`, breakData)
             showBreakModal.value = false
             fetchControllers() // Refresh the controller list
         } catch (error) {
@@ -385,7 +387,7 @@ const goOnPosition = async () => {
             }
         }
 
-        await axios.post("http://localhost:3001/api/controller", positionData)
+        await axios.post(`${plsApiBaseUrl}/controller`, positionData)
         showPositionModal.value = false
         fetchControllers() // Refresh the controller list
     } catch (error) {
