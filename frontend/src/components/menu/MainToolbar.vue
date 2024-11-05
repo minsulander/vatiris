@@ -1,5 +1,6 @@
 <template>
     <v-btn class="text-grey" @click="showAboutDialog = true">About</v-btn>
+    <PLS/>
     <v-btn
         v-if="!fullscreen"
         type="icon"
@@ -15,7 +16,6 @@
         @click="exitFullScreen"
     ></v-btn>
     <clock class="mx-2 text-grey" />
-
     <v-dialog v-model="showAboutDialog" max-width="730">
         <v-card>
             <v-card-title class="font-weight-light text-grey pl-6 pt-3">
@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import Clock from "@/components/Clock.vue"
 import About from "@/components/About.vue"
+import PLS from "@/components/PLS.vue"
 import { ref, onMounted } from "vue"
 
 const showAboutDialog = ref(false)
