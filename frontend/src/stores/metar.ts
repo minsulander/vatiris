@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid"
 import axios from "axios"
 import useEventBus from "@/eventbus"
 import { parseMetar } from "metar-taf-parser"
-import { calculateTrl } from "@/metcommon"
+import { calculateTrl } from "@/metcommon"
 import moment from "moment"
 
 export const useMetarStore = defineStore("metar", () => {
@@ -39,12 +39,13 @@ export const useMetarStore = defineStore("metar", () => {
         try {
             const parsed = parseMetar(metar)
             if (!parsed) return "PARSE FAIL"
-            const header = `${parsed.station}                    ${moment(time.value).format("YYMMDD")}`
+            const header = `${parsed.station}                       ${time.value ? moment(time.value).format("YYMMDD") : "------"}`
             const rwy = "--"
-            const header2 = `RWY ${rwy.padEnd(8)}MET REPORT  <b>${parsed.day}${parsed.hour}${parsed.minute}Z</b>`
+            const header2 = `RWY ${rwy.padEnd(11)}MET REPORT  <b>${String(parsed.day).padStart(2, "0")}${String(parsed.hour).padStart(2, "0")}${String(parsed.minute).padStart(2, "0")}Z</b>`
             let wind = `WIND `
             if (parsed.wind) {
-                wind += `${parsed.wind.degrees || parsed.wind.direction}/${parsed.wind.speed}${parsed.wind.unit}`
+                wind += parsed.wind.degrees ? String(parsed.wind.degrees).padStart(3, "0") : parsed.wind.direction
+                wind += `/${parsed.wind.speed}${parsed.wind.unit}`
                 if (parsed.wind.minVariation && parsed.wind.maxVariation) {
                     wind += ` VAR BTN ${parsed.wind.minVariation}/ AND ${parsed.wind.maxVariation}/`
                 }

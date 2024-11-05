@@ -78,7 +78,7 @@ const metreport = computed(() => {
             runway = `<span class="text-grey-darken-1">${runway}</span>`
             if (otherRunway) otherRunway = `<span class="text-grey-darken-1">${otherRunway}</span>`
         }
-        metreport = metreport.replace("RWY --", `RWY ${runway}`)
+        metreport = metreport.replace(/RWY --\s+/, `RWY ${runway.padEnd(11)}`)
         if (otherRunway) {
             let lines = metreport.split("\n")
             lines[1] += (props.type == "ARR" ? " DEP" : " ARR") + " RWY " + otherRunway
