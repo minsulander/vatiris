@@ -8,7 +8,7 @@
                             <span
                                 v-bind="props"
                                 @click="openBreakModal(1)"
-                                :class="{ 'cursor-pointer': canGoOnBreak(matchedController1) }"
+                                :class="sessionTimeClass1"
                             >
                                 {{ formattedSessionTime1 }}
                             </span>
@@ -35,7 +35,7 @@
                             <span
                                 v-bind="props"
                                 @click="openBreakModal(2)"
-                                :class="{ 'cursor-pointer': canGoOnBreak(matchedController2) }"
+                                :class="sessionTimeClass2"
                             >
                                 {{ formattedSessionTime2 }}
                             </span>
@@ -171,6 +171,7 @@ import { ref, onMounted, watch, computed, onUnmounted } from "vue"
 import useEventBus from "@/eventbus"
 import { useSettingsStore } from "@/stores/settings"
 import { useAuthStore } from "@/stores/auth"
+import moment from "moment"
 
 const plsApiBaseUrl = import.meta.env.VITE_PLSAPI_BASE_URL || "http://localhost:3001/api"
 
@@ -281,8 +282,28 @@ const formatSessionTime = (startTime: Date | null) => {
     const minutes = Math.floor((diff % 3600000) / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
 
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
 }
+
+const sessionTimeClass1 = computed(() => {
+    if (canGoOnBreak(matchedController1.value)) {
+        const minutes = moment().diff(sessionStartTime1.value, "minute")
+        if (minutes >= 120) return "text-red-darken-1 cursor-pointer"
+        else if (minutes >= 90) return "text-yellow-darken-2 cursor-pointer"
+        else return "text-grey cursor-pointer"
+    }
+    return "text-grey"
+})
+
+const sessionTimeClass2 = computed(() => {
+    if (canGoOnBreak(matchedController2.value)) {
+        const minutes = moment().diff(sessionStartTime2.value, "minute")
+        if (minutes >= 120) return "text-red-darken-1 cursor-pointer"
+        else if (minutes >= 90) return "text-yellow-darken-2 cursor-pointer"
+        else return "text-grey cursor-pointer"
+    }
+    return "text-grey"
+})
 
 const formattedSessionTime1 = computed(() => formatSessionTime(sessionStartTime1.value))
 const formattedSessionTime2 = computed(() => formatSessionTime(sessionStartTime2.value))
@@ -458,6 +479,14 @@ onMounted(() => {
 bus.on("refresh", () => {
     fetchControllers()
 })
+
+watch(
+    () => auth.user,
+    () => {
+        console.log("auth.user", auth.user)
+        if (auth.user) fetchControllers()
+    },
+)
 
 watch(
     () => settings.enablePLS,
