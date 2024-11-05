@@ -149,14 +149,14 @@
           "BKD",
           "BINKA",
           "HLZ",
-          "POVEL (ADES EDDF)",
-          "DENOL (ADES EDDL/EDLV)",
-          "PODER (ADES EDDK)",
-          "EBASA (ADES LKPR)",
-          "ABAMI (ADES EBBR)",
-          "NVO (ADES LFPG)",
-          "KETAP (ADES EDDB (RWY 24))",
-          "OGBER (ADES EDDB (RWY 06))"
+          "EDDF: POVEL",
+          "EDDL/EDLV: DENOL",
+          "EDDK: PODER",
+          "LKPR: EBASA",
+          "EBBR: ABAMI",
+          "LFPG: NVO",
+          "EDDB 24: KETAP",
+          "EDDB 06: OGBER"
         ]
       }
     ]
@@ -232,8 +232,8 @@
           "BINKA",
           "HDO",
           "MAREM",
-          "KETAP (ADES EDDB (RWYs 24))",
-          "OGBER (ADES EDDB (RWYs 06))"
+          "EDDB 24: KETAP",
+          "EDDB 06: OGBER"
         ]
       }
     ]
@@ -304,7 +304,7 @@
       {
         "group": "2",
         "items": [
-          "ESSV: VSB (ESSB: 12)"
+          "ESSB 12-ESSV: VSB"
         ]
       },
       {
