@@ -43,6 +43,25 @@ export const useSettingsStore = defineStore("settings", () => {
             position2,
         ],
         () => {
+
+            // PLS logic validation
+            // Clear values when switching logic
+            if (plsLogic.value === 'CID') {
+                if (useVatsimConnect.value) {
+                    cid1.value = ''
+                    cid2.value = ''
+                } else {
+                    if (cid1.value && !/^\d{5,8}$/.test(cid1.value)) cid1.value = ''
+                    if (cid2.value && !/^\d{5,8}$/.test(cid1.value)) cid2.value = ''
+                }
+                position1.value = ''
+                position2.value = ''
+            } else if (plsLogic.value === 'Position') {
+                cid1.value = ''
+                cid2.value = ''
+                useVatsimConnect.value = false
+            }
+
             const settings = {
                 windowSnapping: windowSnapping.value,
                 metreportFlash: metreportFlash.value,

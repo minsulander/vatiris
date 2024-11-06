@@ -7,150 +7,118 @@
     <v-main>
         <v-container>
             <h1>Options</h1>
-            <v-switch color="white" base-color="grey-darken-1" hide-details label="Window snapping" v-model="settings.windowSnapping" />
-            <v-switch color="white" base-color="grey-darken-1" hide-details label="METREPORT flash when changed" v-model="settings.metreportFlash" />
-            <v-switch color="white" base-color="grey-darken-1" hide-details label="METSENSOR flash changed values" v-model="settings.metsensorFlash" />
-            <v-switch color="white" base-color="grey-darken-1" hide-details label="PLS integration" v-model="settings.enablePLS" @change="handleEnablePLSChange" />
-
-            <div v-if="settings.enablePLS">
-                <h2 class="mt-4">PLS Logic</h2>
-                <v-btn-toggle v-model="settings.plsLogic" mandatory @change="handleLogicChange">
-                    <v-btn value="CID">CID</v-btn>
-                    <v-btn value="Position">Position</v-btn>
-                </v-btn-toggle>
-
-                <v-container v-if="settings.plsLogic === 'CID'" class="mt-4">
-                    <v-checkbox v-model="settings.useVatsimConnect" label="Use VATSIM Connect" @change="handleVatsimConnectChange"></v-checkbox>
-                    <v-text-field
-                        v-if="!settings.useVatsimConnect"
-                        label="CID 1"
-                        v-model="settings.cid1"
-                        outlined
-                        dense
-                        @input="handleCIDChange"
-                        :rules="[cidRules]"
-                    ></v-text-field>
-                    <v-text-field
-                        v-if="!settings.useVatsimConnect"
-                        label="CID 2"
-                        v-model="settings.cid2"
-                        outlined
-                        dense
-                        @input="handleCIDChange"
-                        :rules="[cidRules]"
-                    ></v-text-field>
-                </v-container>
-
-                <v-container v-if="settings.plsLogic === 'Position'" class="mt-4">
-                    <v-text-field label="Position 1" v-model="settings.position1" outlined dense @input="handlePositionChange"></v-text-field>
-                    <v-text-field label="Position 2" v-model="settings.position2" outlined dense @input="handlePositionChange"></v-text-field>
-                </v-container>
-
-                <v-btn color="primary" class="mt-4" @click="applyChanges" :disabled="!hasChanges">
-                    Apply PLS Logic
-                </v-btn>
-                <v-chip v-if="hasChanges" color="warning" class="ml-2">Unsaved changes</v-chip>
-            </div>
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="Window snapping"
+                v-model="settings.windowSnapping"
+            />
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="METREPORT flash when changed"
+                v-model="settings.metreportFlash"
+            />
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="METSENSOR flash changed values"
+                v-model="settings.metsensorFlash"
+            />
+            <v-row>
+                <v-col cols="12" sm="4">
+                    <v-switch
+                        color="white"
+                        base-color="grey-darken-1"
+                        hide-details
+                        label="PLS integration"
+                        v-model="settings.enablePLS"
+                    />
+                </v-col>
+                <v-col cols="12" sm="4" v-if="settings.enablePLS">
+                    <div class="text-caption text-grey-lighten-2">PLS Logic</div>
+                    <v-btn-toggle v-model="settings.plsLogic" mandatory>
+                        <v-btn value="CID">CID</v-btn>
+                        <v-btn value="Position">Position</v-btn>
+                    </v-btn-toggle>
+                </v-col>
+                <v-col cols="12" sm="4" v-if="settings.enablePLS">
+                    <div v-if="settings.plsLogic === 'CID'">
+                        <v-checkbox
+                            class="pt-4"
+                            v-model="settings.useVatsimConnect"
+                            label="Use VATSIM Connect"
+                        ></v-checkbox>
+                        <v-text-field
+                            v-if="!settings.useVatsimConnect"
+                            label="CID 1"
+                            v-model="cid1"
+                            outlined
+                            dense
+                            @input="handleCIDChange"
+                            :rules="[cidRules]"
+                        ></v-text-field>
+                        <v-text-field
+                            v-if="!settings.useVatsimConnect"
+                            label="CID 2"
+                            v-model="cid2"
+                            outlined
+                            dense
+                            @input="handleCIDChange"
+                            :rules="[cidRules]"
+                        ></v-text-field>
+                    </div>
+                    <div v-if="settings.plsLogic === 'Position'">
+                        <v-text-field
+                            label="Position 1"
+                            v-model="settings.position1"
+                            outlined
+                            dense
+                        ></v-text-field>
+                        <v-text-field
+                            label="Position 2"
+                            v-model="settings.position2"
+                            outlined
+                            dense
+                        ></v-text-field>
+                    </div>
+                </v-col>
+            </v-row>
         </v-container>
     </v-main>
 </template>
 
 <script setup lang="ts">
 import { useSettingsStore } from "@/stores/settings"
-import { watch, ref } from 'vue'
-import useEventBus from "@/eventbus"
-import { useAuthStore } from "@/stores/auth"
+import { watch, ref } from "vue"
 
 const settings = useSettingsStore()
-const auth = useAuthStore()
-const bus = useEventBus()
 
-const hasChanges = ref(false)
+const cid1 = ref(settings.cid1)
+const cid2 = ref(settings.cid2)
 
 const cidRules = (value: string) => {
     if (!value) return true // Allow empty field
     const regex = /^\d{5,8}$/
-    return regex.test(value) || 'CID must be 5-8 digits'
-}
-
-const emitLogicChanged = () => {
-    let type = settings.plsLogic.toUpperCase()
-    let value: string[] = []
-    
-    if (type === 'CID') {
-        if (settings.useVatsimConnect && auth.user) {
-            value = [auth.user.cid.toString()]
-        } else {
-            value = [settings.cid1, settings.cid2].filter(Boolean)
-        }
-    } else if (type === 'POSITION') {
-        value = [settings.position1, settings.position2].filter(Boolean)
-    }
-
-    bus.emit('logicChanged', { type, value })
-}
-
-const handleEnablePLSChange = (newValue: boolean) => {
-    if (!newValue) {
-        bus.emit('logicChanged', { type: 'CID', value: [] })
-    } else {
-        hasChanges.value = true
-    }
-}
-
-const handleLogicChange = () => {
-    if (settings.enablePLS) {
-        hasChanges.value = true
-        // Clear values when switching logic
-        if (settings.plsLogic === 'CID') {
-            settings.position1 = ''
-            settings.position2 = ''
-        } else if (settings.plsLogic === 'Position') {
-            settings.cid1 = ''
-            settings.cid2 = ''
-            settings.useVatsimConnect = false
-        }
-    }
-}
-
-const handleVatsimConnectChange = () => {
-    if (settings.enablePLS && settings.plsLogic === 'CID') {
-        hasChanges.value = true
-    }
+    return regex.test(value) || "CID must be 5-8 digits"
 }
 
 const handleCIDChange = () => {
-    if (settings.enablePLS && settings.plsLogic === 'CID') {
-        hasChanges.value = true
-        // Validate CID format
-        const isValidCID1 = !settings.cid1 || cidRules(settings.cid1) === true
-        const isValidCID2 = !settings.cid2 || cidRules(settings.cid2) === true
-        if (!isValidCID1 || !isValidCID2) {
-            hasChanges.value = false // Prevent applying changes if CIDs are invalid
-        }
-    }
+    // Validate CID format
+    const isValidCID1 = !cid1.value || cidRules(cid1.value) === true
+    if (isValidCID1) settings.cid1 = cid1.value
+    const isValidCID2 = !cid2.value || cidRules(cid2.value) === true
+    if (isValidCID2) settings.cid2 = cid2.value
 }
 
-const handlePositionChange = () => {
-    if (settings.enablePLS && settings.plsLogic === 'Position') {
-        hasChanges.value = true
-    }
-}
-
-const applyChanges = () => {
-    if (settings.enablePLS && hasChanges.value) {
-        emitLogicChanged()
-        hasChanges.value = false
-    }
-}
-
-watch(() => settings.enablePLS, handleEnablePLSChange)
-
-watch(() => settings.plsLogic, handleLogicChange)
-
-watch(() => settings.useVatsimConnect, handleVatsimConnectChange)
-
-watch([() => settings.cid1, () => settings.cid2], handleCIDChange)
-
-watch([() => settings.position1, () => settings.position2], handlePositionChange)
+watch(
+    () => [settings.plsLogic, settings.useVatsimConnect, settings.cid1, settings.cid2],
+    () => {
+        cid1.value = settings.cid1
+        cid2.value = settings.cid2
+    },
+)
 </script>

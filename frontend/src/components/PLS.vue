@@ -1,5 +1,5 @@
 <template>
-    <div v-if="settings.enablePLS">
+    <div v-if="settings.enablePLS && (!settings.useVatsimConnect || auth.user)">
         <v-row align="center" no-gutters>
             <v-col cols="auto" class="mr-2">
                 <span v-if="matchedController1" class="text-grey">
@@ -483,7 +483,6 @@ bus.on("refresh", () => {
 watch(
     () => auth.user,
     () => {
-        console.log("auth.user", auth.user)
         if (auth.user) fetchControllers()
     },
 )
