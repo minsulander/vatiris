@@ -62,7 +62,7 @@ const atisAvailable = computed(() =>
         (a) =>
             a.callsign.startsWith(
                 props.id +
-                    (props.type == "ARR" ? "_A_ATIS" : props.type == "DEP" ? "_D_ATIS" : "_ATIS"),
+                    (props.type == "ARR" ? "_A" : props.type == "DEP" ? "_D" : ""),
             ) &&
             a.text_atis &&
             a.text_atis.length > 0,

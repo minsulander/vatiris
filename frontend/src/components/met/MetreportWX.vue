@@ -71,6 +71,7 @@ const metreport = computed(() => {
         } else {
             runway = runway.replaceAll("ARR: ", "").replaceAll(" DEP: ", "/")
         }
+        runway = runway.padEnd(11)
         if (hasVatsimAtis.value && rwyDiffersToVatsim.value && !metarAuto.value) {
             runway = `<span class="text-orange-darken-3 font-weight-bold">${runway}</span>`
             if (otherRunway) otherRunway = `<span class="text-orange-darken-3 font-weight-bold">${otherRunway}</span>`
@@ -78,7 +79,7 @@ const metreport = computed(() => {
             runway = `<span class="text-grey-darken-1">${runway}</span>`
             if (otherRunway) otherRunway = `<span class="text-grey-darken-1">${otherRunway}</span>`
         }
-        metreport = metreport.replace(/RWY --\s+/, `RWY ${runway.padEnd(11)}`)
+        metreport = metreport.replace(/RWY --\s+/, `RWY ${runway}`)
         if (otherRunway) {
             let lines = metreport.split("\n")
             lines[1] += (props.type == "ARR" ? " DEP" : " ARR") + " RWY " + otherRunway
