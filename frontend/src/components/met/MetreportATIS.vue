@@ -341,10 +341,14 @@ const formatAtisText = (text: string) => {
             const match = text.match(/DEP RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=TRL \d\d|$)/i)
             if (match) other = match[1].trim()
             if (!props.type && props.id === "ESSA") {
-                const text2 = vatsim.data.atis.find(a => a.callsign == "ESSA_D_ATIS")?.text_atis?.join(" ")
+                const text2 = vatsim.data.atis
+                    .find((a) => a.callsign == "ESSA_D_ATIS")
+                    ?.text_atis?.join(" ")
                 if (text2) {
-                    const match2 = text.match(/ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i)
-                    if (match2) other += "\n" + match2[1].trim()
+                    const match2 = text2.match(
+                        /ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i,
+                    )
+                    if (match2) other += "\n\n" + match2[1].trim()
                 }
             }
         } else {
@@ -366,17 +370,18 @@ const formatAtisText = (text: string) => {
     const atisLetter = extractInfo(/ATIS ([A-Z])/)
     let atisCode = atisLetters[atisLetter as keyof typeof atisLetters] || ""
     if (props.id === "ESSA" && !props.type) {
-        const depAtis = vatsim.data.atis.find(a => a.callsign == "ESSA_D_ATIS")
+        const depAtis = vatsim.data.atis.find((a) => a.callsign == "ESSA_D_ATIS")
         if (depAtis) {
             const match = depAtis.text_atis?.join(" ").match(/ATIS ([A-Z])/)
-            if (match && match[1] != atisLetter) atisCode += "/" + atisLetters[match[1] as keyof typeof atisLetters]
+            if (match && match[1] != atisLetter)
+                atisCode += "/" + atisLetters[match[1] as keyof typeof atisLetters]
         }
     }
     const atisType = props.type
     let runway = extractInfo(/RWY\s+(\d{2}[LCR]?)/)
     if (props.id === "ESSA" && !props.type) {
         const match = text.match(/DEP RWY (\d{2}[LCR]?)\./)
-        if (match) runway += "/" + match[1]
+        if (match && match[1] != runway) runway += "/" + match[1]
     }
 
     const time = extractInfo(/TIME (\d{4})Z/, "")
@@ -413,7 +418,7 @@ const formatAtisText = (text: string) => {
     const trlDisplay = props.type === "DEP" ? "" : `TRL ${trl}`
 
     return `
-${icao}     ${atisType || "   "}      <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 5 - atisCode.length))} ${formattedDate}
+${icao}     ${atisType || "   "}   <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 8 - atisCode.length))} ${formattedDate}
 RWY <span class="${runwayClass}">${runway.padEnd(8)}</span>MET REPORT  <b>${formattedTime}Z</b> ${otherRunway}
 WIND ${wind}
 

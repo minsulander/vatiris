@@ -64,7 +64,6 @@ export interface WindowSpec {
 
 const windows = useWindowsStore()
 
-
 const availableWindows = shallowReactive({
     notam: {
         title: "NOTAM",
@@ -147,7 +146,7 @@ const availableWindows = shallowReactive({
         props: { book: "lop", page: "esgt" },
         width: 800,
         height: 600,
-    }
+    },
 } as any)
 
 for (const icao of metarAirports) {
@@ -179,7 +178,7 @@ for (const icao of metarAirports) {
     }
 }
 for (const icao of wxAirports) {
-        availableWindows[`metsen${icao}`] = {
+    availableWindows[`metsen${icao}`] = {
         title: `METSENSOR ${icao}`,
         component: MetsensorWX,
         props: { id: icao },
@@ -204,7 +203,7 @@ for (const icao of wxAirports) {
         component: Airport,
         props: { id: icao },
         width: 380,
-        height: 800,
+        height: 900,
         class: "no-max",
     }
 }
