@@ -333,15 +333,25 @@ const formatAtisText = (text: string) => {
     }
 
     const extractOther = (text: string) => {
-        let match
+        let other = ""
         if (props.id === "ESSA" && props.type === "DEP") {
-            match = text.match(/ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i)
-        } else if (props.type === "ARR") {
-            match = text.match(/DEP RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=TRL \d\d|$)/i)
+            const match = text.match(/ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i)
+            if (match) other = match[1].trim()
+        } else if (props.type === "ARR" || (!props.type && props.id === "ESSA")) {
+            const match = text.match(/DEP RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=TRL \d\d|$)/i)
+            if (match) other = match[1].trim()
+            if (!props.type && props.id === "ESSA") {
+                const text2 = vatsim.data.atis.find(a => a.callsign == "ESSA_D_ATIS")?.text_atis?.join(" ")
+                if (text2) {
+                    const match2 = text.match(/ARR RWY \d{2}[LCR]?\.\s*([\s\S]*?)(?=MET REPORT|$)/i)
+                    if (match2) other += "\n" + match2[1].trim()
+                }
+            }
         } else {
-            match = text.match(/IN USE\.([\s\S]*?)TRL/i)
+            const match = text.match(/IN USE\.([\s\S]*?)TRL/i)
+            if (match) other = match[1].trim()
         }
-        return match ? match[1].trim() : ""
+        return other
     }
 
     const otherDisplay = computed(() => {
@@ -354,9 +364,21 @@ const formatAtisText = (text: string) => {
 
     const icao = extractInfo(/^(ES[A-Z]{2})/)
     const atisLetter = extractInfo(/ATIS ([A-Z])/)
-    const atisCode = atisLetters[atisLetter as keyof typeof atisLetters] || ""
-    const atisType = props.id === "ESSA" ? (props.type === "DEP" ? "DEP" : "ARR") : ""
+    let atisCode = atisLetters[atisLetter as keyof typeof atisLetters] || ""
+    if (props.id === "ESSA" && !props.type) {
+        const depAtis = vatsim.data.atis.find(a => a.callsign == "ESSA_D_ATIS")
+        if (depAtis) {
+            const match = depAtis.text_atis?.join(" ").match(/ATIS ([A-Z])/)
+            if (match && match[1] != atisLetter) atisCode += "/" + atisLetters[match[1] as keyof typeof atisLetters]
+        }
+    }
+    const atisType = props.type
     let runway = extractInfo(/RWY\s+(\d{2}[LCR]?)/)
+    if (props.id === "ESSA" && !props.type) {
+        const match = text.match(/DEP RWY (\d{2}[LCR]?)\./)
+        if (match) runway += "/" + match[1]
+    }
+
     const time = extractInfo(/TIME (\d{4})Z/, "")
     const date = extractInfo(/(\d{6}Z)/)
     const wind = extractWind(text)
