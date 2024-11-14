@@ -61,6 +61,8 @@ import { useSettingsStore } from "@/stores/settings"
 import { useDctStore } from "@/stores/dct"
 import { useMetarStore } from "@/stores/metar"
 import { useTafStore } from "@/stores/taf"
+import { useFdpStore } from "@/stores/fdp"
+import { useOccupancyStore } from "./stores/occupancy"
 import moment from "moment"
 import axios from "axios"
 
@@ -79,3 +81,5 @@ global.taf = useTafStore()
 global.moment = moment
 global.axios = axios
 global.dct = useDctStore()
+global.fdp = useFdpStore()
+global.occupancy = useOccupancyStore()

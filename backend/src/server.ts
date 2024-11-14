@@ -61,6 +61,7 @@ app.use("/data", dataRoutes)
 import wikiRoutes from "./routes/wiki"
 app.use("/wiki", wikiRoutes)
 
+app.use(express.static("public"))
 app.get(/.*/, (req, res) => {
     res.status(404).send()
 })

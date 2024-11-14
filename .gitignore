@@ -31,3 +31,4 @@ coverage
 *.tsbuildinfo
 /build
 *.zip
+/backend/public/fdp/*.*json

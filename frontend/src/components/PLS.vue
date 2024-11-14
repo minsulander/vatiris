@@ -453,10 +453,12 @@ const hasControllerData = computed(() => {
 })
 
 onMounted(() => {
-    fetchControllers()
+    if (auth.user) fetchControllers()
 
     // Set up interval for fetching controllers every 10 seconds
-    const fetchInterval = setInterval(fetchControllers, 10000)
+    const fetchInterval = setInterval(() => {
+        if (auth.user) fetchControllers()
+    }, 10000)
 
     // Set up interval for updating the computed properties every second
     const updateInterval = setInterval(() => {
