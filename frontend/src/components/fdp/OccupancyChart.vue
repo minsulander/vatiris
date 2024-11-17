@@ -1,12 +1,5 @@
 <template>
-    <div>
-        <select v-model="selected">
-            <option v-for="option in options" :key="option.title" :value="option.value">
-                {{ option.title }}
-            </option>
-        </select>
-        <Bar :data="chartData" :options="chartOptions" style="width: 100%" />
-    </div>
+    <Bar :data="chartData" :options="chartOptions" />
 </template>
 
 <style scoped>
@@ -26,38 +19,31 @@ import {
     CategoryScale,
     LinearScale,
     TimeScale,
-    type ChartOptions,
 } from "chart.js"
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue"
-import axios from "axios"
+import { computed, onMounted, onUnmounted } from "vue"
 import moment from "moment"
 import { useOccupancyStore } from "@/stores/occupancy"
+import annotationPlugin from "chartjs-plugin-annotation"
 
-ChartJS.register(Title, Tooltip, BarElement, CategoryScale, LinearScale, TimeScale)
+ChartJS.register(
+    Title,
+    Tooltip,
+    BarElement,
+    CategoryScale,
+    LinearScale,
+    TimeScale,
+    annotationPlugin,
+)
+
+const props = defineProps({
+    sectors: {
+        type: Array<string>,
+        required: true,
+        default: () => ["ARRW", "ARRE"],
+    },
+})
 
 const occupancyStore = useOccupancyStore()
-
-const selected = ref("APPW+APPE+APPS")
-const options = reactive([
-    { title: "APPW", value: "APPW" },
-    { title: "APPW", value: "APPE" },
-    { title: "TMA", value: "APPW+APPE+APPS" },
-    { title: "TWR", value: "SA_TWRE+SA_TWRW" },
-    { title: "S2", value: "ESOS2" },
-    { title: "S7", value: "ESOS7" },
-    { title: "MMK", value: "ESMMK" },
-    { title: "MML", value: "ESMML" },
-    { title: "MMKL", value: "ESMMK+ESMML" },
-    { title: "EKCH", value: "EKCH_TWR" },
-    {
-        title: "ESOS-ALL",
-        value: "ESOS1+ESOS2+ESOS3+ESOS4+ESOS5+ESOS6+ESOS7+ESOS8+ESOSN+ESOSF+ESOSK",
-    },
-])
-
-const sectors = computed(() => {
-    return selected.value.split("+")
-})
 
 const occupancy = computed(() => occupancyStore.occupancy)
 
@@ -75,7 +61,7 @@ const values2 = computed(() => {
 
 const slots = computed(() => {
     const slots = [] as any[]
-    for (const sec of sectors.value) {
+    for (const sec of props.sectors) {
         if (sec in occupancy.value) {
             for (const slot of occupancy.value[sec]) {
                 const existingSlot = slots.find((s) => s.time === slot.time)
@@ -95,6 +81,15 @@ const slots = computed(() => {
         }
     }
     return slots
+})
+
+const nowIndex = computed(() => {
+    for (const slot of slots.value) {
+        if (moment(slot.time).isAfter(moment())) {
+            return slots.value.indexOf(slot) - 1
+        }
+    }
+    return 0
 })
 
 const chartData = computed(() => {
@@ -130,13 +125,24 @@ const chartOptions = computed(() => {
                 mode: "index",
                 callbacks: {
                     footer: (context: any) => {
-                      const slot = slots.value[context[0].parsed.x]
-                      return `${slot.occupants.map((o: any) => o.callsign).join(", ")}`
-                      // let text = ""
-                      // for (const occupant of slot.occupants) {
-                      //   text += `${occupant.callsign} ${moment(occupant.entry_time).format("mmss")}-${moment(occupant.exit_time).format("mmss")}\n`
-                      // }
-                      // return text
+                        const slot = slots.value[context[0].parsed.x]
+                        return `${slot.occupants.map((o: any) => o.callsign).join(", ")}`
+                        // let text = ""
+                        // for (const occupant of slot.occupants) {
+                        //   text += `${occupant.callsign} ${moment(occupant.entry_time).format("mmss")}-${moment(occupant.exit_time).format("mmss")}\n`
+                        // }
+                        // return text
+                    },
+                },
+            },
+            annotation: {
+                annotations: {
+                    timeline: {
+                        type: "line",
+                        xMax: nowIndex.value,
+                        xMin: nowIndex.value,
+                        borderWidth: 1,
+                        borderColor: "#666",
                     },
                 },
             },
@@ -150,7 +156,7 @@ const chartOptions = computed(() => {
                     maxRotation: 0,
                     callback: (value: any, index: number, ticks: any) => {
                         const label = labels.value[index]
-                        if (!label.endsWith("0")) return undefined
+                        if (!label || !label.endsWith("0")) return undefined
                         return label.endsWith("00") ? label.substring(0, 2) : label.substring(2)
                     },
                     font: {
@@ -174,6 +180,9 @@ const chartOptions = computed(() => {
 let subscription: any = undefined
 onMounted(() => {
     subscription = occupancyStore.subscribe()
+    ;(window as any).wtf = () => {
+        console.log(slots.value)
+    }
 })
 onUnmounted(() => {
     if (subscription) occupancyStore.unsubscribe(subscription)

@@ -17,6 +17,7 @@
         "@mdi/font": "7.0.96",
         "axios": "^1.7.7",
         "chart.js": "^4.4.6",
+        "chartjs-plugin-annotation": "^3.1.0",
         "diff": "^5.2.0",
         "metar-taf-parser": "^9.0.1",
         "moment": "^2.30.1",
