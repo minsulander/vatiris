@@ -93,7 +93,7 @@ const menuItems = reactive({
                 ESGJ: "wiki-lop-esgj",
                 ESGP: "wiki-lop-esgp",
                 ESGT: "wiki-lop-esgt",
-                ESIA: "wikipdf-lop-esia",
+                ESIA: "wiki-lop-esia",
                 // ESIB // TO BE ADDED
                 ESKM: "wiki-lop-eskm",
                 ESKN: "wiki-lop-eskn",
