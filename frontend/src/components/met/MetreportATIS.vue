@@ -392,7 +392,7 @@ const formatAtisText = (text: string) => {
     const clouds = extractClouds(text)
     const temperature = extractTemperature(text)
     const dewpoint = extractDewpoint(text)
-    const qnh = extractInfo(/QNH\s+(\d{4})\s+HPA/)
+    const qnh = extractInfo(/QNH\s+(\d{3,4})\s+HPA/).padStart(4, '0')
     const qnhTrend = vatsim.qnhTrend(props.id)
     const trend =
         typeof qnhTrend == "undefined"
