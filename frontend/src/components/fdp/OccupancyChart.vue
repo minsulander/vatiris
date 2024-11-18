@@ -51,12 +51,12 @@ const labels = computed(() => {
     return slots.value.map((slot) => moment(slot.time).utc().format("HHmm"))
 })
 
-const values = computed(() => {
-    return slots.value.map((slot) => slot.occupants.filter((o: any) => !o.active).length)
+const valuesActive = computed(() => {
+    return slots.value.map((slot) => slot.occupants.filter((o: any) => o.active).length)
 })
 
-const values2 = computed(() => {
-    return slots.value.map((slot) => slot.occupants.filter((o: any) => o.active).length)
+const valuesInactive = computed(() => {
+    return slots.value.map((slot) => slot.occupants.filter((o: any) => !o.active).length)
 })
 
 const slots = computed(() => {
@@ -97,18 +97,18 @@ const chartData = computed(() => {
         labels: labels.value,
         datasets: [
             {
-                label: "Ground/Prefile",
-                barPercentage: 1,
-                categoryPercentage: 1,
-                backgroundColor: "#55f",
-                data: values.value,
-            },
-            {
                 label: "Airborne",
                 barPercentage: 1,
                 categoryPercentage: 1,
                 backgroundColor: "#22d",
-                data: values2.value,
+                data: valuesActive.value,
+            },
+            {
+                label: "Ground/Prefile",
+                barPercentage: 1,
+                categoryPercentage: 1,
+                backgroundColor: "#55f",
+                data: valuesInactive.value,
             },
         ],
     }

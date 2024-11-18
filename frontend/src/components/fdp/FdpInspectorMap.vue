@@ -146,7 +146,7 @@ onMounted(() => {
     source = new VectorSource()
     layer = new VectorLayer({
         source,
-        style: style as StyleFunction
+        style: style as StyleFunction,
     })
 
     const center = [20, 58]
@@ -203,48 +203,53 @@ onMounted(() => {
 })
 
 let changeTimeout: any = undefined
-watch(filterText, () => {
-    filterFlightIds = []
-    filterSectorIds = []
-    if (filterText.value) {
-        filterText.value = filterText.value.toUpperCase()
-        if (filterText.value in fdp.value.sectors) filterSectorIds = [filterText.value]
-        else if (filterText.value in fdp.value.flights) filterFlightIds = [filterText.value]
-        else {
-            filterFlightIds = Object.keys(fdp.value.flights).filter((id) =>
-                id.toUpperCase().includes(filterText.value.toUpperCase()),
-            )
-            filterSectorIds = Object.keys(fdp.value.sectors).filter((id) =>
-                id.toUpperCase().includes(filterText.value.toUpperCase()),
-            )
-        }
-        if (filterFlightIds.length && !filterSectorIds.length) {
-            for (const id of filterFlightIds) {
-                for (const seq of fdp.value.flights[id].sequence) {
-                    if (!filterSectorIds.includes(seq.sector.id))
-                        filterSectorIds.push(seq.sector.id)
+watch(
+    [filterText, fdp],
+    () => {
+        filterFlightIds = []
+        filterSectorIds = []
+        if (filterText.value) {
+            filterText.value = filterText.value.toUpperCase()
+            if (filterText.value in fdp.value.sectors) filterSectorIds = [filterText.value]
+            else if (filterText.value in fdp.value.flights) filterFlightIds = [filterText.value]
+            else {
+                filterFlightIds = Object.keys(fdp.value.flights).filter((id) =>
+                    id.toUpperCase().includes(filterText.value.toUpperCase()),
+                )
+                filterSectorIds = Object.keys(fdp.value.sectors).filter((id) =>
+                    id.toUpperCase().includes(filterText.value.toUpperCase()),
+                )
+            }
+            if (filterFlightIds.length && !filterSectorIds.length) {
+                for (const id of filterFlightIds) {
+                    for (const seq of fdp.value.flights[id].sequence) {
+                        if (!filterSectorIds.includes(seq.sector.id))
+                            filterSectorIds.push(seq.sector.id)
+                    }
+                }
+            } else if (filterSectorIds.length && !filterFlightIds.length) {
+                for (const id of filterSectorIds) {
+                    for (const seq of fdp.value.sectors[id].sequence) {
+                        if (!filterFlightIds.includes(seq.callsign))
+                            filterFlightIds.push(seq.callsign)
+                    }
                 }
             }
-        } else if (filterSectorIds.length && !filterFlightIds.length) {
-            for (const id of filterSectorIds) {
-                for (const seq of fdp.value.sectors[id].sequence) {
-                    if (!filterFlightIds.includes(seq.callsign)) filterFlightIds.push(seq.callsign)
-                }
-            }
         }
-    }
 
-    if (changeTimeout) clearTimeout(changeTimeout)
-    changeTimeout = setTimeout(() => {
-        changeTimeout = undefined
-        if (!source) return
-        // source.clear()
-        // source.addFeatures(new GeoJSON().readFeatures(...))
-        for (const f of source.getFeatures()) {
-            f.changed()
-        }
-    }, 300)
-})
+        if (changeTimeout) clearTimeout(changeTimeout)
+        changeTimeout = setTimeout(() => {
+            changeTimeout = undefined
+            if (!source) return
+            // source.clear()
+            // source.addFeatures(new GeoJSON().readFeatures(...))
+            for (const f of source.getFeatures()) {
+                f.changed()
+            }
+        }, 300)
+    },
+    { deep: true },
+)
 
 watch(
     geo,
