@@ -15,6 +15,7 @@ data.post("/:key", async (req: Request, res: Response) => {
     const cid = await auth.requireCid(req, res)
     console.log("Post data", cid, req.params.key)
     await db.upsertUserData(cid, req.params.key, req.body)
+    res.send("ok")
 })
 
 data.delete("/:key", async (req: Request, res: Response) => {
