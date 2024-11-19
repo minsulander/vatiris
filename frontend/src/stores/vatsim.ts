@@ -161,7 +161,7 @@ export const useVatsimStore = defineStore("vatsim", () => {
         if (!data.value || !data.value.atis) return undefined
         const atis = data.value.atis.find((a) => a.callsign.startsWith(icao))
         if (atis && atis.text_atis && atis.text_atis.length > 0) {
-            const m = atis.text_atis.join(" ").match(/QNH (\d{4})/)
+            const m = atis.text_atis.join(" ").match(/QNH (\d{3,4})/)
             if (m && m[1]) return parseInt(m[1])
         }
         return undefined
