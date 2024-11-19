@@ -1,4 +1,9 @@
 {
+    "gop-mil": {
+        "title": "GOP MIL",
+        "book": "gop",
+        "page": "rules-and-procedures-for-military-aviation"
+    },
     "lop-rtc": {
         "title": "LOP RTC",
         "book": "lop",

@@ -58,7 +58,7 @@ wiki.get("/book/:book/page/:page/html", async (req: Request, res: Response) => {
     }
     const pageResponse = await wikiAxios.get(`${wikiBaseUrl}/pages/${pageId}`)
     res.setHeader("Content-Type", "text/html")
-    res.send(pageResponse.data.html)
+    res.send(`<h1 class="page-name">${pageResponse.data.name}</h1>\n${pageResponse.data.html}`)
 })
 
 async function authorize(req: Request, res: Response) {

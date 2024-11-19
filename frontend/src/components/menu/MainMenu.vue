@@ -76,7 +76,7 @@ const menuItems = reactive({
                 //Index: "https://wiki.vatsim-scandinavia.org/books/gop",
                 "TWR/APP/AFIS": "wikipdf-gop-twr",
                 ACC: "wikipdf-gop-acc",
-                MIL: "wikipdf-gop-mil",
+                MIL: "wiki-gop-mil",
                 "ATS-STRI": "wikipdf-gop-ats-stri",
             },
             LOP: {
