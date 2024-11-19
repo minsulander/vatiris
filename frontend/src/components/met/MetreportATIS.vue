@@ -418,8 +418,8 @@ const formatAtisText = (text: string) => {
     const trlDisplay = props.type === "DEP" ? "" : `TRL ${trl}`
 
     return `
-${icao}     ${atisType || "   "}   <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 8 - atisCode.length))} ${formattedDate}
-RWY <span class="${runwayClass}">${runway.padEnd(8)}</span>MET REPORT  <b>${formattedTime}Z</b> ${otherRunway}
+${icao}     ${atisType || "   "}   <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 10 - atisCode.length))} ${formattedDate}
+RWY <span class="${runwayClass}">${runway.padEnd(11)}</span>MET REPORT  <b>${formattedTime}Z</b> ${otherRunway}
 WIND ${wind}
 
 ${vis}
@@ -427,7 +427,7 @@ ${vis}
 ${conditions}
 
 ${clouds}
-${temperature.padEnd(9)}${dewpoint}
+${temperature.padEnd(11)}${dewpoint}
 QNH <div style="display: inline-block; font-size: 20px; font-weight: bold; margin-top: 7px">${qnh.split("").join(" ")}${trend}</div> HPA   ${trlDisplay}
 
 ${otherDisplay.value}
