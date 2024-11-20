@@ -67,6 +67,8 @@ import { useFdpStore } from "@/stores/fdp"
 import type { Geometry } from "ol/geom"
 import type { FeatureLike } from "ol/Feature"
 
+const props = defineProps<{ filter?: string }>()
+
 const fdpStore = useFdpStore()
 
 const fdp = computed(() => fdpStore.fdp)
@@ -139,6 +141,7 @@ const style = (feature: Feature) => {
 
 let source: VectorSource | undefined = undefined
 let layer: VectorLayer<Feature<Geometry>> | undefined = undefined
+let select: Select | undefined = undefined
 
 onMounted(() => {
     useGeographic()
@@ -171,7 +174,7 @@ onMounted(() => {
         }),
     })
 
-    const select = new Select({
+    select = new Select({
         multi: true,
         style: (feature: FeatureLike) => {
             const s = style(feature as Feature<Geometry>)
@@ -200,7 +203,15 @@ onMounted(() => {
     })
     map.addInteraction(select)
     ;(window as any).map = map
+    ;(window as any).select = select
 })
+
+watch(
+    () => props.filter,
+    () => {
+        filterText.value = props.filter || ""
+    },
+)
 
 let changeTimeout: any = undefined
 watch(
@@ -210,14 +221,12 @@ watch(
         filterSectorIds = []
         if (filterText.value) {
             filterText.value = filterText.value.toUpperCase()
-            if (filterText.value in fdp.value.sectors) filterSectorIds = [filterText.value]
-            else if (filterText.value in fdp.value.flights) filterFlightIds = [filterText.value]
-            else {
-                filterFlightIds = Object.keys(fdp.value.flights).filter((id) =>
-                    id.toUpperCase().includes(filterText.value.toUpperCase()),
-                )
-                filterSectorIds = Object.keys(fdp.value.sectors).filter((id) =>
-                    id.toUpperCase().includes(filterText.value.toUpperCase()),
+            filterSectorIds = Object.keys(fdp.value.sectors).filter((id: string) =>
+                id.match(new RegExp(`${filterText.value}`)),
+            )
+            if (!filterSectorIds.length) {
+                filterFlightIds = Object.keys(fdp.value.flights).filter((id: string) =>
+                    id.match(new RegExp(`${filterText.value}`)),
                 )
             }
             if (filterFlightIds.length && !filterSectorIds.length) {
@@ -254,12 +263,24 @@ watch(
 watch(
     geo,
     () => {
-        if (!source) return
+        if (!source || !select) return
         source.clear()
         source.addFeatures(new GeoJSON().readFeatures(geo.value))
+        const oldSelected = [...selection]
         selection.splice(0)
         selectionProps.splice(0)
-        // TODO how to update selection?
+        // Re-add selection
+        select.getFeatures().clear()
+        const selected = [] as Feature[]
+        for (const oldFeature of oldSelected) {
+            if (!oldFeature.getId()) continue
+            const feature = source.getFeatureById(oldFeature.getId()!)
+            if (feature) {
+                select.getFeatures().push(feature)
+                selected.push(feature)
+            }
+        }
+        select.dispatchEvent({ type: "select", selected, deselected: [] } as any)
     },
     { deep: true },
 )
