@@ -149,10 +149,20 @@
         "book": "lop",
         "page": "espa"
     },
+    "lop-espe": {
+        "title": "LOP ESPE",
+        "book": "lop",
+        "page": "espe"
+    },
     "lop-essd": {
         "title": "LOP ESSD",
         "book": "lop",
         "page": "essd"
+    },
+    "lop-essl": {
+        "title": "LOP ESSL",
+        "book": "lop",
+        "page": "essl"
     },
     "lop-essp": {
         "title": "LOP ESSP",

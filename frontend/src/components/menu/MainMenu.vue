@@ -121,7 +121,7 @@ const menuItems = reactive({
                 "ESOS APP": "wikipdf-lpm-esos",
                 ESOW: "wikipdf-lpm-esos",
                 ESPA: "wiki-lop-espa",
-                // ESPE // TO BE ADDED
+                ESPE: "wiki-lop-espe",
                 ESSA: "wikipdf-lpm-esos",
                 ESSB: "wikipdf-lpm-esos",
                 ESSD: "wiki-lop-essd",
