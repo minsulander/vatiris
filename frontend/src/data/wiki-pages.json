@@ -24,6 +24,11 @@
         "book": "lop",
         "page": "esgt"
     },
+    "lop-esdf": {
+        "title": "LOP ESDF",
+        "book": "lop",
+        "page": "esdf"
+    },
     "lop-esia": {
         "title": "LOP ESIA",
         "book": "lop",

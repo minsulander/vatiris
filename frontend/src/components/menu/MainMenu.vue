@@ -86,8 +86,7 @@ const menuItems = reactive({
                 "ESOS ACC": "wikipdf-lop-esos-acc",
                 // ESCF // TO BE ADDED
                 // ESCM // See Stockholm LPM
-                ESDF: "wikipdf-lop-esdf",
-                "ESDF APP": "wikipdf-lop-esdf-app",
+                ESDF: "wiki-lop-esdf",
                 ESGG: "wikipdf-lop-esgg",
                 "ESGG APP": "wikipdf-lop-esgg-app",
                 ESGJ: "wiki-lop-esgj",
