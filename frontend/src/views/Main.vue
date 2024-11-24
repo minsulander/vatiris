@@ -52,6 +52,7 @@ import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
+import GGpush from "@/components/GGpush.vue"
 
 export interface WindowSpec {
     title: string
@@ -147,6 +148,14 @@ const availableWindows = shallowReactive({
         width: 800,
         height: 600,
     },
+    GGpush: {
+        title: "ESGG Pushback",
+        component: GGpush,
+        width: 575,
+        height: 895,
+        class: "no-max",
+    },
+
 } as any)
 
 for (const icao of metarAirports) {
