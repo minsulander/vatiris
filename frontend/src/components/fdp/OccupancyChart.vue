@@ -1,5 +1,27 @@
 <template>
-    <Bar :data="chartData" :options="chartOptions" />
+    <div style="width: 100%; height: 100%">
+        <div style="position: relative">
+            <div
+                v-if="occupancy && occupancy.general"
+                style="position: absolute; right: 0; top: 0; padding-right: 5px; font-size: 12px"
+            >
+                <div
+                    v-if="moment(occupancy.general.update_timestamp).diff(moment(), 'minutes') < -5"
+                    class="text-orange-darken-3 font-weight-bold"
+                >
+                    {{
+                        moment(occupancy.general.update_timestamp)
+                            .utc()
+                            .format("YYYY-MM-DD HH:mm:ss")
+                    }}
+                </div>
+                <div v-else>
+                    {{ moment(occupancy.general.update_timestamp).utc().format("HH:mm") }}
+                </div>
+            </div>
+        </div>
+        <Bar :data="chartData" :options="chartOptions" style="padding-top: 10px;"/>
+    </div>
 </template>
 
 <style scoped>
@@ -27,7 +49,6 @@ import annotationPlugin from "chartjs-plugin-annotation"
 
 ChartJS.register(
     Title,
-    Tooltip,
     BarElement,
     CategoryScale,
     LinearScale,
@@ -41,7 +62,17 @@ const props = defineProps({
         required: true,
         default: () => ["ARRW", "ARRE"],
     },
+    maintainAspectRatio: {
+        type: Boolean,
+        default: false,
+    },
+    tooltip: {
+        type: Boolean,
+        default: false,
+    },
 })
+
+if (props.tooltip) ChartJS.register(Tooltip)
 
 const occupancyStore = useOccupancyStore()
 
@@ -60,10 +91,11 @@ const valuesInactive = computed(() => {
 })
 
 const slots = computed(() => {
+    if (!(occupancy.value && occupancy.value.sectors)) return []
     const slots = [] as any[]
     for (const sec of props.sectors) {
-        if (sec in occupancy.value) {
-            for (const slot of occupancy.value[sec]) {
+        if (sec in occupancy.value.sectors) {
+            for (const slot of occupancy.value.sectors[sec]) {
                 const existingSlot = slots.find((s) => s.time === slot.time)
                 if (existingSlot) {
                     for (const occupant of slot.occupants) {
@@ -80,7 +112,7 @@ const slots = computed(() => {
             }
         }
     }
-    return slots
+    return slots.sort((a, b) => moment(a.time).diff(moment(b.time)))
 })
 
 const nowIndex = computed(() => {
@@ -107,7 +139,7 @@ const chartData = computed(() => {
                 label: "Ground/Prefile",
                 barPercentage: 1,
                 categoryPercentage: 1,
-                backgroundColor: "#55f",
+                backgroundColor: "#16e",
                 data: valuesInactive.value,
             },
         ],
@@ -117,6 +149,7 @@ const chartData = computed(() => {
 const chartOptions = computed(() => {
     return {
         responsive: true,
+        maintainAspectRatio: props.maintainAspectRatio,
         animation: {
             duration: 0,
         },
@@ -127,11 +160,6 @@ const chartOptions = computed(() => {
                     footer: (context: any) => {
                         const slot = slots.value[context[0].parsed.x]
                         return `${slot.occupants.map((o: any) => o.callsign).join(", ")}`
-                        // let text = ""
-                        // for (const occupant of slot.occupants) {
-                        //   text += `${occupant.callsign} ${moment(occupant.entry_time).format("mmss")}-${moment(occupant.exit_time).format("mmss")}\n`
-                        // }
-                        // return text
                     },
                 },
             },
@@ -180,9 +208,6 @@ const chartOptions = computed(() => {
 let subscription: any = undefined
 onMounted(() => {
     subscription = occupancyStore.subscribe()
-    ;(window as any).wtf = () => {
-        console.log(slots.value)
-    }
 })
 onUnmounted(() => {
     if (subscription) occupancyStore.unsubscribe(subscription)

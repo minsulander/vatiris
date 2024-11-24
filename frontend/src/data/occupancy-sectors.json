@@ -1,0 +1,87 @@
+{
+    "ESOS": {
+        "section": "ESOS",
+        "title": "ESOS",
+        "sectors": [ "ESOS1", "ESOS2", "ESOS3", "ESOS4", "ESOS6", "ESOS7", "ESOS8", "ESOS9", "ESOSN", "ESOSF", "ESOSK" ]
+    },
+    "ESOS12679": {
+        "section": "ESOS",
+        "title": "12679",
+        "sectors": [ "ESOS1", "ESOS2", "ESOS6", "ESOS7", "ESOS9" ]
+    },
+    "ESOS38": {
+        "section": "ESOS",
+        "title": "38",
+        "sectors": [ "ESOS3", "ESOS8" ]
+    },
+    "ESOS4NFK": {
+        "section": "ESOS",
+        "title": "4NFK",
+        "sectors": [ "ESOS4", "ESOSN", "ESOSF", "ESOSK" ]
+    },
+    "TMA": {
+        "section": "OS",
+        "title": "TMA",
+        "sectors": [ "APPE", "APPW", "APPS" ]
+    },
+    "E": {
+        "section": "OS",
+        "title": "E",
+        "sectors": [ "APPE" ]
+    },
+    "W": {
+        "section": "OS",
+        "title": "W",
+        "sectors": [ "APPW" ]
+    },
+    "S": {
+        "section": "OS",
+        "title": "S",
+        "sectors": [ "APPS" ]
+    },
+    "SA": {
+        "section": "OS",
+        "title": "SA",
+        "sectors": [ "SA_TWRE", "SA_TWRW" ]
+    },
+    "ESMM": {
+        "section": "ESMM",
+        "title": "ESMM",
+        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMC", "ESMMK", "ESMML", "ESMMW", "ESMMY" ]
+    },
+    "ESMM23W45": {
+        "section": "ESMM",
+        "title": "23W45",
+        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW" ]
+    },
+    "ESMM67Y89": {
+        "section": "ESMM",
+        "title": "67Y89",
+        "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY" ]
+    },
+    "ESMMKL": {
+        "section": "ESMM",
+        "title": "KL",
+        "sectors": [ "ESMMK", "ESMML" ]
+    },
+    "ESMMK": {
+        "section": "ESMM",
+        "title": "K",
+        "sectors": [ "ESMMK" ]
+    },
+    "ESMML": {
+        "section": "ESMM",
+        "title": "L",
+        "sectors": [ "ESMML" ]
+    },
+    "GGTMA": {
+        "section": "GG",
+        "title": "GG TMA",
+        "sectors": [ "GGAPPE", "GGAPPE21", "GGAPPW03", "GGAPPW", "GGAPPW21", "GGAPPE03", "GGAPPN" ]
+    },
+    "GG": {
+        "section": "GG",
+        "title": "GG",
+        "sectors": [ "GG_TWR" ]
+    }
+}
