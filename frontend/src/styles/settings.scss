@@ -20,7 +20,7 @@ body {
     scrollbar-width: thin;
 }
 
-/* Fix meny width for fierfox */
+/* Fix meny width for firefox */
 @supports (-moz-appearance:none) {
     .v-list {
         width: 130%;
