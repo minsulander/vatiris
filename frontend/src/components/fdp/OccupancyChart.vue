@@ -20,7 +20,13 @@
                 </div>
             </div>
         </div>
-        <Bar :data="chartData" :options="chartOptions" style="padding-top: 10px;"/>
+        <Bar
+            v-if="slots.length > 0"
+            :data="chartData"
+            :options="chartOptions"
+            style="padding-top: 10px"
+        />
+        <div v-else class="text-center pt-5">No traffic or no data available</div>
     </div>
 </template>
 
@@ -47,14 +53,7 @@ import moment from "moment"
 import { useOccupancyStore } from "@/stores/occupancy"
 import annotationPlugin from "chartjs-plugin-annotation"
 
-ChartJS.register(
-    Title,
-    BarElement,
-    CategoryScale,
-    LinearScale,
-    TimeScale,
-    annotationPlugin,
-)
+ChartJS.register(Title, BarElement, CategoryScale, LinearScale, TimeScale, annotationPlugin)
 
 const props = defineProps({
     sectors: {
