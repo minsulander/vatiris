@@ -33,6 +33,7 @@ const authorizedMenuItems = computed(() => {
     if (!auth.user) {
         delete items.ATFM
         delete items.Documents
+        delete items.Traffic
         delete items.DCT
     }
     return items
@@ -164,6 +165,7 @@ const menuItems = reactive({
         "AIRCRAFT TYPES": "aircraft",
         NOTEPAD: "notepad",
     },
+    Traffic: {},
     DCT: {}, // We'll populate this dynamically
 } as any)
 
@@ -193,6 +195,14 @@ import("@/data/aip-airports.json").then((module) => {
         for (const document of airport.documents) {
             menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
         }
+    }
+})
+
+import("@/data/occupancy-sectors.json").then((module) => {
+    for (const id in module.default) {
+        const entry = (module.default as any)[id]
+        if (!(entry.section in menuItems.Traffic)) menuItems.Traffic[entry.section] = {}
+        menuItems.Traffic[entry.section][entry.title] = `occupancy-${id}`
     }
 })
 

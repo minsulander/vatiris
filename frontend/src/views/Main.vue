@@ -53,6 +53,7 @@ import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
 import GGpush from "@/components/GGpush.vue"
+import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
 
 export interface WindowSpec {
     title: string
@@ -134,20 +135,6 @@ const availableWindows = shallowReactive({
         width: 650,
         height: 750,
     },
-    wikitest: {
-        title: "WIKI TEST",
-        component: WikiPdf,
-        props: { id: 120 },
-        width: 800,
-        height: 600,
-    },
-    wikitest2: {
-        title: "WIKI TEST 2",
-        component: WikiPage,
-        props: { book: "lop", page: "esgt" },
-        width: 800,
-        height: 600,
-    },
     GGpush: {
         title: "ESGG Pushback",
         component: GGpush,
@@ -155,7 +142,6 @@ const availableWindows = shallowReactive({
         height: 895,
         class: "no-max",
     },
-
 } as any)
 
 for (const icao of metarAirports) {
@@ -252,6 +238,18 @@ import("@/data/wiki-pages.json").then((module) => {
             props: { book: page.book, page: page.page },
             width: 800,
             height: 600,
+        }
+    }
+})
+import("@/data/occupancy-sectors.json").then((module) => {
+    for (const id in module.default) {
+        const entry = (module.default as any)[id]
+        availableWindows[`occupancy-${id}`] = {
+            title: `${entry.title} - Occupancy`,
+            component: OccupancyChart,
+            props: { sectors: entry.sectors },
+            width: 600,
+            height: 200,
         }
     }
 })

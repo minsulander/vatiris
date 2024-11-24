@@ -14,6 +14,11 @@ const router = createRouter({
       component: () => import("@/views/Settings.vue")
     },
     {
+      path: '/fdp',
+      name: 'fdp',
+      component: () => import("@/views/FDP.vue")
+    },
+    {
       path: '/privacy',
       name: 'privacy',
       component: () => import("@/views/Privacy.vue")
