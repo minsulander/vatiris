@@ -6,7 +6,7 @@
                 style="position: absolute; right: 0; top: 0; padding-right: 5px; font-size: 12px"
             >
                 <div
-                    v-if="moment(occupancy.general.update_timestamp).diff(moment(), 'minutes') < -5"
+                    v-if="moment(occupancy.general.update_timestamp).diff(moment(), 'minutes') < -8"
                     class="text-orange-darken-3 font-weight-bold"
                 >
                     {{
