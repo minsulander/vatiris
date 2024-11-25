@@ -85,7 +85,7 @@ const menuItems = reactive({
                 RTC: "wiki-lop-rtc",
                 "ESMM ACC": "wikipdf-lop-esmm-acc",
                 "ESOS ACC": "wikipdf-lop-esos-acc",
-                // ESCF // TO BE ADDED
+                ESCF: "wiki-lop-escf",
                 // ESCM // See Stockholm LPM
                 ESDF: "wiki-lop-esdf",
                 ESGG: "wikipdf-lop-esgg",
@@ -94,7 +94,7 @@ const menuItems = reactive({
                 ESGP: "wiki-lop-esgp",
                 ESGT: "wiki-lop-esgt",
                 ESIA: "wiki-lop-esia",
-                // ESIB // TO BE ADDED
+                ESIB: "wiki-lop-esib",
                 ESKM: "wiki-lop-eskm",
                 ESKN: "wiki-lop-eskn",
                 ESKS: "wiki-lop-esks",

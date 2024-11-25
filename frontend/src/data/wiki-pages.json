@@ -24,6 +24,11 @@
         "book": "lop",
         "page": "esgt"
     },
+    "lop-escf": {
+        "title": "LOP ESCF",
+        "book": "lop",
+        "page": "escf"
+    },
     "lop-esdf": {
         "title": "LOP ESDF",
         "book": "lop",
@@ -33,6 +38,11 @@
         "title": "LOP ESIA",
         "book": "lop",
         "page": "esia"
+    },
+    "lop-esib": {
+        "title": "LOP ESIB",
+        "book": "lop",
+        "page": "esib"
     },
     "lop-eskm": {
         "title": "LOP ESKM",
