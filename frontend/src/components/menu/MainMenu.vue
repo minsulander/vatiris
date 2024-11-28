@@ -163,6 +163,7 @@ const menuItems = reactive({
         },
         "TEXT ALIAS": "alias",
         "AIRCRAFT TYPES": "aircraft",
+        "VATIRIS MANUAL": "wiki-vatiris",
         NOTEPAD: "notepad",
     },
     Traffic: {},
