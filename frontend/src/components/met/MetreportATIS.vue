@@ -99,8 +99,11 @@ const atisLetters = {
     Z: "ZUL",
 }
 
+const metarAuto = computed(() => wx.metar(props.id) && wx.metar(props.id).includes(" AUTO "))
+
 const rwyDiffersToVatsim = computed(() => {
     const rwy = wx.rwy(props.id)
+    if (!rwy) return false
     if (props.id == "ESSA") {
         const arrAtis =
             vatsim.data.atis && vatsim.data.atis.find((atis) => atis.callsign.startsWith("ESSA_A"))
@@ -392,7 +395,7 @@ const formatAtisText = (text: string) => {
     const clouds = extractClouds(text)
     const temperature = extractTemperature(text)
     const dewpoint = extractDewpoint(text)
-    const qnh = extractInfo(/QNH\s+(\d{3,4})\s+HPA/).padStart(4, '0')
+    const qnh = extractInfo(/QNH\s+(\d{3,4})\s+HPA/).padStart(4, "0")
     const qnhTrend = vatsim.qnhTrend(props.id)
     const trend =
         typeof qnhTrend == "undefined"
@@ -409,7 +412,12 @@ const formatAtisText = (text: string) => {
     const formattedDate = currentDate.format("YYMMDD")
     const formattedTime = `${currentDate.format("DD")}${time}`
 
-    const runwayClass = rwyDiffersToVatsim.value ? "text-orange-darken-3 font-weight-bold" : ""
+    const runwayClass =
+        rwyDiffersToVatsim.value && !metarAuto.value
+            ? "text-orange-darken-3 font-weight-bold"
+            : rwyDiffersToVatsim.value && metarAuto.value
+              ? "text-grey-darken-1"
+              : ""
     let otherRunway = extraRunway.value
     if (runwayClass)
         otherRunway = otherRunway.replace("RWY ", `RWY <span class="${runwayClass}">`) + "</span>"

@@ -132,7 +132,8 @@ const info = computed(() => {
         }
     }
     text = text.replace("ATS LANDVETTER", "")
-    return text
+    if (metarAuto.value) text += "\nAUTO"
+    return text.trim()
 })
 const metar = computed(() => wx.metar(props.id))
 const qnh = computed(() => wx.qnh(props.id))
