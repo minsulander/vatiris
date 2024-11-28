@@ -11,6 +11,7 @@ if [ "$aws_account_id" != "802367033029" ]; then
 fi
 
 cd "$(dirname $0)/../frontend"
+npm install
 npm run build
 aws s3 sync dist/ $s3_url --delete --acl public-read
 aws cloudfront create-invalidation --distribution-id $distribution_id --paths '/*'
