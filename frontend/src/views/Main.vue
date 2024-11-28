@@ -48,12 +48,15 @@ import Sun from "@/components/met/Sun.vue"
 import Airport from "@/components/met/Airport.vue"
 import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
-import { onBeforeUnmount, onUnmounted, shallowReactive } from "vue"
+import { onBeforeUnmount, onMounted, onUnmounted, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
 import GGpush from "@/components/GGpush.vue"
 import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
+import { useWakeLock } from "@vueuse/core"
+
+const wakelock = useWakeLock()
 
 export interface WindowSpec {
     title: string
@@ -315,8 +318,21 @@ function unselect(id: string) {
     }
 }
 
+onMounted(() => {
+    wakelock.request("screen")
+    document.addEventListener("visibilitychange", onVisibilityChange)
+})
+
+function onVisibilityChange() {
+    if (document.visibilityState == "visible") {
+        wakelock.request("screen")
+    }
+}
+
 onBeforeUnmount(() => {
     windows.unmounting = true
+    document.removeEventListener("visibilitychange", onVisibilityChange)
+    wakelock.release()
 })
 
 onUnmounted(() => {

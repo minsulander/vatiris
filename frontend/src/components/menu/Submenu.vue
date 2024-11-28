@@ -104,7 +104,7 @@ function filterEnter(event: KeyboardEvent) {
     }
 }
 
-function click(event: MouseEvent, id: string) {
+function click(event: KeyboardEvent | MouseEvent, id: string) {
     if (event.shiftKey) event.stopPropagation()
     if (event.ctrlKey || event.altKey || event.metaKey) id = "ctrl+" + id
     emit("select", id)
