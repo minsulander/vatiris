@@ -1,4 +1,14 @@
 {
+    "quickref-esos-acc": {
+        "title": "ESOS ACC Appendix A",
+        "book": "lop",
+        "page": "esos-acc-appendix-a"
+    },
+    "quickref-esmm-acc": {
+        "title": "ESMM ACC Appendix A",
+        "book": "lop",
+        "page": "esmm-acc-appendix-a"
+    },
     "vatiris": {
         "title": "VatIRIS Manual",
         "book": "gen-k9C",

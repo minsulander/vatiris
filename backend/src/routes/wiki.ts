@@ -52,7 +52,14 @@ wiki.get("/book/:book/page/:page/html", async (req: Request, res: Response) => {
     if (!pageId) {
         const bookResponse = await wikiAxios.get(`${wikiBaseUrl}/books/${bookId}`)
         const contents = bookResponse.data.contents
-        const page = contents.find((p: any) => p.type === "page" && p.slug === req.params.page)
+        let page = contents.find((c: any) => c.type === "page" && c.slug === req.params.page)
+        if (!page) {
+            const chapters = contents.filter((c: any) => c.type === "chapter")
+            for (const chapter of chapters) {
+                page = chapter.pages.find((p: any) => p.slug === req.params.page)
+                if (page) break
+            }
+        }
         if (!page) return res.status(404).send("Page not found")
         pageId = pageIdCache[`${bookId}-${req.params.page}`] = page.id
     }
