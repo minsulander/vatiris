@@ -148,6 +148,8 @@ const menuItems = reactive({
                 EPWW: "wikipdf-loa-epww",
             },
             QuickRef: {
+                "ESOS ACC": "wiki-quickref-esos-acc",
+                "ESMM ACC": "wiki-quickref-esmm-acc",
                 "ESGG TWR/APP": "wikipdf-quickref-esgg-twr-app",
                 "ESSA TWR": "wikipdf-quickref-essa-twr",
                 "ESSA APP": "wikipdf-quickref-essa-app",
@@ -163,6 +165,7 @@ const menuItems = reactive({
         },
         "TEXT ALIAS": "alias",
         "AIRCRAFT TYPES": "aircraft",
+        "VATIRIS MANUAL": "wiki-vatiris",
         NOTEPAD: "notepad",
     },
     Traffic: {},

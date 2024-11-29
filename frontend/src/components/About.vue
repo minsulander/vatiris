@@ -6,7 +6,6 @@
             Integrated Real-time Information System, but adapted and extended for use by VATSIM
             controllers in Sweden.
         </p>
-        <p>It's currently under heavy development, so please expect bugs.</p>
         <p>
             Welcome to file bug reports or feature requests as
             <a href="https://github.com/minsulander/vatiris/issues" target="_blank">issues</a>
@@ -24,9 +23,6 @@
         <p class="mt-3">
             <router-link class="text-grey-darken-1" to="privacy">Privacy policy</router-link>
         </p>
-        <p class="text-grey-darken-1 mt-3">
-            Copyright &copy; 2024 Martin Insulander and contributors
-        </p>
         <p class="mt-3">
             <a
                 class="text-grey-darken-1"
@@ -34,6 +30,9 @@
                 target="_blank"
                 ><v-icon>mdi-github</v-icon> VatIRIS on GitHub</a
             >
+        </p>
+        <p class="text-grey-darken-1 mt-3">
+            Copyright &copy; 2024 Martin Insulander and contributors
         </p>
     </div>
 </template>
