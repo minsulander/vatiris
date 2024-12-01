@@ -6,11 +6,15 @@
             Integrated Real-time Information System, but adapted and extended for use by VATSIM
             controllers in Sweden.
         </p>
-        <p>
-            Welcome to file bug reports or feature requests as
-            <a href="https://github.com/minsulander/vatiris/issues" target="_blank">issues</a>
+        <p class="mb-3">
+            For usage instructions, see the
+            <a href="https://wiki.vatsim-scandinavia.org/books/gen-k9C/page/vatiris" target="_blank">VatIRIS manual on VATSCA wiki</a>.
         </p>
-        <p class="mt-3" v-if="auth.user">
+        <p class="mb-3">
+            Welcome to file bug reports or feature requests as
+            <a href="https://github.com/minsulander/vatiris/issues" target="_blank">issues</a>.
+        </p>
+        <p class="mb-3" v-if="auth.user">
             Logged in as {{ auth.user.personal.name_full }}, {{ auth.user.cid }},
             {{ auth.user.vatsim.rating.short }}
             <span v-if="auth.user.vatsim.subdivision && auth.user.vatsim.subdivision.name">
@@ -20,10 +24,10 @@
                 from {{ auth.user.vatsim.division.name }}</span
             >
         </p>
-        <p class="mt-3">
+        <p class="mb-3">
             <router-link class="text-grey-darken-1" to="privacy">Privacy policy</router-link>
         </p>
-        <p class="mt-3">
+        <p class="mb-3">
             <a
                 class="text-grey-darken-1"
                 href="https://github.com/minsulander/vatiris"
@@ -31,7 +35,7 @@
                 ><v-icon>mdi-github</v-icon> VatIRIS on GitHub</a
             >
         </p>
-        <p class="text-grey-darken-1 mt-3">
+        <p class="text-grey-darken-1">
             Copyright &copy; 2024 Martin Insulander and contributors
         </p>
     </div>

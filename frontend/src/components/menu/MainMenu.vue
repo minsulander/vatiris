@@ -165,7 +165,6 @@ const menuItems = reactive({
         },
         "TEXT ALIAS": "alias",
         "AIRCRAFT TYPES": "aircraft",
-        "VATIRIS MANUAL": "wiki-vatiris",
         NOTEPAD: "notepad",
     },
     Traffic: {},
@@ -192,8 +191,13 @@ for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups
 }
 
-import("@/data/aip-airports.json").then((module) => {
-    for (const airport of module.default) {
+import("@/data/aip.json").then((module) => {
+    const aip = module.default as any
+    menuItems.Documents.AIP["En-route kartor"] = {}
+    for (const document of aip.enroute) {
+        menuItems.Documents.AIP["En-route kartor"][document.name] = `aip${document.prefix.replaceAll(' ', '')}`
+    }
+    for (const airport of aip.airports) {
         menuItems.Documents.AIP[airport.icao] = {}
         for (const document of airport.documents) {
             menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`

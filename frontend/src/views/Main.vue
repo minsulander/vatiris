@@ -206,8 +206,18 @@ for (const icao of wxAirports) {
     }
 }
 
-import("@/data/aip-airports.json").then((module) => {
-    for (const airport of module.default) {
+import("@/data/aip.json").then((module) => {
+    const aip = module.default as any
+    for (const document of aip.enroute) {
+        availableWindows[`aip${document.prefix.replaceAll(' ','')}`] = {
+            title: `AIP ${document.prefix} ${document.name}`,
+            component: Iframe,
+            props: { src: `${document.url}#toolbar=0` },
+            width: 800,
+            height: 600,
+        }
+    }
+    for (const airport of aip.airports) {
         for (const document of airport.documents) {
             availableWindows[`aip${document.prefix}`] = {
                 title: `AIP ${document.prefix} ${document.name}`,
