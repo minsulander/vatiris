@@ -12,7 +12,7 @@
 ;                                                                                                                         ;
 ;=========================================================================================================================;
 ;                                                                                                                         ;
-;  ALL RIGHTS RESERVED © AeroNav Association. NAV-DATA © AEROSOFT. FILES MUST NOT BE DISTRIBUTED TO NON-VATSIM MEMBERS!   ;
+;  ALL RIGHTS RESERVED ï¿½ AeroNav Association. NAV-DATA ï¿½ AEROSOFT. FILES MUST NOT BE DISTRIBUTED TO NON-VATSIM MEMBERS!   ;
 ;                                                                                                                         ;
 ;=========================================================================================================================;
 ;  The Global Nav Generator (GNG) and all it sub-modules where created by the AeroNav Association.                        ;
@@ -62,14 +62,14 @@
 .relbog Cleared Direct ELBOG, Cleared to EFRO via ELBOG DCT BESLA DCT MISMO DCT NEMGU
 .rbegdo Cleared Direct BEGDO, Cleared to EFRO via BEGDO DCT BESLA DCT MISMO DCT NEMGU
 .rsun Cleared Direct SUN (113.1), Cleared to EFRO via SUN DCT ELBOG DCT BESLA DCT MISMO DCT NEMGU
-.rresna Cleared Direct RESNA, Cleared to EFRO via RESNA DCT EDAXA DCT ELBOG DCT BESLA DCT MISMO DCT NEMGU
+.redaxa Cleared Direct EDAXA, Cleared to EFRO via EDAXA DCT ELBOG DCT BESLA DCT MISMO DCT NEMGU
 .rdetso Cleared Direct DETSO, Cleared to EFRO via DETSO DCT PELIT DCT RESNA DCT EDAXA DCT ELBOG DCT BESLA DCT MISMO DCT NEMGU
 .rtrs Cleared Direct TRS (114.3), Cleared to EFRO via TRS DCT RESNA DCT EDAXA DCT ELBOG DCT BESLA DCT MISMO DCT NEMGU
-.rvsb Cleared Direct VSB (115.1), Cleared to EFRO via VSB DCT KOSKA DCT DIVEG DCT GODOB DCT NEPIX
 .rbodri Cleared Direct BODRI, Cleared to EFRO via BODRI DCT DIVEG DCT GODOB DCT NEPIX
+.rars Cleared Direct ARS (112.8), Cleared to EFRO via ARS DCT BAKLA DCT DIVEG DCT GODOB DCT NEPIX
 .rbakla Cleared Direct BAKLA, Cleared to EFRO via BAKLA DCT DIVEG DCT GODOB DCT NEPIX
-.revlan Cleared Direct EVLAN, Cleared to EFRO via EVLAN DCT DIVEG DCT GODOB DCT NEPIX
-.rkoska Cleared Direct KOSKA, Cleared to EFRO via KOSKA DCT DIVEG DCT GODOB DCT NEPIX
+.revlan Cleared Direct EVLAN, Cleared to EFRO via EVLAN DCT OTVEG DCT GODOB DCT NEPIX
+.rkoska Cleared Direct KOSKA, Cleared to EFRO via KOSKA DCT OTVEG DCT GODOB DCT NEPIX
 
 ;*** Sweden ***
 ;General

@@ -228,5 +228,10 @@
         "title": "LOP ESUT",
         "book": "lop",
         "page": "esut"
+    },
+    "santa2024": {
+        "title": "Fly and see Santa 2024",
+        "book": "event-procedures",
+        "page": "fly-and-see-santa-2024"
     }
 }

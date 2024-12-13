@@ -114,14 +114,9 @@
         "title": "GG",
         "sectors": [ "GG_TWR" ]
     },
-    "NQTMA": {
-        "section": "NQ",
-        "title": "NQ TMA",
-        "sectors": [ "NQ_TMA" ]
-    },
     "NQ": {
-        "section": "NQ",
+        "section": "ESOS",
         "title": "NQ",
-        "sectors": [ "NQ_TWR" ]
+        "sectors": [ "NQ_TMA", "NQ_TWR" ]
     }
 }

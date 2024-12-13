@@ -155,6 +155,9 @@ const menuItems = reactive({
                 "ESSA APP": "wikipdf-quickref-essa-app",
                 "ESSB TWR/APP": "wikipdf-quickref-essb-twr-app",
             },
+            Events: {
+                "Fly and see Santa 2024": "wiki-santa2024",
+            },
         },
         OTHER: {
             "ESSA PUSH": "SApush",
