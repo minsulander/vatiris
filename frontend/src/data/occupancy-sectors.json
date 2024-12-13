@@ -6,43 +6,48 @@
     },
     "ESOS12679": {
         "section": "ESOS",
-        "title": "12679  ",
+        "title": "12679 ",
         "sectors": [ "ESOS1", "ESOS2", "ESOS6", "ESOS7", "ESOS9" ]
+    },
+    "ESOS348NFK": {
+        "section": "ESOS",
+        "title": "348NFK",
+        "sectors": [ "ESOS3", "ESOS4", "ESOS8", "ESOSN", "ESOSF", "ESOSK" ]
     },
     "ESOS38": {
         "section": "ESOS",
-        "title": "38   ",
+        "title": "38  ",
         "sectors": [ "ESOS3", "ESOS8" ]
     },
     "ESOS4NFK": {
         "section": "ESOS",
-        "title": "4NFK",
+        "title": "4NFK ",
         "sectors": [ "ESOS4", "ESOSN", "ESOSF", "ESOSK" ]
     },
-    "TMA": {
-        "section": "OS",
-        "title": "TMA",
-        "sectors": [ "APPE", "APPW", "APPS" ]
+    "ESOS4NF": {
+        "section": "ESOS",
+        "title": "4NF ",
+        "sectors": [ "ESOS4", "ESOSN", "ESOSF" ]
     },
-    "E": {
-        "section": "OS",
-        "title": "E",
-        "sectors": [ "APPE" ]
+    "ESOSK": {
+        "section": "ESOS",
+        "title": "K   ",
+        "sectors": [ "ESOSK" ]
     },
-    "W": {
-        "section": "OS",
-        "title": "W",
-        "sectors": [ "APPW" ]
+    "ESOSN": {
+        "section": "ESOS",
+        "title": "N   ",
+        "sectors": [ "ESOSN" ]
     },
-    "S": {
-        "section": "OS",
-        "title": "S",
-        "sectors": [ "APPS" ]
+    "ESOSF": {
+        "section": "ESOS",
+        "title": "F   ",
+        "sectors": [ "ESOSF" ]
     },
-    "SA": {
-        "section": "OS",
-        "title": "SA",
-        "sectors": [ "SA_TWRE", "SA_TWRW" ]
+    "ESOS4": {
+        "section": "ESOS",
+        "title": "4   ",
+        "sectors": [ "ESOS4" ]
     },
     "ESMM": {
         "section": "ESMM",
@@ -74,6 +79,31 @@
         "title": "L",
         "sectors": [ "ESMML" ]
     },
+    "TMA": {
+        "section": "OS",
+        "title": "TMA",
+        "sectors": [ "APPE", "APPW", "APPS" ]
+    },
+    "E": {
+        "section": "OS",
+        "title": "E",
+        "sectors": [ "APPE" ]
+    },
+    "W": {
+        "section": "OS",
+        "title": "W",
+        "sectors": [ "APPW" ]
+    },
+    "S": {
+        "section": "OS",
+        "title": "S",
+        "sectors": [ "APPS" ]
+    },
+    "SA": {
+        "section": "OS",
+        "title": "SA",
+        "sectors": [ "SA_TWRE", "SA_TWRW" ]
+    },
     "GGTMA": {
         "section": "GG",
         "title": "GG TMA",
@@ -83,5 +113,15 @@
         "section": "GG",
         "title": "GG",
         "sectors": [ "GG_TWR" ]
+    },
+    "NQTMA": {
+        "section": "NQ",
+        "title": "NQ TMA",
+        "sectors": [ "NQ_TMA" ]
+    },
+    "NQ": {
+        "section": "NQ",
+        "title": "NQ",
+        "sectors": [ "NQ_TWR" ]
     }
 }
