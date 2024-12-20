@@ -77,7 +77,8 @@ export const useMetarStore = defineStore("metar", () => {
             let clouds = "CLD"
             if (parsed.clouds && parsed.clouds.length > 0) {
                 for (const cloud of parsed.clouds) {
-                    clouds += ` ${cloud.quantity} ${cloud.height}FT`
+                    if (cloud.quantity) clouds += ` ${cloud.quantity}`
+                    if (cloud.height) clouds += ` ${cloud.height}FT`
                     if (cloud.type) clouds += ` ${cloud.type}`
                     if (cloud.secondaryType) clouds += ` ${cloud.secondaryType}`
                 }
