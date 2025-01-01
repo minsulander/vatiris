@@ -71,7 +71,9 @@ function fetch() {
                 console.log("no scroll")
             }
         })
-    // TODO error handling
+        .catch((error) => {
+            content.value = error.response ? error.response.data : "Error loading content"
+        })
 }
 </script>
 

@@ -25,6 +25,7 @@ export const useAuthStore = defineStore("auth", () => {
                 pending.value = false
             })
     } else if (localStorage.token) {
+        token.value = JSON.parse(localStorage.token)
         if (
             !localStorage.tokenTimestamp ||
             moment().isBefore(
@@ -43,7 +44,6 @@ export const useAuthStore = defineStore("auth", () => {
                     pending.value = false
                 })
         } else {
-            token.value = JSON.parse(localStorage.token)
             fetchUser()
         }
     } else {
