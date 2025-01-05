@@ -60,7 +60,7 @@ const sectorOptions = reactive([
     { title: "ALL", value: "" },
     { title: "APPW", value: "^APPW$" },
     { title: "APPE", value: "^APPE$" },
-    { title: "TMA", value: "^(APPW|APPE|APPS)$" },
+    { title: "TMA", value: "^(APPW|APPE|APPS|OW_TMA)$" },
     { title: "TWR", value: "^SA_TWR.*" },
     { title: "GG_APP", value: "^(GGAPP.*)$" },
     { title: "GG_TWR", value: "^(GG_TWR|GG_GND)$" },
