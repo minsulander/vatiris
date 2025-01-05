@@ -12,7 +12,7 @@
 ;                                                                                                                         ;
 ;=========================================================================================================================;
 ;                                                                                                                         ;
-;  ALL RIGHTS RESERVED ï¿½ AeroNav Association. NAV-DATA ï¿½ AEROSOFT. FILES MUST NOT BE DISTRIBUTED TO NON-VATSIM MEMBERS!   ;
+;  ALL RIGHTS RESERVED © AeroNav Association. NAV-DATA © AEROSOFT. FILES MUST NOT BE DISTRIBUTED TO NON-VATSIM MEMBERS!   ;
 ;                                                                                                                         ;
 ;=========================================================================================================================;
 ;  The Global Nav Generator (GNG) and all it sub-modules where created by the AeroNav Association.                        ;
@@ -23,7 +23,7 @@
 ;  only. The data must not be copied, photocopied, translated, reverse engineered, decompiled or reduced to any           ;
 ;  electronic medium or machine legible form, neither completely nor in part.                                             ;
 ;=========================================================================================================================;
-;  AIRAC 2409/1  ++  Valid period: 05/SEP/2024 - 02/OCT/2024  ++  File-Publisher: Sweden - ESAA                           ;
+;  AIRAC 2413/1  ++  Valid period: 26/DEC/2024 - 22/JAN/2025  ++  File-Publisher: Sweden - ESAA                           ;
 ;=========================================================================================================================;
 ;*** Auto ***
 .autoproceed Proceed Direct $1 
@@ -177,4 +177,8 @@
 .wt You have made a wrong turn, at Arlanda we use standard taxiway routings, therefore they are not included in the taxi instrucion, please check the link https://vatsca.org/essataxi
 .wtgg You are not allowed to vacate via taxiway C or D after landing RWY 03 unless approved by ATC, please see https://vatsca.org/esggtaxi
 .833 If you are having issues tuning the 8.33 kHz channels that were implemented in October 2023, please check the link https://vats.im/833
+.listen To all stations! Many pilots are missing calls from ATC. Please ensure you are paying attention and actively monitoring the frequency to not miss any calls. Please DO NOT stream music/movies while under ATC coverage.
+.plane Reminder: As per VATSIM Code of Conduct B8(a), ensure you're proficient with your aircraft and able to comply with ATC instructions. Sometimes more offline practice is needed before flying an aircraft type online that is new to you.
+.many To all stations! At the moment there is a high workload with lots of pilots on the frequency. Please, listen carefully to ATC instructions. Respond swiftly and make an effort to readback correctly. Thanks!
+.new Hello, I see you are new to the network. First of all - welcome to VATSIM! It may be tempting to jump right ahead and fly, but I would suggest you read through some docoments first, in order to prepare yourself for what you may encounter. First you should read the VATSIM tutorials at vats.im/prc. Here you can find everything you need. Second of all, you should read through the VATSIM Code of Conduct (vats.im/coc), especially sections A and B, in order to not get in trouble for something you didn't know. Let me know if you need any more questions, I am here to help you!
 
