@@ -118,7 +118,7 @@ const availableWindows = shallowReactive({
     aircraft: {
         title: "Aircraft Types ICAO",
         component: Aircraft,
-        width: 605,
+        width: 800,
         height: 400,
     },
     notepad: {

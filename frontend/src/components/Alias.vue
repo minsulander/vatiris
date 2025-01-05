@@ -1,18 +1,18 @@
 <template>
-  <div class="alias-container">
+  <div class="alias-container" @click="click">
     <!-- Filter buttons and search input -->
     <div class="toolbar">
-      <div class="search-container">
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Search"
-          class="search-input"
-        />
-        <button @click="clearSearch" class="clear-button">
-          <span class="mdi mdi-close"></span>
-        </button>
-      </div>
+      <v-text-field
+        ref="search"
+        v-model="searchQuery"
+        placeholder="Search"
+        variant="outlined"
+        density="compact"
+        clearable
+        hide-details
+        autofocus
+        @keydown.esc="clearSearch"
+    />
       <div class="filter-buttons">
         <button 
           v-for="(group, groupName) in filteredGroups" 
@@ -53,8 +53,9 @@
 import { ref, computed, onMounted } from 'vue';
 import aliasData from '@/data/alias.txt?raw';
 
+const search = ref()
 const aliasGroups = ref({} as {[key: string]: {[key: string]: string}});
-const search = ref('');
+const searchQuery = ref('');
 const visibleGroups = ref({} as {[key: string]: boolean});
 const loading = ref(true);
 const error = ref(null as string | null);
@@ -119,8 +120,8 @@ const filteredAliases = computed(() => {
   Object.entries(aliasGroups.value).forEach(([groupName, group]) => {
     if (visibleGroups.value[groupName] || groupName === 'Sweden') {
       Object.entries(group).forEach(([trigger, expansion]) => {
-        if (trigger.toLowerCase().includes(search.value.toLowerCase()) ||
-            expansion.toLowerCase().includes(search.value.toLowerCase())) {
+        if (trigger.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+            expansion.toLowerCase().includes(searchQuery.value.toLowerCase())) {
           aliases.push({ trigger, expansion });
         }
       });
@@ -166,8 +167,13 @@ const sortBy = (key: string) => {
 };
 
 const clearSearch = () => {
-  search.value = '';
+  searchQuery.value = '';
 };
+
+const click = () => {
+  search.value.focus()
+  search.value.select()
+}
 </script>
 
 <style scoped>
