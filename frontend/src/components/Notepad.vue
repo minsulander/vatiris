@@ -1,6 +1,6 @@
 <template>
     <div style="width: 100%; height: 100%; background: #666; overflow-y: hidden">
-        <div style="height: 25px; margin-top: -5px; background: #777">
+        <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
             <v-btn
                 variant="text"
                 rounded="0"
@@ -15,7 +15,7 @@
             v-model="text"
             style="
                 width: 100%;
-                height: calc(100% - 30px);
+                height: calc(100% - 20px);
                 font-size: 15px;
                 color: black;
                 padding: 2px;

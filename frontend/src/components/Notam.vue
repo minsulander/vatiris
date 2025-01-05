@@ -1,5 +1,5 @@
 <template>
-    <div style="height: 25px; margin-top: -5px; background: #777">
+    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
         <v-btn
             variant="text"
             rounded="0"
@@ -108,12 +108,12 @@
             >
         </span>
     </div>
-    <div v-if="!notam.originalText" style="height: calc(100% - 30px)">
+    <div v-if="!notam.originalText" style="height: calc(100% - 20px)">
         <v-progress-linear indeterminate color="#33f" height="5"></v-progress-linear>
     </div>
     <div
         v-else
-        style="font-size: 14px; line-height: 16px; height: calc(100% - 30px); overflow-y: auto"
+        style="font-size: 14px; line-height: 16px; height: calc(100% - 20px); overflow-y: auto"
     >
         <pre
             class="pa-1"

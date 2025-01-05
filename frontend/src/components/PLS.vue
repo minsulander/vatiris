@@ -195,7 +195,10 @@ const activeControllers = ref([])
 const availableControllers = ref([])
 const awayControllers = ref([])
 
+const fetchControllersTryCount = ref(0)
+
 const fetchControllers = async () => {
+    fetchControllersTryCount.value++
     try {
         const response = await axios.get(`${plsApiBaseUrl}/controllers`)
         const controllers = response.data
@@ -203,6 +206,7 @@ const fetchControllers = async () => {
         availableControllers.value = controllers.availableControllers || []
         awayControllers.value = controllers.awayControllers || []
         matchControllers(controllers)
+        fetchControllersTryCount.value = 0
     } catch (error) {
         console.error("Error fetching controllers:", error)
     }
@@ -457,7 +461,7 @@ onMounted(() => {
 
     // Set up interval for fetching controllers every 10 seconds
     const fetchInterval = setInterval(() => {
-        if (auth.user) fetchControllers()
+        if (auth.user && fetchControllersTryCount.value < 3) fetchControllers()
     }, 10000)
 
     // Set up interval for updating the computed properties every second

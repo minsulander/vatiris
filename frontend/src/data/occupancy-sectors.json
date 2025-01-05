@@ -82,7 +82,7 @@
     "TMA": {
         "section": "OS",
         "title": "TMA",
-        "sectors": [ "APPE", "APPW", "APPS" ]
+        "sectors": [ "APPE", "APPW", "APPS", "OW_TMA" ]
     },
     "E": {
         "section": "OS",

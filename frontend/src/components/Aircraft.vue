@@ -1,25 +1,24 @@
 //TODO Clear search button (as in SApush)
 <template>
-  <div class="aircraft-container">
+  <div class="aircraft-container" @click="click">
     <!-- Filter Input -->
     <div class="sticky-header">
-      <div class="search-bar">
-        <div class="search-container">
-          <input 
-            v-model="searchQuery" 
-            placeholder="Search" 
-            class="search-input"
-          />
-          <button @click="clearSearch" class="clear-button">
-            <span class="mdi mdi-close"></span>
-          </button>
-        </div>
-      </div>
+      <v-text-field
+        ref="search"
+        v-model="searchQuery"
+        placeholder="Search" 
+        variant="outlined"
+        density="compact"
+        clearable
+        hide-details
+        autofocus
+        @keydown.esc="clearSearch"
+      />
     </div>
 
     <!-- Data Table -->
     <div class="table-container">
-      <table v-if="!error && columns.length > 0">
+      <table v-if="!error && columns.length > 0 && searchQuery && searchQuery.length >= 2">
         <thead>
           <tr>
             <th v-for="column in displayColumns" :key="column" @click="sortBy(column)" :title="getColumnHeaderTooltip(column)">
@@ -27,26 +26,23 @@
             </th>
           </tr>
         </thead>
-        <tbody v-if="searchQuery.trim() !== ''">
+        <tbody>
         <tr v-for="aircraft in sortedAircraft" :key="aircraft.ICAO">
           <td v-for="column in displayColumns" :key="column" 
-              :class="{ 'highlighted-wtc': isHighlightedWTC(aircraft, column) }"
+              :class="`column-${column}` + (isHighlightedWTC(aircraft, column) ? 'highlighted-wtc' : '')"
               :title="getColumnTooltip(aircraft, column)">
             {{ getColumnValue(aircraft, column) }}
           </td>
         </tr>
         </tbody>
-        <tbody v-else>
-          <tr>
-            <td :colspan="displayColumns.length" style="text-align: center; padding: 10px;">
-            </td>
-          </tr>
-        </tbody>
       </table>
 
       <div v-if="loading">Loading...</div>
       <div v-else-if="error">{{ error }}</div>
-      <div v-else-if="sortedAircraft.length === 0 && searchQuery.trim() !== ''" style="padding: 10px;">No records found</div>
+      <div v-else-if="sortedAircraft.length === 0 && searchQuery && searchQuery.length >= 2" style="padding: 10px;">No records found</div>
+      <div v-else-if="!searchQuery || searchQuery.length < 2" class="pa-2">
+        Type at least 2 letters to start searching...
+      </div>
     </div>
   </div>
 </template>
@@ -69,11 +65,11 @@ export default {
   },
   computed: {
     filteredAircraft() {
-      if (this.searchQuery.trim() === '') {
+      if (!this.searchQuery || this.searchQuery.length < 2) {
         return [];
       }
       return this.aircraftList.filter(aircraft => 
-        Object.values(aircraft).some(value => 
+        [aircraft.ICAO, aircraft.Manufacturer, aircraft.Model].some(value => 
           String(value).toLowerCase().includes(this.searchQuery.toLowerCase())
         )
       );
@@ -226,6 +222,11 @@ export default {
 
     clearSearch() {
       this.searchQuery = '';
+    },
+
+    click() {
+      this.$refs.search.focus()
+      this.$refs.search.select()
     }
   }
 };
@@ -243,51 +244,6 @@ export default {
   top: 0;
   z-index: 10;
   background-color: #9E9E9E;
-}
-
-.search-bar {
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.search-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-input {
-  margin-left: 4px;
-  padding: 4px 8px;
-  padding-right: 30px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  width: 300px;
-}
-
-.clear-button {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.clear-button .mdi {
-  font-size: 18px;
-  color: #616161;
-}
-
-.clear-button:hover .mdi {
-  color: #424242;
 }
 
 .table-container {
@@ -322,6 +278,15 @@ th {
 
 td {
   padding: 6px;
+  font-size: 14px;
+}
+
+td.column-Wingspan,
+td.column-Length,
+td.column-Height,
+td.column-MTOW {
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 tbody tr:nth-child(even) {

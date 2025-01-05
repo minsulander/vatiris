@@ -55,6 +55,7 @@ import { metarAirports, wxAirports } from "@/metcommon"
 import GGpush from "@/components/GGpush.vue"
 import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
 import { useWakeLock } from "@vueuse/core"
+import QuickRef from "@/components/QuickRef.vue"
 
 const wakelock = useWakeLock()
 
@@ -117,7 +118,7 @@ const availableWindows = shallowReactive({
     aircraft: {
         title: "Aircraft Types ICAO",
         component: Aircraft,
-        width: 605,
+        width: 800,
         height: 400,
     },
     notepad: {
@@ -144,6 +145,51 @@ const availableWindows = shallowReactive({
         width: 575,
         height: 895,
         class: "no-max",
+    },
+    "quickref-esgg-twr": {
+        title: "ESGG TWR",
+        component: QuickRef,
+        props: { ad: "ESGG", type: "TWR" },
+        width: 575,
+        height: 855,
+        class: "no-max",
+    },
+    "quickref-esgg-app": {
+        title: "ESGG APP",
+        component: QuickRef,
+        props: { ad: "ESGG", type: "APP" },
+        width: 575,
+        height: 855,
+        class: "no-max",
+    },
+    "quickref-essb-twr": {
+        title: "ESSB TWR",
+        component: QuickRef,
+        props: { ad: "ESSB", type: "TWR" },
+        width: 575,
+        height: 872,
+        class: "no-max",
+    },
+    "quickref-essb-app": {
+        title: "ESSB APP",
+        component: QuickRef,
+        props: { ad: "ESSB", type: "APP" },
+        width: 575,
+        height: 872,
+    },
+    "quickref-essa-twr": {
+        title: "ESSA TWR",
+        component: QuickRef,
+        props: { ad: "ESSA", type: "TWR" },
+        width: 575,
+        height: 808,
+    },
+    "quickref-essa-app": {
+        title: "ESSA APP",
+        component: QuickRef,
+        props: { ad: "ESSA", type: "APP" },
+        width: 575,
+        height: 872,
     },
 } as any)
 
@@ -209,7 +255,7 @@ for (const icao of wxAirports) {
 import("@/data/aip.json").then((module) => {
     const aip = module.default as any
     for (const document of aip.enroute) {
-        availableWindows[`aip${document.prefix.replaceAll(' ','')}`] = {
+        availableWindows[`aip${document.prefix.replaceAll(" ", "")}`] = {
             title: `AIP ${document.prefix} ${document.name}`,
             component: Iframe,
             props: { src: `${document.url}#toolbar=0` },

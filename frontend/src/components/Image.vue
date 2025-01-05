@@ -1,7 +1,5 @@
 <template>
-    <div ref="div" style="height: 100%">
-        <img ref="img" :src="imgsrc" style="width: 100%" :style="'opacity: ' + (loaded && !refreshing ? 1 : 0)" />
-    </div>
+    <div ref="div"><img ref="img" :src="imgsrc" style="width: 100%; margin-bottom: -10px" :style="'opacity: ' + (loaded && !refreshing ? 1 : 0)" /></div>
 </template>
 
 <style scoped>
@@ -12,7 +10,7 @@ img {
 
 <script setup lang="ts">
 import useEventBus from "@/eventbus"
-import { computed, nextTick, onMounted, onUnmounted, ref } from "vue"
+import { computed, onMounted, onUnmounted, ref } from "vue"
 const bus = useEventBus()
 
 const props = defineProps<{ id: string; src: string; refresh?: string }>()
