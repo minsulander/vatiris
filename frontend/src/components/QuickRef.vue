@@ -1,6 +1,6 @@
 <template>
-    <div style="width: 100%; height: 100%; background: #666; overflow-y: hidden">
-        <div style="height: 25px; margin-top: -5px; background: #777">
+    <div style="width: 100%; height: 100%; overflow-y: hidden">
+        <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
             <v-btn
                 variant="text"
                 rounded="0"
@@ -52,7 +52,7 @@
                     >{{ runway }}</v-btn
                 >
                 <v-btn
-                    v-if="ad == 'ESGG'"
+                    v-if="ad == 'ESGG' && type == 'APP'"
                     variant="text"
                     rounded="0"
                     size="small"
@@ -65,12 +65,18 @@
         <div v-if="image" style="width: 100%; height: calc(100% - 20px); overflow: auto">
             <Image :id="image" :src="`/quickref/${image}.png`" />
         </div>
+        <div v-else-if="shownRunway" class="pa-2">
+            Invalid runway {{ shownRunway }}
+        </div>
+        <div v-else class="pa-2">
+            Loading...
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import Image from "@/components/Image.vue"
-import { computed, onMounted, onUnmounted, ref } from "vue"
+import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import moment from "moment"
 import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
@@ -80,8 +86,10 @@ const props = defineProps<{ ad: string; type: string }>()
 const wx = useWxStore()
 const vatsim = useVatsimStore()
 
-const selectedRunway = ref("")
-const stars = ref("CLOSED")
+const storageKey = `quickref_${props.ad}_${props.type}`
+
+const selectedRunway = ref(sessionStorage[storageKey + "_selectedRunway"] || "")
+const stars = ref(sessionStorage[storageKey + "_stars"] || "CLOSED")
 
 const runways = computed(() => {
     switch (props.ad) {
@@ -180,12 +188,9 @@ const image = computed(() => {
         const config = runways.value.indexOf(shownRunway.value)
         if (config >= 0)
             return `essa-${props.type.toLowerCase()}-` + `${config + 7}`.padStart(2, "0")
-        return "essa-twr-03"
     }
     return ""
 })
-
-// TODO store settings in localStorage and preset
 
 let wxSubscription: any = undefined
 onMounted(() => {
@@ -194,5 +199,10 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (wxSubscription) wx.unsubscribe(wxSubscription)
+})
+
+watch([selectedRunway, stars], () => {
+    sessionStorage[storageKey + "_selectedRunway"] = selectedRunway.value
+    sessionStorage[storageKey + "_stars"] = stars.value
 })
 </script>

@@ -151,7 +151,7 @@ const availableWindows = shallowReactive({
         component: QuickRef,
         props: { ad: "ESGG", type: "TWR" },
         width: 575,
-        height: 860,
+        height: 855,
         class: "no-max",
     },
     "quickref-esgg-app": {
@@ -159,7 +159,7 @@ const availableWindows = shallowReactive({
         component: QuickRef,
         props: { ad: "ESGG", type: "APP" },
         width: 575,
-        height: 860,
+        height: 855,
         class: "no-max",
     },
     "quickref-essb-twr": {
@@ -167,7 +167,7 @@ const availableWindows = shallowReactive({
         component: QuickRef,
         props: { ad: "ESSB", type: "TWR" },
         width: 575,
-        height: 875,
+        height: 872,
         class: "no-max",
     },
     "quickref-essb-app": {
@@ -175,21 +175,21 @@ const availableWindows = shallowReactive({
         component: QuickRef,
         props: { ad: "ESSB", type: "APP" },
         width: 575,
-        height: 875,
+        height: 872,
     },
     "quickref-essa-twr": {
         title: "ESSA TWR",
         component: QuickRef,
         props: { ad: "ESSA", type: "TWR" },
         width: 575,
-        height: 810,
+        height: 808,
     },
     "quickref-essa-app": {
         title: "ESSA APP",
         component: QuickRef,
         props: { ad: "ESSA", type: "APP" },
         width: 575,
-        height: 875,
+        height: 872,
     },
 } as any)
 
