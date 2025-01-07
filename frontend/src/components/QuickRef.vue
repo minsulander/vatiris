@@ -11,11 +11,11 @@
             >
             <span v-if="ad == 'ESSA'" class="text-caption">
                 <v-btn variant="text" rounded="0" size="small" color="white"
-                    >{{ shownRunway }}
+                    >{{ runwayTitle(shownRunway) }}
                     <v-menu activator="parent" transition="slide-y-transition">
                         <v-list density="compact">
                             <v-list-item
-                                v-for="runway in runways"
+                                v-for="(runway, index) in runways"
                                 :key="runway"
                                 @click="selectedRunway = runway"
                             >
@@ -27,7 +27,7 @@
                                               ? 'text-orange-lighten-1'
                                               : 'text-grey-lighten-1'
                                     "
-                                    >{{ runway }}</v-list-item-title
+                                    >{{ runwayTitle(runway) }}</v-list-item-title
                                 >
                             </v-list-item>
                         </v-list>
@@ -122,6 +122,31 @@ const runways = computed(() => {
             return []
     }
 })
+
+const runwayTitle = (runway: string) => {
+    switch (runway) {
+        case "01R/01L": return "1 - 01R/01L"
+        case "19L/19R": return "2 - 19L/19R"
+        case "01L": return "3 - 01L"
+        case "01L/08": return "4 - 01L/08-LT"
+        case "01R/08": return "5 - 01R/08-LT"
+        case "01R": return "6 - 01R"
+        case "08": return "7 - 08"
+        case "08/19L": return "8 - 08/19L-Q"
+        case "19L": return "9A - 19L-Q"
+        case "19L-NIGHT": return "9B - 19L-NIGHT"
+        case "19R/08": return "10 - 19R/08-RT"
+        case "19R/19L": return "11 - 19R/19L-E"
+        case "19R": return "12 - 19R"
+        case "26/01L": return "13 - 26/01L"
+        case "26/19R": return "14 - 26/19R"
+        case "26/19L": return "15A - 26/19L-Q"
+        case "26/19L-NIGHT": return "15B - 26/19L-NIGHT"
+        case "26": return "16 - 26"
+        default: return runway
+    }
+}
+ 
 
 const activeRunway = computed(() => {
     if (props.ad == "ESSA") {
