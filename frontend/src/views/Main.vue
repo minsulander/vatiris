@@ -37,7 +37,6 @@ import Smhi from "@/components/met/Smhi.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
-import Iframe from "@/components/Iframe.vue"
 import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
 import Aircraft from "@/components/Aircraft.vue"
@@ -56,6 +55,7 @@ import GGpush from "@/components/GGpush.vue"
 import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
 import { useWakeLock } from "@vueuse/core"
 import QuickRef from "@/components/QuickRef.vue"
+import Pdf from "@/components/Pdf.vue"
 
 const wakelock = useWakeLock()
 
@@ -191,6 +191,13 @@ const availableWindows = shallowReactive({
         width: 575,
         height: 872,
     },
+    regional: {
+        title: `Regional Aerodromes`,
+        component: Pdf,
+        props: { src: `https://itsupporter.se/shared/1RegTXT.pdf` },
+        width: 800,
+        height: 600,
+    }
 } as any)
 
 for (const icao of metarAirports) {
@@ -257,8 +264,8 @@ import("@/data/aip.json").then((module) => {
     for (const document of aip.enroute) {
         availableWindows[`aip${document.prefix.replaceAll(" ", "")}`] = {
             title: `AIP ${document.prefix} ${document.name}`,
-            component: Iframe,
-            props: { src: `${document.url}#toolbar=0` },
+            component: Pdf,
+            props: { src: document.url },
             width: 800,
             height: 600,
         }
@@ -267,8 +274,8 @@ import("@/data/aip.json").then((module) => {
         for (const document of airport.documents) {
             availableWindows[`aip${document.prefix}`] = {
                 title: `AIP ${document.prefix} ${document.name}`,
-                component: Iframe,
-                props: { src: `${document.url}#toolbar=0` },
+                component: Pdf,
+                props: { src: document.url },
                 width: 800,
                 height: 600,
             }

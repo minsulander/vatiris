@@ -169,13 +169,14 @@ const menuItems = reactive({
             //     "Fly and see Santa 2024": "wiki-santa2024",
             // },
         },
+        AIP: {
+            // filled in code
+        },
         OTHER: {
             "ESSA PUSH": "SApush",
             "ESGG PUSH": "GGpush",
         },
-        AIP: {
-            // filled in code
-        },
+        "REGIONAL AD": "regional",
         "TEXT ALIAS": "alias",
         "AIRCRAFT TYPES": "aircraft",
         NOTEPAD: "notepad",
