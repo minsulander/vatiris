@@ -56,7 +56,7 @@ async function getAirports(ad2Url: string) {
         const href = $(row).find("a").attr("href")
         const icao = $(row).find("td").first().text()
         const name = $(row).find("td").last().text()
-        airports.push({ icao, name, url: `${baseUrl}/${href}` })
+        airports.push({ icao, name, url: rewriteUrl(`${baseUrl}/${href}`) })
     }
     return airports
 }
@@ -84,9 +84,15 @@ async function getDocuments(url: string, filterPrefix: string = "") {
         const prefix = $(item).find(".document-prefix").text()
         if (filterPrefix && !prefix.startsWith(filterPrefix)) continue
         const name = $(item).find(".document-name").text()
-        documents.push({ prefix, name, url: `${baseUrl}/${href}` })
+        documents.push({ prefix, name, url: rewriteUrl(`${baseUrl}/${href}`) })
     }
     return documents
+}
+
+function rewriteUrl(url: string) {
+    url = url.replace("https://aro.lfv.se//Editorial/View/", "https://aro.lfv.se/Editorial/View/")
+    url = url.replace("https://aro.lfv.se/Editorial/View/", "https://api.vatiris.se/aip/")
+    return url
 }
 
 main().then((stuff) => {

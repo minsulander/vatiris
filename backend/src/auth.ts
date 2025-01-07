@@ -44,6 +44,7 @@ function getToken(req: Request) {
         token = req.headers.authorization.slice(7)
     } else if (req.query.token) {
         token = req.query.token as string
+        if (token && token.endsWith(".pdf")) token = token.slice(0, -4)
         if (token == "undefined") token = undefined
     }
     return token

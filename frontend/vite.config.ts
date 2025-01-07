@@ -32,10 +32,11 @@ export default defineConfig({
         VitePWA({
             registerType: "autoUpdate",
             devOptions: { enabled: true },
-            // ## in case the app grows large, and it's not by accident this time:
-            // workbox: {
-            //     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-            // },
+            // in case the app grows large, and it's not by accident this time,
+            // increase this:
+            workbox: {
+                maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+            },
             manifest: {
                 name: "VatIRIS",
                 short_name: "VatIRIS",

@@ -28,8 +28,8 @@ export const useAuthStore = defineStore("auth", () => {
         token.value = JSON.parse(localStorage.token)
         if (
             !localStorage.tokenTimestamp ||
-            moment().isBefore(
-                moment(localStorage.tokenTimestamp).add(token.value.expires_in - 60, "second"),
+            moment().isAfter(
+                moment(localStorage.tokenTimestamp).add(token.value.expires_in - 600, "second"),
             )
         ) {
             console.log("Refreshing token")

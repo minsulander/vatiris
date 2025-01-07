@@ -56,6 +56,7 @@ import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
 import { useWakeLock } from "@vueuse/core"
 import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
+import Iframe from "@/components/Iframe.vue"
 
 const wakelock = useWakeLock()
 
@@ -194,7 +195,7 @@ const availableWindows = shallowReactive({
     regional: {
         title: `Regional Aerodromes`,
         component: Pdf,
-        props: { src: `https://itsupporter.se/shared/1RegTXT.pdf` },
+        props: { id: "regional", src: "https://api.vatiris.se/regional.pdf", externalLink: true },
         width: 800,
         height: 600,
     }
@@ -262,20 +263,22 @@ for (const icao of wxAirports) {
 import("@/data/aip.json").then((module) => {
     const aip = module.default as any
     for (const document of aip.enroute) {
-        availableWindows[`aip${document.prefix.replaceAll(" ", "")}`] = {
+        const id = `aip${document.prefix.replaceAll(" ", "")}`
+        availableWindows[id] = {
             title: `AIP ${document.prefix} ${document.name}`,
             component: Pdf,
-            props: { src: document.url },
+            props: { id, src: document.url, externalLink: true },
             width: 800,
             height: 600,
         }
     }
     for (const airport of aip.airports) {
         for (const document of airport.documents) {
-            availableWindows[`aip${document.prefix}`] = {
+            const id = `aip${document.prefix}`
+            availableWindows[id] = {
                 title: `AIP ${document.prefix} ${document.name}`,
                 component: Pdf,
-                props: { src: document.url },
+                props: { id, src: document.url, externalLink: true },
                 width: 800,
                 height: 600,
             }
