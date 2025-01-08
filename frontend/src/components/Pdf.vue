@@ -1,6 +1,5 @@
 <template>
-    <div ref="div">
-        <!--<Iframe :src="src + '#toolbar=0'" />-->
+    <div ref="div" style="height: 100%">
         <PDF
             :src="rewrittenSrc"
             :show-page-tooltip="false"
@@ -13,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import Iframe from "./Iframe.vue"
 import PDF, { type PDFDocumentProxy } from "pdf-vue3"
 import { computed, onMounted, ref } from "vue"
 const props = defineProps<{ id: string; src: string; externalLink?: boolean }>()
