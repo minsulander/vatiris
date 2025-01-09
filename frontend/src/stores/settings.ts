@@ -4,6 +4,7 @@ import { useAuthStore } from "./auth"
 import useEventBus from "@/eventbus"
 
 export const useSettingsStore = defineStore("settings", () => {
+    // settings stored in backend
     const windowSnapping = ref(true)
     const metreportFlash = ref(true)
     const metsensorFlash = ref(false)
@@ -14,6 +15,9 @@ export const useSettingsStore = defineStore("settings", () => {
     const cid2 = ref("")
     const position1 = ref("")
     const position2 = ref("")
+
+    // settings stored in localStorage (device specific)
+    const customPdfBrowser = ref(localStorage.customPdfBrowser == "true" || !browserHasPDFViewer())
 
     const auth = useAuthStore()
 
@@ -29,6 +33,7 @@ export const useSettingsStore = defineStore("settings", () => {
         }
     }
 
+    // store settings in backend
     watch(
         [
             windowSnapping,
@@ -43,22 +48,21 @@ export const useSettingsStore = defineStore("settings", () => {
             position2,
         ],
         () => {
-
             // PLS logic validation
             // Clear values when switching logic
-            if (plsLogic.value === 'CID') {
+            if (plsLogic.value === "CID") {
                 if (useVatsimConnect.value) {
-                    cid1.value = ''
-                    cid2.value = ''
+                    cid1.value = ""
+                    cid2.value = ""
                 } else {
-                    if (cid1.value && !/^\d{5,8}$/.test(cid1.value)) cid1.value = ''
-                    if (cid2.value && !/^\d{5,8}$/.test(cid1.value)) cid2.value = ''
+                    if (cid1.value && !/^\d{5,8}$/.test(cid1.value)) cid1.value = ""
+                    if (cid2.value && !/^\d{5,8}$/.test(cid1.value)) cid2.value = ""
                 }
-                position1.value = ''
-                position2.value = ''
-            } else if (plsLogic.value === 'Position') {
-                cid1.value = ''
-                cid2.value = ''
+                position1.value = ""
+                position2.value = ""
+            } else if (plsLogic.value === "Position") {
+                cid1.value = ""
+                cid2.value = ""
                 useVatsimConnect.value = false
             }
 
@@ -81,6 +85,15 @@ export const useSettingsStore = defineStore("settings", () => {
             }
         },
     )
+
+    // store settings in localStorage
+    watch(customPdfBrowser, () => {
+        if (customPdfBrowser.value != !browserHasPDFViewer()) {
+            localStorage.customPdfBrowser = customPdfBrowser.value
+        } else if ("customPdfBrowser" in localStorage) {
+            delete localStorage.customPdfBrowser
+        }
+    })
 
     watch(
         () => auth.user,
@@ -116,6 +129,25 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("position2" in settings) position2.value = settings.position2
     }
 
+    function browserHasPDFViewer() {
+        // Modern borwsers
+        // https://developer.mozilla.org/en-US/docs/Web/API/Navigator/pdfViewerEnabled
+        if (navigator.pdfViewerEnabled !== undefined) {
+            return navigator.pdfViewerEnabled
+        }
+        // Old browsers or not compatible with pdfViewerEnabled like Safari
+        // https://developer.mozilla.org/en-US/docs/Web/API/Navigator/mimeTypes
+        try {
+            const mimeTypes = navigator.mimeTypes as any
+            return mimeTypes && mimeTypes["application/pdf"]
+                ? !!mimeTypes["application/pdf"].enabledPlugin
+                : false
+        } catch (e) {
+            return false
+        }
+        return false
+    }
+
     return {
         windowSnapping,
         metreportFlash,
@@ -127,5 +159,6 @@ export const useSettingsStore = defineStore("settings", () => {
         cid2,
         position1,
         position2,
+        customPdfBrowser,
     }
 })

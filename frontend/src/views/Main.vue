@@ -58,6 +58,9 @@ import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
 import Iframe from "@/components/Iframe.vue"
 
+const apiBaseUrl = "https://api.vatiris.se"
+const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
+
 const wakelock = useWakeLock()
 
 export interface WindowSpec {
@@ -150,7 +153,7 @@ const availableWindows = shallowReactive({
     "quickref-esgg-twr": {
         title: "ESGG TWR",
         component: QuickRef,
-        props: { ad: "ESGG", type: "TWR" },
+        props: { ad: "ESGG", type: "TWR", src: `${wikiBaseUrl}/attachments/118?open=true` },
         width: 575,
         height: 855,
         class: "no-max",
@@ -158,7 +161,7 @@ const availableWindows = shallowReactive({
     "quickref-esgg-app": {
         title: "ESGG APP",
         component: QuickRef,
-        props: { ad: "ESGG", type: "APP" },
+        props: { ad: "ESGG", type: "APP", src: `${wikiBaseUrl}/attachments/118?open=true` },
         width: 575,
         height: 855,
         class: "no-max",
@@ -166,7 +169,7 @@ const availableWindows = shallowReactive({
     "quickref-essb-twr": {
         title: "ESSB TWR",
         component: QuickRef,
-        props: { ad: "ESSB", type: "TWR" },
+        props: { ad: "ESSB", type: "TWR", src: `${wikiBaseUrl}/attachments/121?open=true` },
         width: 575,
         height: 872,
         class: "no-max",
@@ -174,31 +177,31 @@ const availableWindows = shallowReactive({
     "quickref-essb-app": {
         title: "ESSB APP",
         component: QuickRef,
-        props: { ad: "ESSB", type: "APP" },
+        props: { ad: "ESSB", type: "APP", src: `${wikiBaseUrl}/attachments/121?open=true` },
         width: 575,
         height: 872,
     },
     "quickref-essa-twr": {
         title: "ESSA TWR",
         component: QuickRef,
-        props: { ad: "ESSA", type: "TWR" },
+        props: { ad: "ESSA", type: "TWR", src: `${wikiBaseUrl}/attachments/119?open=true` },
         width: 575,
         height: 808,
     },
     "quickref-essa-app": {
         title: "ESSA APP",
         component: QuickRef,
-        props: { ad: "ESSA", type: "APP" },
+        props: { ad: "ESSA", type: "APP", src: `${wikiBaseUrl}/attachments/120?open=true` },
         width: 575,
         height: 872,
     },
     regional: {
         title: `Regional Aerodromes`,
         component: Pdf,
-        props: { id: "regional", src: "https://api.vatiris.se/regional.pdf", externalLink: true },
+        props: { id: "regional", src: `${apiBaseUrl}/regional.pdf`, externalLink: true },
         width: 800,
         height: 600,
-    }
+    },
 } as any)
 
 for (const icao of metarAirports) {
@@ -292,7 +295,10 @@ import("@/data/wiki-pdfs.json").then((module) => {
         availableWindows[`wikipdf-${id}`] = {
             title: pdf.title,
             component: WikiPdf,
-            props: { id: pdf.attachmentId },
+            props: {
+                id: pdf.attachmentId,
+                src: `${wikiBaseUrl}/attachments/${pdf.attachmentId}?open=true`,
+            },
             width: 800,
             height: 600,
         }
@@ -304,7 +310,11 @@ import("@/data/wiki-pages.json").then((module) => {
         availableWindows[`wiki-${id}`] = {
             title: page.title,
             component: WikiPage,
-            props: { book: page.book, page: page.page },
+            props: {
+                book: page.book,
+                page: page.page,
+                src: `${wikiBaseUrl}/books/${page.book}/page/${page.page}`,
+            },
             width: 800,
             height: 600,
         }
@@ -356,14 +366,14 @@ function select(id: string | object) {
     if (typeof id == "object") {
         // submenu
     } else if (id in availableWindows) {
-        if (id in windows.winbox) {
+        if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
+            // ctrl-click on image/iframe opens in new tab
+            window.open(availableWindows[id].props.src, "_blank")
+        } else if (id in windows.winbox) {
             if (windows.winbox[id].min) windows.winbox[id].restore()
             windows.winbox[id].focus()
         } else {
-            if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
-                // ctrl-click on image/iframe opens in new tab
-                window.open(availableWindows[id].props.src, "_blank")
-            } else if (id in windows.layout) {
+            if (id in windows.layout) {
                 windows.layout[id].enabled = true
             } else {
                 windows.layout[id] = { enabled: true }

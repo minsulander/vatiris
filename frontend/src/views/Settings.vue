@@ -28,7 +28,7 @@
                 label="METSENSOR flash changed values"
                 v-model="settings.metsensorFlash"
             />
-            <v-row>
+            <v-row class="mt-4">
                 <v-col cols="12" sm="4">
                     <v-switch
                         color="white"
@@ -87,6 +87,17 @@
                     </div>
                 </v-col>
             </v-row>
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="Use custom PDF browser"
+                v-model="settings.customPdfBrowser"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Pros: The custom PDF browser works on mobile devices, zooms differently, and allows clicking to focus window.<br/>
+                Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
+            </p>
         </v-container>
     </v-main>
 </template>

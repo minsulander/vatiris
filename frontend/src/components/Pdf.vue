@@ -1,6 +1,7 @@
 <template>
     <div ref="div" style="height: 100%">
         <PDF
+            v-if="settings.customPdfBrowser"
             :src="rewrittenSrc"
             :show-page-tooltip="false"
             :show-back-to-top-btn="false"
@@ -8,13 +9,18 @@
             @on-scroll="scroll"
             @on-complete="complete"
         ></PDF>
+        <Iframe v-else :src="props.src + '#toolbar=0'" style="height: 100%"></Iframe>
     </div>
 </template>
 
 <script setup lang="ts">
+import Iframe from "./Iframe.vue"
+import { useSettingsStore } from "@/stores/settings"
 import PDF, { type PDFDocumentProxy } from "pdf-vue3"
 import { computed, onMounted, ref } from "vue"
-const props = defineProps<{ id: string; src: string; externalLink?: boolean }>()
+const props = defineProps<{ id: string; src: string; externalLink?: boolean | string }>()
+
+const settings = useSettingsStore()
 
 const div = ref()
 
@@ -49,12 +55,13 @@ function complete() {
 }
 
 onMounted(() => {
-    if (props.externalLink) {
+    if (props.externalLink && div.value) {
         const winbox = div.value.closest(".winbox")
         if (winbox) {
             const title = winbox.querySelector(".wb-title")
             if (title && !title.innerHTML.includes("mdi-open-in-new")) {
-                title.innerHTML += ` <a href="${props.src}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
+                const src = typeof props.externalLink === "string" ? props.externalLink : props.src
+                title.innerHTML += ` <a href="${src}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
             }
         }
     }

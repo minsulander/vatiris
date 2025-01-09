@@ -16,7 +16,7 @@ import { backendBaseUrl, useAuthStore } from "@/stores/auth"
 import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue"
 import axios from "axios"
 
-const props = defineProps<{ book: string; page: string }>()
+const props = defineProps<{ book: string; page: string; src?: string }>()
 const auth = useAuthStore()
 const div = ref()
 const src = computed(() => `${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}/html`)
@@ -29,7 +29,6 @@ bus.on("refresh", () => {
 })
 
 onMounted(() => {
-    ;(window as any).div = div.value
     fetch()
 })
 
@@ -39,8 +38,16 @@ onBeforeUnmount(() => {
 
 watch(div, (newValue, oldValue) => {
     if (div.value && !oldValue) {
-        ;(window as any).div = div.value
         div.value.parentElement.addEventListener("scroll", onScroll)
+        if (props.src && div.value) {
+            const winbox = div.value.closest(".winbox")
+            if (winbox) {
+                const title = winbox.querySelector(".wb-title")
+                if (title && !title.innerHTML.includes("mdi-open-in-new")) {
+                    title.innerHTML += ` <a href="${props.src}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
+                }
+            }
+        }
     }
 })
 
