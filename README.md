@@ -3,7 +3,7 @@
 [VatIRIS](https://vatiris.se/) is an interpretation of its real-world counterpart [IRIS](https://www.awos.se/sv-se/products/iris.aspx) - 
 Integrated Real-time Information System, but adapted and extended for use by VATSIM controllers in Sweden.
 
-## Manual
+### Manual
 
 There is a manual available on the [VATSIM Scandinavia Wiki](https://wiki.vatsim-scandinavia.org/books/gen-k9C/page/vatiris) (requires being logged in with VATSIM account)
 
