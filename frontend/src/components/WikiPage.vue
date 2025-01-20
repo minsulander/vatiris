@@ -1,9 +1,48 @@
 <template>
+    <div style="height: 25px; margin-top: -5px; margin-left: -10px; background: #777; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+        <v-btn variant="text" rounded="0" size="small" color="white" v-if="bookmarks.length > 0">
+            <v-icon>mdi-menu</v-icon>
+            <v-menu activator="parent" style="user-select: none" location="bottom">
+                <v-list density="compact">
+                    <v-list-item
+                        v-for="bookmark in bookmarks"
+                        :key="bookmark.id"
+                        @click="clickBookmark(bookmark)"
+                        style="min-height: 10px"
+                    >
+                        <v-list-item-title>
+                            <div
+                                v-if="bookmark.level >= 3"
+                                class="text-caption text-grey-lighten-1 pl-8"
+                            >
+                                {{ bookmark.title }}
+                            </div>
+                            <div
+                                v-else-if="bookmark.level >= 2"
+                                class="text-body-2 text-grey-lighten-2 pl-4"
+                            >
+                                {{ bookmark.title }}
+                            </div>
+                            <div v-else>
+                                {{ bookmark.title }}
+                            </div>
+                        </v-list-item-title>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+        </v-btn>
+        <span class="float-right mr-1 pt-1 text-caption text-grey-lighten-2">
+            {{ updatedBy }}
+            {{ updatedTime }}
+            <span class="text-white" v-if="revision">#{{ revision }}</span>
+        </span>
+    </div>
     <div
         v-if="auth.user"
         ref="div"
         class="wiki-div page-content pa-2"
         :class="loading ? '' : 'bg-white'"
+        style="height: calc(100% - 20px); overflow-y: auto"
     >
         <div class="page-content" v-html="content"></div>
     </div>
@@ -13,15 +52,19 @@
 <script setup lang="ts">
 import useEventBus from "@/eventbus"
 import { backendBaseUrl, useAuthStore } from "@/stores/auth"
-import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import axios from "axios"
+import moment from "moment"
 
 const props = defineProps<{ book: string; page: string; src?: string }>()
 const auth = useAuthStore()
 const div = ref()
-const src = computed(() => `${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}/html`)
 const content = ref("Loading...")
 const loading = ref(true)
+const bookmarks = reactive([] as any[])
+const revision = ref("")
+const updatedTime = ref("")
+const updatedBy = ref("")
 
 const bus = useEventBus()
 bus.on("refresh", () => {
@@ -33,12 +76,12 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-    if (div.value) div.value.parentElement?.removeEventListener("scroll", onScroll)
+    if (div.value) div.value.removeEventListener("scroll", onScroll)
 })
 
 watch(div, (newValue, oldValue) => {
     if (div.value && !oldValue) {
-        div.value.parentElement.addEventListener("scroll", onScroll)
+        div.value.addEventListener("scroll", onScroll)
         if (props.src && div.value) {
             const winbox = div.value.closest(".winbox")
             if (winbox) {
@@ -51,36 +94,61 @@ watch(div, (newValue, oldValue) => {
     }
 })
 
+watch(content, () => {
+    // Extract bookmarks
+    setTimeout(() => {
+        bookmarks.splice(0)
+        const bookmarkEls = div.value.querySelectorAll(
+            "h1[id^='bkmrk-'], h2[id^='bkmrk-'], h3[id^='bkmrk-']",
+        )
+        for (const el of bookmarkEls) {
+            const level = el.tagName.replaceAll("H", "")
+            const id = el.id
+            const title = el.textContent
+            bookmarks.push({ level, id, title })
+        }
+    }, 10)
+})
+
+function clickBookmark(bookmark: any) {
+    const selector = bookmark.id.replaceAll(".", "\\.").replaceAll("%", "\\%")
+    const el = div.value.querySelector(`#${selector}`)
+    if (el) el.scrollIntoView({ behavior: "smooth" })
+}
+
 function onScroll(e: any) {
     localStorage[`wikiPage_scroll_${props.book}_${props.page}`] = e.target.scrollTop
 }
 
 watch(() => auth.user, fetch)
 
-function fetch() {
+async function fetch() {
     if (!auth.user) return
-    axios
-        .get(src.value, { headers: { Authorization: `Bearer ${auth.token.access_token}` } })
-        .then((response) => {
-            loading.value = false
-            content.value = response.data
-            if (div.value && `wikiPage_scroll_${props.book}_${props.page}` in localStorage) {
-                console.log(
-                    "set scroll",
+    try {
+        const page = (await axios.get(`${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}`, {
+            headers: { Authorization: `Bearer ${auth.token.access_token}` },
+        })).data
+        loading.value = false
+        content.value = `<h1 class='page-name'>${page.name}</h1>\n${page.html}`
+        revision.value = page.revision
+        updatedTime.value = moment(page.updated).utc().format("YYYY-MM-DD HH:mm")
+        updatedBy.value = page.updatedBy
+        if (div.value && `wikiPage_scroll_${props.book}_${props.page}` in localStorage) {
+            //console.log("set scroll", localStorage[`wikiPage_scroll_${props.book}_${props.page}`])
+            setTimeout(() => {
+                div.value.scrollTop = parseInt(
                     localStorage[`wikiPage_scroll_${props.book}_${props.page}`],
                 )
-                setTimeout(() => {
-                    div.value.parentElement.scrollTop = parseInt(
-                        localStorage[`wikiPage_scroll_${props.book}_${props.page}`],
-                    )
-                }, 10)
-            } else {
-                console.log("no scroll")
-            }
-        })
-        .catch((error) => {
-            content.value = error.response ? error.response.data : "Error loading content"
-        })
+            }, 10)
+        } else {
+            //console.log("no scroll")
+        }
+    } catch (error: any) {
+        content.value = error.response ? error.response.data : "Error loading content"
+        revision.value = ""
+        updatedTime.value = ""
+        updatedBy.value = ""
+    }
 }
 </script>
 

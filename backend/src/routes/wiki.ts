@@ -28,45 +28,64 @@ wiki.get("/attachment/:id", async (req: Request, res: Response) => {
     res.send(buffer)
 })
 
-wiki.get("/pagehtml/:id", async (req: Request, res: Response) => {
+wiki.get("/book/:book/page/:page", async (req: Request, res: Response) => {
     if (!await authorize(req, res)) return
-    const id = parseInt(req.params.id)
-    if (!id) return res.status(400).send("Invalid page ID")
-    // const response = await wikiAxios.get(`${wikiBaseUrl}/pages/${id}/export/html`)
-    const response = await wikiAxios.get(`${wikiBaseUrl}/pages/${id}`)
-    res.setHeader("Content-Type", "text/html")
-    res.send(response.data.html)
+    try {
+        const page = await getPage(req.params.book, req.params.page)
+        res.json({
+            name: page.name,
+            html: page.html,
+            revision: page.revision_count,
+            updatedTime: page.updated_at || page.created_at,
+            updatedBy: page.updated_by ? page.updated_by.name : page.created_by ? page.created_by.name : "Unknown"
+        })
+    } catch (e) {
+        const str = `${e}`
+        if (str.toLowerCase().includes("not found")) return res.status(404).send(str)
+        return res.status(500).send(str)
+    }
 })
 
 wiki.get("/book/:book/page/:page/html", async (req: Request, res: Response) => {
     if (!await authorize(req, res)) return
-    let bookId = bookIdCache[req.params.book]
+    try {
+        const page = await getPage(req.params.book, req.params.page)
+        res.setHeader("Content-Type", "text/html")
+        res.send(`<h1 class="page-name">${page.name}</h1>\n${page.html}`)
+    } catch (e) {
+        const str = `${e}`
+        if (str.toLowerCase().includes("not found")) return res.status(404).send(str)
+        return res.status(500).send(str)
+    }
+})
+
+async function getPage(bookName: string, pageName: string) {
+    let bookId = bookIdCache[bookName]
     if (!bookId) {
         const booksResponse = await wikiAxios.get(`${wikiBaseUrl}/books`)
         const books = booksResponse.data.data
-        const book = books.find((b: any) => b.slug === req.params.book)
-        if (!book) return res.status(404).send("Book not found")
-        bookId = bookIdCache[req.params.book] = book.id
+        const book = books.find((b: any) => b.slug === bookName)
+        if (!book) throw("Book not found")
+        bookId = bookIdCache[bookName] = book.id
     }
-    let pageId = pageIdCache[`${bookId}-${req.params.page}`]
+    let pageId = pageIdCache[`${bookId}-${pageName}`]
     if (!pageId) {
         const bookResponse = await wikiAxios.get(`${wikiBaseUrl}/books/${bookId}`)
         const contents = bookResponse.data.contents
-        let page = contents.find((c: any) => c.type === "page" && c.slug === req.params.page)
+        let page = contents.find((c: any) => c.type === "page" && c.slug === pageName)
         if (!page) {
             const chapters = contents.filter((c: any) => c.type === "chapter")
             for (const chapter of chapters) {
-                page = chapter.pages.find((p: any) => p.slug === req.params.page)
+                page = chapter.pages.find((p: any) => p.slug === pageName)
                 if (page) break
             }
         }
-        if (!page) return res.status(404).send("Page not found")
-        pageId = pageIdCache[`${bookId}-${req.params.page}`] = page.id
+        if (!page) throw("Page not found")
+        pageId = pageIdCache[`${bookId}-${pageName}`] = page.id
     }
     const pageResponse = await wikiAxios.get(`${wikiBaseUrl}/pages/${pageId}`)
-    res.setHeader("Content-Type", "text/html")
-    res.send(`<h1 class="page-name">${pageResponse.data.name}</h1>\n${pageResponse.data.html}`)
-})
+    return pageResponse.data
+}
 
 async function authorize(req: Request, res: Response) {
     if (!wikiToken || !wikiSecret) {

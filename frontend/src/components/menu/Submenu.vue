@@ -1,7 +1,7 @@
 <template>
     <v-menu activator="parent" :location="sub ? 'end' : 'bottom'" style="user-select: none">
         <v-list density="compact">
-            <v-list-item v-if="Object.keys(items).length > 10" style="margin-top: -10px">
+            <v-list-item v-if="Object.keys(items).length > 12" style="margin-top: -10px">
                 <v-text-field
                     ref="filterField"
                     variant="underlined"

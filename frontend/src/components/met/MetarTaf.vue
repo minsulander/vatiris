@@ -1,5 +1,5 @@
 <template>
-    <div style="height: 30px; background: #666">
+    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
         <v-btn
             variant="text"
             rounded="0"
@@ -58,7 +58,7 @@
             </v-menu>
         </v-btn>
     </div>
-    <div style="font-size: 14px; line-height: 16px; height: calc(100% - 30px); overflow-y: auto">
+    <div style="font-size: 14px; line-height: 16px; height: calc(100% - 25px); overflow-y: auto">
         <div class="ma-1" v-if="ad.length == 0">Select aerodromes in the menu above.</div>
         <div class="ma-1" v-if="!metar && !taf">Both METAR and TAF unselected...</div>
         <div class="ma-1" v-for="icao in ad" :key="icao">
