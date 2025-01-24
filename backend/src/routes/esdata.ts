@@ -34,6 +34,20 @@ esdata.get("/:key", async (req: Request, res: Response) => {
     }
 })
 
+esdata.post("/", async (req: Request, res: Response) => {
+    // TODO some kind of auth but not oauth... could validate cid though
+    console.log("esdata", req.body)
+    for (const key in req.body) {
+        if (!(key in euroscopeData)) euroscopeData[key] = {}
+        const data = euroscopeData[key]
+        Object.assign(data, req.body[key])
+        if (!("count" in data)) data.count = 0
+        data.count++
+        data.timestamp = moment().utc().toISOString()
+    }
+    res.send("ok")
+})
+
 esdata.post("/:key", async (req: Request, res: Response) => {
     // TODO some kind of auth but not oauth... could validate cid though
     console.log(`esdata for ${req.params.key}`, req.body)
