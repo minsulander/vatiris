@@ -51,8 +51,8 @@ ADD_DEFINITIONS(
 
 SET(SOURCE_FILES
     src/plugin.cpp
-    src/plugin.h
     src/main.cpp
+    src/postjson.cpp
     src/Version.h.in
 )
 
