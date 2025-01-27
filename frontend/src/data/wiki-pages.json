@@ -229,6 +229,11 @@
         "book": "lop",
         "page": "esut"
     },
+    "lop-okc": {
+        "title": "LOP ÖKC",
+        "book": "lop",
+        "page": "okc"
+    },
     "santa2024": {
         "title": "Fly and see Santa 2024",
         "book": "event-procedures",

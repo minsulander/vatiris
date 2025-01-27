@@ -143,7 +143,7 @@ const menuItems = reactive({
             ESTL: "wiki-lop-estl",
             ESUP: "wiki-lop-esup",
             ESUT: "wiki-lop-esut",
-            ÖKC: "wikipdf-lop-okc",
+            ÖKC: "wiki-lop-okc",
         },
         LoA: {
             //Index: "https://wiki.vatsim-scandinavia.org/books/loa",
