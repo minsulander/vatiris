@@ -26,7 +26,9 @@ class VatIRISPlugin : public EuroScopePlugIn::CPlugIn
 
     private:
     bool FilterFlightPlan(EuroScopePlugIn::CFlightPlan FlightPlan);
+    void UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan);
 
+    bool disabled;
     bool updateAll;
     bool debug;
     nlohmann::json pendingUpdates;
