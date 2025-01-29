@@ -21,10 +21,12 @@ class VatIRISPlugin : public EuroScopePlugIn::CPlugIn
     bool OnCompileCommand(const char *commandLine);
     void OnTimer(int counter);
 
-    void DebugMessage(const std::string &message, const std::string &sender = "VatIRIS");
-    void DisplayMessage(const std::string &message, const std::string &sender = "VatIRIS");
 
     private:
+    void UpdateMyself();
+    void PostUpdates();
+    void DebugMessage(const std::string &message, const std::string &sender = "VatIRIS");
+    void DisplayMessage(const std::string &message, const std::string &sender = "VatIRIS");
     bool FilterFlightPlan(EuroScopePlugIn::CFlightPlan FlightPlan);
     void UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan);
 
