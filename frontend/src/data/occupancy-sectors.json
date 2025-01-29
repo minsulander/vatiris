@@ -51,22 +51,22 @@
     },
     "ESMM23W": {
         "section": "ESMM",
-        "title": "23W",
+        "title": "23W  ",
         "sectors": [ "ESMM2", "ESMM3", "ESMMW" ]
     },
     "ESMM45": {
         "section": "ESMM",
-        "title": "45",
+        "title": "45  ",
         "sectors": [ "ESMM4", "ESMM5", "ESMMC" ]
     },
     "ESMM67": {
         "section": "ESMM",
-        "title": "67",
+        "title": "67  ",
         "sectors": [ "ESMM6", "ESMM7" ]
     },
     "ESMM89": {
         "section": "ESMM",
-        "title": "89",
+        "title": "89  ",
         "sectors": [ "ESMM8", "ESMM9" ]
     },
     "ESMMKL": {
