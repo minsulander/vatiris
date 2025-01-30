@@ -3,10 +3,11 @@
 #include "postjson.h"
 
 #include "json.hpp"
-#include <sstream>
-#include <string>
 #include <chrono>
 #include <format>
+#include <sstream>
+#include <fstream>
+#include <string>
 #include <windows.h>
 #include <wininet.h>
 
@@ -15,15 +16,36 @@
 namespace VatIRIS
 {
 
+extern "C" IMAGE_DOS_HEADER __ImageBase;
+char DllPathFile[_MAX_PATH];
+
+
 VatIRISPlugin::VatIRISPlugin()
 : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, PLUGIN_NAME, PLUGIN_VERSION, PLUGIN_AUTHOR, PLUGIN_LICENSE)
 {
     lastPostTime = std::time(NULL);
     disabled = true; // ... until connected - see OnTimer
-    updateAll = true; // TODO make this configurable/default false
-    debug = true; // TODO default false
-    DebugMessage("Version " + std::string(PLUGIN_VERSION) + " loaded");
+    updateAll = false;
+    debug = false;
+
+	GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
+	std::string settingsPath = DllPathFile;
+	settingsPath.resize(settingsPath.size() - strlen("VatIRIS.dll"));
+	settingsPath += "VatIRISPlugin.txt";
+    std::ifstream settingsFile(settingsPath);
+    if (settingsFile.is_open()) {
+        std::string line;
+        while (std::getline(settingsFile, line)) {
+            if (line.empty()) continue;
+            std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+            if (line == "debug") debug = true;
+            else if (line == "updateall") updateAll = true;
+            else DisplayMessage("Unknown setting: " + line);
+        }
+    }
+    DebugMessage("Version " + std::string(PLUGIN_VERSION) + (updateAll ? " updateAll" : ""));
 }
+
 VatIRISPlugin::~VatIRISPlugin()
 {
 }
@@ -51,7 +73,7 @@ void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPla
 
 void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan, int DataType)
 {
-    if (disabled ||!FilterFlightPlan(FlightPlan)) return;
+    if (disabled || !FilterFlightPlan(FlightPlan)) return;
     std::string callsign = FlightPlan.GetCallsign();
     pendingUpdates[callsign]["controller"] = FlightPlan.GetTrackingControllerCallsign();
     std::stringstream out;
@@ -145,18 +167,11 @@ bool VatIRISPlugin::OnCompileCommand(const char *commandLine)
         return true;
     } else if (strncmp(commandLine, ".vatiris mine", 13) == 0) {
         DisplayMessage("Updating my flight plans");
-        updateAll = true;
+        updateAll = false;
         return true;
-    } else if (strncmp(commandLine, ".vatiris rwy", 12) == 0) {
-        SelectActiveSectorfile();
-        std::stringstream out;
-        for (EuroScopePlugIn::CSectorElement runway = SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY); runway.IsValid(); runway = SectorFileElementSelectNext(runway, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY)) {
-            if (runway.IsElementActive(false, 0)) out << runway.GetName() << " arr " << runway.GetRunwayName(0) << " ";
-            if (runway.IsElementActive(false, 1)) out << runway.GetName() << " arr " << runway.GetRunwayName(1) << " ";
-            if (runway.IsElementActive(true, 0)) out << runway.GetName() << " dep " << runway.GetRunwayName(0) << " ";
-            if (runway.IsElementActive(true, 1)) out << runway.GetName() << " dep " << runway.GetRunwayName(1) << " ";
-        }
-        DisplayMessage(out.str());
+    } else if (strncmp(commandLine, ".vatiris debug", 14) == 0) {
+        DisplayMessage("Debug mode enabled");
+        debug = true;
         return true;
     } else if (strncmp(commandLine, ".vatiris test", 13) == 0) {
         std::stringstream out;
@@ -190,14 +205,40 @@ void VatIRISPlugin::OnTimer(int counter)
     PostUpdates();
 }
 
-void VatIRISPlugin::UpdateMyself() {
+void VatIRISPlugin::UpdateMyself()
+{
     std::string callsign = ControllerMyself().GetCallsign();
     pendingUpdates[callsign]["name"] = ControllerMyself().GetFullName();
     pendingUpdates[callsign]["frequency"] = ControllerMyself().GetPrimaryFrequency();
     pendingUpdates[callsign]["controller"] = ControllerMyself().IsController();
+    SelectActiveSectorfile();
+    for (EuroScopePlugIn::CSectorElement airport =
+         SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT);
+         airport.IsValid();
+         airport = SectorFileElementSelectNext(airport, EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT)) {
+        if (airport.IsElementActive(false))
+            pendingUpdates[callsign]["rwyconfig"][airport.GetName()]["arr"] = true;
+        if (airport.IsElementActive(true))
+            pendingUpdates[callsign]["rwyconfig"][airport.GetName()]["dep"] = true;
+    }
+    for (EuroScopePlugIn::CSectorElement runway = SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
+         runway.IsValid();
+         runway = SectorFileElementSelectNext(runway, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY)) {
+        std::string airport = runway.GetAirportName();
+        airport.erase(std::remove_if(airport.begin(), airport.end(), ::isspace), airport.end());
+        if (runway.IsElementActive(false, 0))
+            pendingUpdates[callsign]["rwyconfig"][airport][runway.GetRunwayName(0)]["arr"] = true;
+        if (runway.IsElementActive(false, 1))
+            pendingUpdates[callsign]["rwyconfig"][airport][runway.GetRunwayName(1)]["arr"] = true;
+        if (runway.IsElementActive(true, 0))
+            pendingUpdates[callsign]["rwyconfig"][airport][runway.GetRunwayName(0)]["dep"] = true;
+        if (runway.IsElementActive(true, 1))
+            pendingUpdates[callsign]["rwyconfig"][airport][runway.GetRunwayName(1)]["dep"] = true;
+    }
 }
 
-void VatIRISPlugin::PostUpdates() {
+void VatIRISPlugin::PostUpdates()
+{
     lastPostTime = std::time(NULL);
     if (!mutex) mutex = CreateMutex(NULL, FALSE, NULL);
     DWORD waitResult = WaitForSingleObject(mutex, 0); // Check mutex state
@@ -236,17 +277,23 @@ void VatIRISPlugin::UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
     std::string callsign = FlightPlan.GetCallsign();
     pendingUpdates[callsign]["origin"] = FlightPlan.GetExtractedRoute().GetPointName(0);
-    pendingUpdates[callsign]["destination"] = FlightPlan.GetExtractedRoute().GetPointName(FlightPlan.GetExtractedRoute().GetPointsNumber()-1);
+    pendingUpdates[callsign]["destination"] =
+    FlightPlan.GetExtractedRoute().GetPointName(FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
     if (FlightPlan.GetExtractedRoute().GetPointsNumber() > 2) {
         pendingUpdates[callsign]["departure"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(1);
-        pendingUpdates[callsign]["arrival"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(FlightPlan.GetExtractedRoute().GetPointsNumber()-2);
+        pendingUpdates[callsign]["arrival"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(
+        FlightPlan.GetExtractedRoute().GetPointsNumber() - 2);
     }
-    int ete = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(FlightPlan.GetExtractedRoute().GetPointsNumber()-1);
+    int ete = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(
+    FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
     if (FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex() > 0) {
-        int timeAtClosest = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex());
+        int timeAtClosest = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(
+        FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex());
         if (timeAtClosest > 0) ete -= timeAtClosest;
     }
-    if (ete > 0) pendingUpdates[callsign]["eta"] = std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
+    if (ete > 0)
+        pendingUpdates[callsign]["eta"] =
+        std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
 }
 
 } // namespace VatIRIS
