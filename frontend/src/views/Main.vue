@@ -56,7 +56,7 @@ import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
 import { useWakeLock } from "@vueuse/core"
 import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
-import Iframe from "@/components/Iframe.vue"
+import ArrDep from "@/components/flight/ArrDep.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -200,6 +200,12 @@ const availableWindows = shallowReactive({
         component: Pdf,
         props: { id: "regional", src: `${apiBaseUrl}/regional.pdf`, externalLink: true },
         width: 800,
+        height: 600,
+    },
+    arrdep: {
+        title: "ARR DEP",
+        component: ArrDep,
+        width: 600,
         height: 600,
     },
 } as any)
