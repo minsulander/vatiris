@@ -120,8 +120,8 @@ const calculateSunriseSunset = () => {
 
         dawnTime.value = formatTime(times.dawn)
         duskTime.value = formatTime(times.dusk)
-        sunriseTime.value = formatTime(times.sunrise)
-        sunsetTime.value = formatTime(times.sunset)
+        sunriseTime.value = formatTime(times.sunrise) || "N/A, no sunrise."
+        sunsetTime.value = formatTime(times.sunset) || "N/A, no sunset."
 
         const { dayStart, nightStart } = calculateAeronauticalTimes(
             lat,
