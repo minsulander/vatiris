@@ -1,5 +1,8 @@
 <template>
-    <div v-if="departures.length === 0" class="text-center">No departures</div>
+    <div v-if="departures.length === 0" class="text-center">
+        <div v-if="vatsim.refreshing || fdp.fdp.loading || esdata.loading">Loading...</div>
+        <div v-else>No departures</div>
+    </div>
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 20px; margin-bottom: 20px; background: #ddd">
@@ -65,11 +68,9 @@ const departures = computed(() => {
         .map((pilot) => {
             return {
                 callsign: pilot.callsign,
-                stand: "",
-                std: moment(flightplanDepartureTime(pilot.flight_plan)).format("HHmm"),
-                status: "",
+                std: flightplanDepartureTime(pilot.flight_plan)?.format("HHmm"),
                 ades: pilot.flight_plan?.arrival,
-            }
+            } as Departure
         })
     for (const dep of departures) {
         if (dep.callsign in esdata.data) {

@@ -38,8 +38,8 @@ export const useEsdataStore = defineStore("esdata", () => {
         }
     }
 
-    if ((window as any).fdpRefreshInterval) clearInterval((window as any).fdpRefreshInterval)
-    ;(window as any).fdpRefreshInterval = setInterval(() => {
+    if ((window as any).esdataRefreshInterval) clearInterval((window as any).esdataRefreshInterval)
+    ;(window as any).esdataRefreshInterval = setInterval(() => {
         if (subscriptions.length > 0) fetch()
     }, 15000)
 

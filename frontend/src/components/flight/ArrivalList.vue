@@ -1,5 +1,8 @@
 <template>
-    <div v-if="arrivals.length === 0" class="text-center">No arrivals</div>
+    <div v-if="arrivals.length === 0" class="text-center">
+        <div v-if="vatsim.refreshing || fdp.fdp.loading || esdata.loading">Loading...</div>
+        <div v-else>No arrivals</div>
+    </div>
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 20px; margin-bottom: 20px; background: #ddd">
@@ -68,19 +71,16 @@ const arrivals = computed(() => {
         .map((pilot) => {
             return {
                 callsign: pilot.callsign,
-                stand: "",
-                sta: moment(flightplanArrivalTime(pilot.flight_plan)).format("HHmm"),
-                eta: "",
-                status: "",
+                sta: flightplanArrivalTime(pilot.flight_plan)?.format("HHmm"),
                 adep: pilot.flight_plan?.departure,
-            }
+            } as Arrival
         })
     for (const arr of arrivals) {
-        if (fdp.fdp && fdp.fdp.flights && arr.callsign in fdp.fdp.flights) {
+        if (fdp.fdp && fdp.fdp.flights && arr.callsign in fdp.fdp.flights && fdp.fdp.general && fdp.fdp.general.update_timestamp) {
             const prediction = fdp.fdp.flights[arr.callsign].prediction
             if (prediction) {
                 const lastLeg = prediction.legs[prediction.legs.length - 1]
-                arr.eta = moment().utc().add(lastLeg.time, "seconds").format("HHmm")
+                arr.eta = moment(fdp.fdp.general.update_timestamp).add(lastLeg.time, "seconds").utc().format("HHmm")
             }
         }
         if (esdata.data && arr.callsign in esdata.data) {
@@ -88,7 +88,11 @@ const arrivals = computed(() => {
             arr.status = esdata.data[arr.callsign].groundstate
         }
     }
-    return arrivals
+    return arrivals.sort((a, b) => {
+        if (a.eta && b.eta) return a.eta.localeCompare(b.eta)
+        if (a.sta && b.sta) return a.sta.localeCompare(b.sta)
+        return 0
+    })
 })
 
 let fdpSubscription: any = undefined
