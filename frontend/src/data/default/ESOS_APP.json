@@ -123,7 +123,7 @@
     "notamOptions": {
         "raw": false,
         "header": false,
-        "ad": ["ESSA", "ESSB", "ESOW"],
+        "ad": ["ESSA", "ESSB", "ESOW", "ESCM", "ESSU"],
         "enroute": true,
         "nav": true,
         "footer": false,
@@ -132,11 +132,11 @@
     "metartafOptions": {
         "metar": true,
         "taf": true,
-        "ad": [
-            "ESSA",
-            "ESSB",
-            "ESOW"
-        ]
+        "ad": ["ESSA", "ESSB", "ESOW", "ESCM"]
+    },
+    "arrdepOptions": {
+        "arr": true,
+        "dep": true,
+        "ad": ["ESSA", "ESSB", "ESOW", "ESCM", "ESSU"]
     }
-
 }

@@ -9,6 +9,7 @@ export const presetKeys = [
     "smhiMapZoom",
     "notamOptions",
     "metartafOptions",
+    "arrdepOptions",
 ]
 
 export const usePresetStore = defineStore("preset", () => {

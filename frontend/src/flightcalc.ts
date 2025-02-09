@@ -1,4 +1,40 @@
 import moment from "moment"
+import { useAirportStore } from "@/stores/airport"
+import * as turf from "@turf/turf"
+
+export function departureDistance(pilot: any) {
+    if (
+        !pilot ||
+        !pilot.longitude ||
+        !pilot.latitude ||
+        !pilot.flight_plan ||
+        !pilot.flight_plan.departure
+    )
+        return Infinity
+    const airport = useAirportStore()
+    return distanceToAirport(pilot, airport.airports[pilot.flight_plan.departure])
+}
+
+export function arrivalDistance(pilot: any) {
+    if (
+        !pilot ||
+        !pilot.longitude ||
+        !pilot.latitude ||
+        !pilot.flight_plan ||
+        !pilot.flight_plan.arrival
+    )
+        return Infinity
+        const airport = useAirportStore()
+        return distanceToAirport(pilot, airport.airports[pilot.flight_plan.arrival])
+}
+
+export function distanceToAirport(pilot: any, airport: any) {
+    if (!airport || !isFinite(airport.longitude) || !isFinite(airport.latitude)) return Infinity
+    const from = turf.point([pilot.longitude, pilot.latitude])
+    const to = turf.point([airport.longitude, airport.latitude])
+    const distance = turf.distance(from, to) / 1.852
+    return distance
+}
 
 export function flightplanArrivalTime(fp: any, adjustDepartureTime = false) {
     if (!fp || !fp.deptime || fp.deptime == "0000" || !fp.enroute_time || fp.enroute_time == "0000") return undefined
@@ -27,6 +63,6 @@ export function flightplanDepartureTime(fp: any) {
     const depHours = parseInt(fp.deptime.substring(0, 2))
     const depMinutes = parseInt(fp.deptime.substring(2, 4))
     let time = moment().utc().set("hour", depHours).set("minute", depMinutes)
-    if (time.isBefore(moment().subtract(12, "hour"))) time = time.add(1, "day")
+    if (time.isBefore(moment().subtract(6, "hour"))) time = time.add(1, "day")
     return time
 }

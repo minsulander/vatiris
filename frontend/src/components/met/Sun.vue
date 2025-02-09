@@ -37,8 +37,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, onUnmounted } from "vue"
 import * as SunCalc from "suncalc"
-import Papa from "papaparse"
-import airportsData from "@/data/airports.csv?raw"
+import { useAirportStore } from "@/stores/airport"
+
+const airports = useAirportStore()
 
 const props = defineProps<{ id: string }>()
 
@@ -52,26 +53,6 @@ const error = ref("")
 const isNightTime = ref(false)
 const isDuskTime = ref(false)
 const currentTime = ref("")
-
-const airports = ref<Record<string, { lat: number; lon: number }>>({})
-
-const loadAirports = () => {
-    try {
-        const results = Papa.parse(airportsData, { header: true })
-
-        results.data.forEach((airport: any) => {
-            if (airport.ident) {
-                airports.value[airport.ident.toUpperCase()] = {
-                    lat: parseFloat(airport.latitude_deg),
-                    lon: parseFloat(airport.longitude_deg),
-                }
-            }
-        })
-    } catch (err) {
-        console.error("Error loading airports data:", err)
-        error.value = "Failed to load airports data"
-    }
-}
 
 //Is this relevant..?
 const calculateAeronauticalTimes = (lat: number, date: Date, sunrise: Date, sunset: Date) => {
@@ -105,7 +86,7 @@ const calculateSunriseSunset = () => {
     loading.value = true
     error.value = ""
 
-    const airport = airports.value[airportCode.value.toUpperCase()]
+    const airport = airports.airports[airportCode.value.toUpperCase()]
 
     if (!airport) {
         error.value = "Airport not found"
@@ -114,9 +95,9 @@ const calculateSunriseSunset = () => {
     }
 
     try {
-        const { lat, lon } = airport
+        const { latitude, longitude } = airport
         const date = new Date()
-        const times = SunCalc.getTimes(date, lat, lon)
+        const times = SunCalc.getTimes(date, latitude, longitude)
 
         dawnTime.value = formatTime(times.dawn)
         duskTime.value = formatTime(times.dusk)
@@ -124,7 +105,7 @@ const calculateSunriseSunset = () => {
         sunsetTime.value = formatTime(times.sunset)
 
         const { dayStart, nightStart } = calculateAeronauticalTimes(
-            lat,
+            latitude,
             date,
             times.sunrise,
             times.sunset,
@@ -157,7 +138,6 @@ watch(
 
 let recalculateInterval: any = undefined
 onMounted(() => {
-    loadAirports()
     calculateSunriseSunset()
     recalculateInterval = setInterval(() => {
         calculateSunriseSunset()
