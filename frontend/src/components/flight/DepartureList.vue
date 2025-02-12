@@ -53,6 +53,7 @@ import { useAirportStore } from "@/stores/airport"
 import { computed, onMounted, onUnmounted, type PropType } from "vue"
 import { flightplanDepartureTime, distanceToAirport } from "@/flightcalc"
 import moment from "moment"
+import constants from "@/constants"
 
 const props = defineProps({
     airports: {
@@ -84,23 +85,24 @@ const departures = computed(() => {
     let departures = vatsim.data.pilots
         .filter((pilot) => {
             if (!pilot.flight_plan) return false
-            if (props.airports.length == 0 && !pilot.flight_plan.departure.startsWith("ES")) return false
-            if (props.airports.length > 0 && !props.airports.includes(pilot.flight_plan.departure)) return false
+            if (props.airports.length == 0 && !pilot.flight_plan.departure.startsWith("ES"))
+                return false
+            if (props.airports.length > 0 && !props.airports.includes(pilot.flight_plan.departure))
+                return false
             if (!(pilot.flight_plan.departure in airportStore.airports)) return false
             const airport = airportStore.airports[pilot.flight_plan.departure]
-            if (distanceToAirport(pilot, airport) > 15) return false
+            if (distanceToAirport(pilot, airport) > constants.atAirportDistance) return false
             return true
         })
         .map((pilot) => {
+            const depTime = flightplanDepartureTime(pilot.flight_plan)
             return {
                 callsign: pilot.callsign,
                 type: pilot.flight_plan?.aircraft_short,
                 adep: pilot.flight_plan?.departure,
                 std: flightplanDepartureTime(pilot.flight_plan)?.format("HHmm"),
                 ades: pilot.flight_plan?.arrival,
-                sortTime: flightplanDepartureTime(pilot.flight_plan)
-                    ?.utc()
-                    .diff(moment().utc(), "seconds"),
+                sortTime: depTime ? depTime.diff(moment().utc(), "seconds") : 0,
             } as Departure
         })
     const skipCallsigns = [] as string[]
@@ -134,21 +136,25 @@ const departures = computed(() => {
     let prefileDeps = vatsim.data.prefiles
         .filter((prefile) => {
             if (!prefile.flight_plan) return false
-            if (props.airports.length == 0 && !prefile.flight_plan.departure.startsWith("ES")) return false
-            if (props.airports.length > 0 && !props.airports.includes(prefile.flight_plan.departure)) return false
+            if (props.airports.length == 0 && !prefile.flight_plan.departure.startsWith("ES"))
+                return false
+            if (
+                props.airports.length > 0 &&
+                !props.airports.includes(prefile.flight_plan.departure)
+            )
+                return false
             const depTime = flightplanDepartureTime(prefile.flight_plan)
             return depTime && depTime.utc().diff(moment().utc(), "hours") > -2
         })
         .map((prefile) => {
+            const depTime = flightplanDepartureTime(prefile.flight_plan)
             return {
                 callsign: prefile.callsign,
                 type: prefile.flight_plan?.aircraft_short,
                 adep: prefile.flight_plan?.departure,
                 std: flightplanDepartureTime(prefile.flight_plan)?.format("HHmm"),
                 ades: prefile.flight_plan?.arrival,
-                sortTime: flightplanDepartureTime(prefile.flight_plan)
-                    ?.utc()
-                    .diff(moment().utc(), "seconds"),
+                sortTime: depTime ? depTime.diff(moment().utc(), "seconds") : 0,
                 status: "PRE",
             } as Departure
         })
@@ -160,8 +166,8 @@ const departures = computed(() => {
         const airport = airportStore.airports[icao]
         for (const pilot of vatsim.data.pilots.filter(
             (p) =>
-                p.groundspeed < 40 &&
-                distanceToAirport(p, airport) < 4 &&
+                p.groundspeed < constants.inflightGroundspeed &&
+                distanceToAirport(p, airport) < constants.atAirportDistance &&
                 (!p.flight_plan ||
                     (p.flight_plan.departure !== airport.icao &&
                         p.flight_plan.arrival !== airport.icao)),

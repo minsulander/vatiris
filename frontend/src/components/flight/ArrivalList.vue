@@ -55,6 +55,7 @@ import { useAirportStore } from "@/stores/airport"
 import { computed, onMounted, onUnmounted, type PropType } from "vue"
 import { distanceToAirport, flightplanArrivalTime } from "@/flightcalc"
 import moment from "moment"
+import constants from "@/constants"
 
 const props = defineProps({
     airports: {
@@ -128,12 +129,12 @@ const arrivals = computed(() => {
             const pilot = vatsim.data.pilots.find((p) => p.callsign === arr.callsign)
             const distance = distanceToAirport(pilot, airport)
             if (pilot) {
-                if (pilot.groundspeed >= 40) {
+                if (pilot.groundspeed >= constants.inflightGroundspeed) {
                     const seconds = (distance / pilot.groundspeed) * 3600
                     arr.sortTime = seconds
                     arr.eta = moment().utc().add(seconds, "seconds").format("HHmm")
                     arr.status = "NFDP"
-                } else if (distance < 4) {
+                } else if (distance < constants.atAirportDistance) {
                     arr.status = "LAND"
                     arr.sortTime = 0
                 } else {
