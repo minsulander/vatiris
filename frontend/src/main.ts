@@ -63,6 +63,7 @@ import { useMetarStore } from "@/stores/metar"
 import { useTafStore } from "@/stores/taf"
 import { useFdpStore } from "@/stores/fdp"
 import { useOccupancyStore } from "./stores/occupancy"
+import { useEsdataStore } from "./stores/esdata"
 import moment from "moment"
 import axios from "axios"
 
@@ -83,3 +84,4 @@ global.axios = axios
 global.dct = useDctStore()
 global.fdp = useFdpStore()
 global.occupancy = useOccupancyStore()
+global.esdata = useEsdataStore()

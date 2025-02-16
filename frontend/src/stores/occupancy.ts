@@ -25,20 +25,22 @@ export const useOccupancyStore = defineStore("occupancy", () => {
         if (index !== -1) subscriptions.splice(index, 1)
     }
 
-    function fetch() {
-        axios
-            .get(`${backendBaseUrl}/fdp/occupancy.json`)
-            .then((response) => {
-                for (const key in occupancy) delete occupancy[key]
-                Object.assign(occupancy, response.data)
-                console.log(`Got occupancy`)
-            })
-            .catch((error) => {
-                console.error("Failed to fetch occupancy", error)
-            })
+    async function fetch() {
+        occupancy.loading = true
+        try {
+            const response = await axios.get(`${backendBaseUrl}/fdp/occupancy.json`)
+            for (const key in occupancy) delete occupancy[key]
+            Object.assign(occupancy, response.data)
+            console.log(`Got occupancy`)
+        } catch (error) {
+            console.error("Failed to fetch occupancy", error)
+        } finally {
+            occupancy.loading = false
+        }
     }
 
-    if ((window as any).occupancyRefreshInterval) clearInterval((window as any).occupancyRefreshInterval)
+    if ((window as any).occupancyRefreshInterval)
+        clearInterval((window as any).occupancyRefreshInterval)
     ;(window as any).occupancyRefreshInterval = setInterval(() => {
         if (subscriptions.length > 0) fetch()
     }, 60000)

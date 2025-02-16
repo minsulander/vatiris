@@ -26,7 +26,10 @@
             :options="chartOptions"
             style="padding-top: 10px"
         />
-        <div v-else class="text-center pt-5">No traffic or no data available</div>
+        <div v-else class="text-center pt-5">
+            <div v-if="occupancyStore.occupancy.loading">Loading...</div>
+            <div v-else>No traffic or no data available</div>
+        </div>
     </div>
 </template>
 

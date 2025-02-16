@@ -39,6 +39,7 @@ const options = computed(() => {
         class: `no-full ${props.class || ""}`,
         top: 30,
         border: 3,
+        min: id in windows.layout && windows.layout[id].min,
         x:
             id in windows.layout && "x" in windows.layout[id]
                 ? windows.layout[id].x
@@ -77,11 +78,11 @@ function move(move: any) {
         if (moveTimeout) clearTimeout(moveTimeout)
         moveTimeout = setTimeout(() => {
             moveTimeout = undefined
-            if (windows.winbox[move.id].min) {
+            if (move.id in windows.winbox &&windows.winbox[move.id].min) {
                 showContent.value = false
                 windows.layout[move.id].min = true
                 windows.layout[move.id].max = false
-            } else if (windows.winbox[move.id].max) {
+            } else if (move.id in windows.winbox && windows.winbox[move.id].max) {
                 showContent.value = true
                 windows.layout[move.id].max = true
                 windows.layout[move.id].min = false
@@ -254,9 +255,7 @@ onMounted(() => {
         if (wb.value && wb.value.winbox) {
             windows.winbox[props.id] = wb.value.winbox
             if (windows.focusId && props.id == windows.focusId) wb.value.winbox.focus()
-            if (props.id in windows.layout && windows.layout[props.id].min) {
-                wb.value.winbox.minimize()
-            } else if (props.id in windows.layout && windows.layout[props.id].max) {
+            if (props.id in windows.layout && windows.layout[props.id].max) {
                 wb.value.winbox.maximize()
                 showContent.value = true
             } else {
@@ -267,7 +266,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    wb.value?.winbox.close(true)
+    wb.value?.winbox?.close(true)
     delete windows.winbox[props.id]
 })
 </script>
