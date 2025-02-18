@@ -52,23 +52,24 @@ VatIRISPlugin::~VatIRISPlugin()
 
 void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
-    if (disabled || !FilterFlightPlan(FlightPlan)) return;
-    std::string callsign = FlightPlan.GetCallsign();
-    std::stringstream out;
-    out << "FlightPlanDataUpdate " << callsign;
-    out << " state " << FlightPlan.GetState() << " fpstate " << FlightPlan.GetFPState();
-    if (FlightPlan.GetSimulated()) out << " simulated";
-    if (strlen(FlightPlan.GetTrackingControllerCallsign()) > 0)
-        out << " controller " << FlightPlan.GetTrackingControllerCallsign();
-    for (int i = 0; i < FlightPlan.GetExtractedRoute().GetPointsNumber(); i++) {
-        out << " " << FlightPlan.GetExtractedRoute().GetPointName(i);
-        out << " (" << FlightPlan.GetExtractedRoute().GetPointAirwayName(i) << ")";
-        out << " [" << FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(i) << "]";
-    }
-    out << " closest " << FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex();
-    out << " assigned " << FlightPlan.GetExtractedRoute().GetPointsAssignedIndex();
-    DebugMessage(out.str());
-    UpdateRoute(FlightPlan);
+    // TODO remove not really useful
+    // if (disabled || !FilterFlightPlan(FlightPlan)) return;
+    // std::string callsign = FlightPlan.GetCallsign();
+    // std::stringstream out;
+    // out << "FlightPlanDataUpdate " << callsign;
+    // out << " state " << FlightPlan.GetState() << " fpstate " << FlightPlan.GetFPState();
+    // if (FlightPlan.GetSimulated()) out << " simulated";
+    // if (strlen(FlightPlan.GetTrackingControllerCallsign()) > 0)
+    //     out << " controller " << FlightPlan.GetTrackingControllerCallsign();
+    // for (int i = 0; i < FlightPlan.GetExtractedRoute().GetPointsNumber(); i++) {
+    //     out << " " << FlightPlan.GetExtractedRoute().GetPointName(i);
+    //     out << " (" << FlightPlan.GetExtractedRoute().GetPointAirwayName(i) << ")";
+    //     out << " [" << FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(i) << "]";
+    // }
+    // out << " closest " << FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex();
+    // out << " assigned " << FlightPlan.GetExtractedRoute().GetPointsAssignedIndex();
+    // DebugMessage(out.str());
+    // UpdateRoute(FlightPlan);
 }
 
 void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan, int DataType)
@@ -87,13 +88,19 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
     case EuroScopePlugIn::CTR_DATA_TYPE_FINAL_ALTITUDE:
         out << " rfl " << FlightPlan.GetControllerAssignedData().GetFinalAltitude();
         break;
-    case EuroScopePlugIn::CTR_DATA_TYPE_TEMPORARY_ALTITUDE:
-        out << " cfl " << FlightPlan.GetControllerAssignedData().GetClearedAltitude();
-        pendingUpdates[callsign]["cfl"] = FlightPlan.GetControllerAssignedData().GetClearedAltitude();
+    case EuroScopePlugIn::CTR_DATA_TYPE_TEMPORARY_ALTITUDE: {
+        int cfl = FlightPlan.GetControllerAssignedData().GetClearedAltitude();
+        out << " cfl " << cfl;
+        pendingUpdates[callsign]["cfl"] = cfl;
         // 0 - no cleared level (use the final instead of)
         // 1 - cleared for ILS approach
         // 2 - cleared for visual approach
+        if (cfl == 1 || cfl == 2) {
+            pendingUpdates[callsign]["ahdg"] = 0;
+            pendingUpdates[callsign]["direct"] = "";
+        }
         break;
+    }
     case EuroScopePlugIn::CTR_DATA_TYPE_COMMUNICATION_TYPE:
         out << " comm " << FlightPlan.GetControllerAssignedData().GetCommunicationType();
         break;
@@ -102,7 +109,7 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
         std::string scratch = FlightPlan.GetControllerAssignedData().GetScratchPadString();
         out << " scratch " << scratch;
         if (scratch == "LINEUP" || scratch == "ONFREQ" || scratch == "DE-ICE") {
-            pendingUpdates[callsign]["groundstate"] = FlightPlan.GetGroundState();
+            pendingUpdates[callsign]["groundstate"] = scratch;
         } else if (scratch.find("GRP/S/") != std::string::npos) {
             pendingUpdates[callsign]["stand"] = scratch.substr(6);
         }
@@ -134,10 +141,12 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
     case EuroScopePlugIn::CTR_DATA_TYPE_HEADING:
         out << " ahdg " << FlightPlan.GetControllerAssignedData().GetAssignedHeading();
         pendingUpdates[callsign]["ahdg"] = FlightPlan.GetControllerAssignedData().GetAssignedHeading();
+        pendingUpdates[callsign]["direct"] = "";
         break;
     case EuroScopePlugIn::CTR_DATA_TYPE_DIRECT_TO:
         out << " direct " << FlightPlan.GetControllerAssignedData().GetDirectToPointName();
         pendingUpdates[callsign]["direct"] = FlightPlan.GetControllerAssignedData().GetDirectToPointName();
+        pendingUpdates[callsign]["ahdg"] = 0;
         break;
     }
     for (int i = 0; i < 9; i++) {
@@ -145,7 +154,7 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
             out << " a" << i << " " << FlightPlan.GetControllerAssignedData().GetFlightStripAnnotation(i);
         // a6 stand
         // a7 C
-        // a7 /s+ ???
+        // a7 /s+ = - etc
     }
     DebugMessage(out.str());
     UpdateRoute(FlightPlan);
@@ -153,10 +162,11 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
 
 void VatIRISPlugin::OnFlightPlanDisconnect(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
-    if (disabled || !FilterFlightPlan(FlightPlan)) return;
-    std::stringstream out;
-    out << "FlightPlanDisconnect " << FlightPlan.GetCallsign();
-    DebugMessage(out.str());
+    // TODO remove not really useful
+    // if (disabled || !FilterFlightPlan(FlightPlan)) return;
+    // std::stringstream out;
+    // out << "FlightPlanDisconnect " << FlightPlan.GetCallsign();
+    // DebugMessage(out.str());
 }
 
 bool VatIRISPlugin::OnCompileCommand(const char *commandLine)
@@ -201,16 +211,18 @@ void VatIRISPlugin::OnTimer(int counter)
 
     if (counter % 30 == 0) UpdateMyself();
     if (pendingUpdates.empty()) return;
-    if (std::time(NULL) - lastPostTime < 5) return;
+    if (std::time(NULL) - lastPostTime < (5 + (std::rand() % 10))) return;
     PostUpdates();
 }
 
 void VatIRISPlugin::UpdateMyself()
 {
-    std::string callsign = ControllerMyself().GetCallsign();
-    pendingUpdates[callsign]["name"] = ControllerMyself().GetFullName();
-    pendingUpdates[callsign]["frequency"] = ControllerMyself().GetPrimaryFrequency();
-    pendingUpdates[callsign]["controller"] = ControllerMyself().IsController();
+    EuroScopePlugIn::CController me = ControllerMyself();
+    if (!me.IsValid()) return;
+    std::string callsign = me.GetCallsign();
+    pendingUpdates[callsign]["name"] = me.GetFullName();
+    pendingUpdates[callsign]["frequency"] = me.GetPrimaryFrequency();
+    pendingUpdates[callsign]["controller"] = me.IsController();
     SelectActiveSectorfile();
     for (EuroScopePlugIn::CSectorElement airport =
          SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT);
@@ -245,8 +257,8 @@ void VatIRISPlugin::PostUpdates()
     if (waitResult == WAIT_TIMEOUT) {
         DebugMessage("Post thread is busy");
     } else if (waitResult == WAIT_OBJECT_0) {
-        DebugMessage("Posting updates " + std::to_string(pendingUpdates.size()));
         ReleaseMutex(mutex);
+        DebugMessage("Posting updates " + std::to_string(pendingUpdates.size()));
         ThreadData *data = new ThreadData{ "backend.vatiris.se", "esdata", pendingUpdates };
         CreateThread(NULL, 0, PostJson, data, 0, NULL);
         pendingUpdates.clear();
@@ -275,25 +287,26 @@ bool VatIRISPlugin::FilterFlightPlan(EuroScopePlugIn::CFlightPlan FlightPlan)
 
 void VatIRISPlugin::UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
-    std::string callsign = FlightPlan.GetCallsign();
-    pendingUpdates[callsign]["origin"] = FlightPlan.GetExtractedRoute().GetPointName(0);
-    pendingUpdates[callsign]["destination"] =
-    FlightPlan.GetExtractedRoute().GetPointName(FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
-    if (FlightPlan.GetExtractedRoute().GetPointsNumber() > 2) {
-        pendingUpdates[callsign]["departure"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(1);
-        pendingUpdates[callsign]["arrival"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(
-        FlightPlan.GetExtractedRoute().GetPointsNumber() - 2);
-    }
-    int ete = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(
-    FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
-    if (FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex() > 0) {
-        int timeAtClosest = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(
-        FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex());
-        if (timeAtClosest > 0) ete -= timeAtClosest;
-    }
-    if (ete > 0)
-        pendingUpdates[callsign]["eta"] =
-        std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
+    // TODO remove not really useful
+    // std::string callsign = FlightPlan.GetCallsign();
+    // pendingUpdates[callsign]["origin"] = FlightPlan.GetExtractedRoute().GetPointName(0);
+    // pendingUpdates[callsign]["destination"] =
+    // FlightPlan.GetExtractedRoute().GetPointName(FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
+    // if (FlightPlan.GetExtractedRoute().GetPointsNumber() > 2) {
+    //     pendingUpdates[callsign]["departure"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(1);
+    //     pendingUpdates[callsign]["arrival"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(
+    //     FlightPlan.GetExtractedRoute().GetPointsNumber() - 2);
+    // }
+    // int ete = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(
+    // FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
+    // if (FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex() > 0) {
+    //     int timeAtClosest = FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(
+    //     FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex());
+    //     if (timeAtClosest > 0) ete -= timeAtClosest;
+    // }
+    // if (ete > 0)
+    //     pendingUpdates[callsign]["eta"] =
+    //     std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
 }
 
 } // namespace VatIRIS
