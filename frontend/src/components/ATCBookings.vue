@@ -1,5 +1,5 @@
 <template>
-  <div class="bookings-container">
+  <div class="bookings-container" ref="div">
     <!-- Data Table -->
     <div class="table-container">
       <table v-if="!error && filteredBookings.length > 0">
@@ -35,10 +35,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import moment from 'moment'
 import bookingsData from '@/data/bookings.txt?raw'
+
+const props = defineProps<{ src?: string }>()
+const div = ref()
 
 const bookings = ref([])
 const loading = ref(true)
@@ -195,6 +198,19 @@ function formatTimeRange(booking: any) {
 
 onMounted(() => {
   fetchBookings()
+})
+
+// Add watch for div to handle external link
+watch(div, (newValue, oldValue) => {
+    if (div.value && !oldValue && props.src) {
+        const winbox = div.value.closest(".winbox")
+        if (winbox) {
+            const title = winbox.querySelector(".wb-title")
+            if (title && !title.innerHTML.includes("mdi-open-in-new")) {
+                title.innerHTML += ` <a href="${props.src}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
+            }
+        }
+    }
 })
 </script>
 

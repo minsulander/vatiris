@@ -209,6 +209,7 @@ const availableWindows = shallowReactive({
         width: 330,
         height: 420,
         class: "no-max",
+        src: "https://cc.vatsim-scandinavia.org/booking"
     },
 } as any)
 
