@@ -74,12 +74,14 @@ const calculateAeronauticalTimes = (lat: number, date: Date, sunrise: Date, suns
     return { dayStart, nightStart }
 }
 
-const formatTime = (date: Date): string => {
+const formatTime = (date) => {
+  if (date == "Invalid Date") {
+    return null;
+  }
     const hours = date.getUTCHours().toString().padStart(2, '0');
     const minutes = date.getUTCMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
 }
-
 const calculateSunriseSunset = () => {
     if (!airportCode.value) return
 
@@ -101,8 +103,8 @@ const calculateSunriseSunset = () => {
 
         dawnTime.value = formatTime(times.dawn)
         duskTime.value = formatTime(times.dusk)
-        sunriseTime.value = formatTime(times.sunrise)
-        sunsetTime.value = formatTime(times.sunset)
+        sunriseTime.value = formatTime(times.sunrise) || "N/A, no sunrise."
+        sunsetTime.value = formatTime(times.sunset) || "N/A, no sunset."
 
         const { dayStart, nightStart } = calculateAeronauticalTimes(
             latitude,

@@ -60,6 +60,7 @@ const menuItems = reactive({
     },
     NOTAM: "notam",
     eCharts: "echarts",
+    ATS: "atcbookings",
     ATFM: {
         ECFMP: "ECFMP",
     },
