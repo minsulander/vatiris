@@ -57,12 +57,15 @@ export const useMetarStore = defineStore("metar", () => {
             if (parsed.cavok) {
                 visibility = "CAVOK"
             } else if (parsed.visibility) {
-                if (parsed.visibility.value == 9999 && parsed.visibility.unit == "m") {
-                    visibility += "10KM"
+                if (parsed.visibility.value >= 5000 && parsed.visibility.unit == "m") {
+                    visibility += `${Math.floor(parsed.visibility.value / 1000)}KM`
                 } else {
-                    // TODO 5KM instead of 5000
                     visibility += `${parsed.visibility.value}`
-                    if (parsed.visibility.unit != "m") visibility += ` ${parsed.visibility.unit}`
+                    if (parsed.visibility.unit != "m") {
+                        visibility += ` ${parsed.visibility.unit}`
+                    } else if (parsed.visibility.value <= 4999) {
+                        visibility += "M"
+                    }
                 }
             } else {
                 visibility += "???"
@@ -85,7 +88,7 @@ export const useMetarStore = defineStore("metar", () => {
             } else if (parsed.verticalVisibility) {
                 let vvValue = `${parsed.verticalVisibility / 100}`
                 while (vvValue.length < 3) vvValue = "0" + vvValue
-                clouds = `VV${vvValue}`
+                clouds = `CLD VER VIS ${parsed.verticalVisibility}FT`
             } else if (parsed.cavok) {
                 clouds = ""
             } else {

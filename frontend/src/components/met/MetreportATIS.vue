@@ -272,10 +272,10 @@ const extractClouds = (text: string) => {
     const vvMatch = text.match(vvRegex)
     if (vvMatch) {
         if (vvMatch[1] === "///") {
-            vertVisibility = "VERT VIS ///"
+            vertVisibility = "VER VIS ///"
         } else {
             const vvHeight = parseInt(vvMatch[1]) * 100
-            vertVisibility = `VERT VIS ${vvHeight}FT`
+            vertVisibility = `VER VIS ${vvHeight}FT`
         }
     }
 
