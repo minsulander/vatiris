@@ -38,14 +38,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import moment from 'moment'
-import bookingsData from '@/data/bookings.txt?raw'
 
 const props = defineProps<{ src?: string }>()
 const div = ref()
 
-const bookings = ref([])
+const bookings = ref([] as any[])
 const loading = ref(true)
-const error = ref(null)
+const error = ref(null as string | null)
 const sortKey = ref('today') // Default sort by today's bookings
 const sortOrder = ref(1) // 1 for ascending, -1 for descending
 
@@ -141,12 +140,8 @@ async function fetchBookings() {
     
     let rawBookings: Booking[]
     
-    if (import.meta.env.DEV) {
-      rawBookings = JSON.parse(bookingsData)
-    } else {
-      const response = await axios.get('https://atc-bookings.vatsim.net/api/bookings')
-      rawBookings = response.data
-    }
+    const response = await axios.get('https://api.vatiris.se/bookings')
+    rawBookings = response.data
     
     const swedishBookings = rawBookings.filter(booking => 
       booking.callsign.match(/^ES[A-Z]{2}_/)
@@ -158,7 +153,7 @@ async function fetchBookings() {
         acc.push({ callsign: position, bookings: [] })
       }
       const positionGroup = acc.find(b => b.callsign === position)
-      positionGroup.bookings.push({
+      positionGroup?.bookings.push({
         start_time: booking.start,
         end_time: booking.end
       })
@@ -178,16 +173,16 @@ function getTodayBookings(callsign: string) {
   const position = bookings.value.find(b => b.callsign === callsign)
   if (!position) return []
   return position.bookings
-    .filter(booking => moment.utc(booking.start_time).format('YYYY-MM-DD') === todayDate.value)
-    .sort((a, b) => moment.utc(a.start_time).diff(moment.utc(b.start_time))) // Sort by start time
+    .filter((booking: any) => moment.utc(booking.start_time).format('YYYY-MM-DD') === todayDate.value)
+    .sort((a: any, b: any) => moment.utc(a.start_time).diff(moment.utc(b.start_time))) // Sort by start time
 }
 
 function getTomorrowBookings(callsign: string) {
   const position = bookings.value.find(b => b.callsign === callsign)
   if (!position) return []
   return position.bookings
-    .filter(booking => moment.utc(booking.start_time).format('YYYY-MM-DD') === tomorrowDate.value)
-    .sort((a, b) => moment.utc(a.start_time).diff(moment.utc(b.start_time))) // Sort by start time
+    .filter((booking: any) => moment.utc(booking.start_time).format('YYYY-MM-DD') === tomorrowDate.value)
+    .sort((a: any, b: any) => moment.utc(a.start_time).diff(moment.utc(b.start_time))) // Sort by start time
 }
 
 function formatTimeRange(booking: any) {
@@ -202,12 +197,12 @@ onMounted(() => {
 
 // Add watch for div to handle external link
 watch(div, (newValue, oldValue) => {
-    if (div.value && !oldValue && props.src) {
+    if (div.value && !oldValue) {
         const winbox = div.value.closest(".winbox")
         if (winbox) {
             const title = winbox.querySelector(".wb-title")
             if (title && !title.innerHTML.includes("mdi-open-in-new")) {
-                title.innerHTML += ` <a href="${props.src}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
+                title.innerHTML += ` <a href="https://cc.vatsim-scandinavia.org/booking" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
             }
         }
     }
