@@ -57,6 +57,7 @@ import { useWakeLock } from "@vueuse/core"
 import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
 import Iframe from "@/components/Iframe.vue"
+import ATCBookings from "@/components/ATCBookings.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -201,6 +202,13 @@ const availableWindows = shallowReactive({
         props: { id: "regional", src: `${apiBaseUrl}/regional.pdf`, externalLink: true },
         width: 800,
         height: 600,
+    },
+    atcbookings: {
+        title: "ATC Bookings",
+        component: ATCBookings,
+        width: 330,
+        height: 420,
+        class: "no-max"
     },
 } as any)
 
