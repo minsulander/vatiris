@@ -31,10 +31,12 @@ const auth = useAuthStore()
 const authorizedMenuItems = computed(() => {
     const items = { ...menuItems }
     if (!auth.user) {
+        delete items.Flight
         delete items.ATFM
         delete items.Documents
         delete items.Traffic
         delete items.DCT
+        delete items.ATS
     }
     return items
 })
@@ -60,7 +62,9 @@ const menuItems = reactive({
     },
     NOTAM: "notam",
     eCharts: "echarts",
-    ATS: "atcbookings",
+    Flight: {
+        "ARR DEP": "arrdep",
+    },
     ATFM: {
         ECFMP: "ECFMP",
     },
@@ -181,6 +185,7 @@ const menuItems = reactive({
         NOTEPAD: "notepad",
     },
     Traffic: {},
+    ATS: "atcbookings",
     DCT: {}, // We'll populate this dynamically
 } as any)
 

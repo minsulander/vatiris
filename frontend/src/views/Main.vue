@@ -58,6 +58,7 @@ import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
 import Iframe from "@/components/Iframe.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
+import ArrDep from "@/components/flight/ArrDep.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -209,6 +210,12 @@ const availableWindows = shallowReactive({
         width: 330,
         height: 420,
         class: "no-max"
+    },
+    arrdep: {
+        title: "ARR DEP",
+        component: ArrDep,
+        width: 680,
+        height: 400,
     },
 } as any)
 

@@ -35,12 +35,12 @@
             }
         }
     ],
-    "smhiMapCenter": [13.0121,57.9442],
+    "smhiMapCenter": [13.0121, 57.9442],
     "smhiMapZoom": 7.4,
     "notamOptions": {
         "raw": false,
         "header": false,
-        "ad": ["ESGG", "ESGP", "ESGT"],
+        "ad": ["ESGG", "ESGP", "ESGT", "ESIB"],
         "enroute": true,
         "nav": true,
         "footer": false,
@@ -49,10 +49,11 @@
     "metartafOptions": {
         "metar": true,
         "taf": true,
-        "ad": [
-            "ESGG",
-            "ESGP",
-            "ESGT"
-        ]
+        "ad": ["ESGG", "ESGP", "ESGT", "ESIB"]
+    },
+    "arrdepOptions": {
+        "arr": true,
+        "dep": true,
+        "ad": ["ESGG", "ESGP", "ESGT", "ESIB"]
     }
 }

@@ -26,23 +26,22 @@ export const useFdpStore = defineStore("fdp", () => {
         if (index !== -1) subscriptions.splice(index, 1)
     }
 
-    function fetch() {
+    async function fetch() {
         fdp.loading = true
-        Promise.all([
-            axios.get(`${backendBaseUrl}/fdp/fdp.json`).then((response) => {
-                for (const key in fdp) delete fdp[key]
-                Object.assign(fdp, response.data)
-                fdp.loading = false
-                console.log(`Got FDP data ${fdp.general.update_timestamp}`)
-            }),
-            axios.get(`${backendBaseUrl}/fdp/fdp.geojson`).then((response) => {
-                for (const key in geo) delete geo[key]
-                Object.assign(geo, response.data)
-                console.log(`Got FDP geojson data`)
-            }),
-        ]).catch((error) => {
+        try {
+            let response = await axios.get(`${backendBaseUrl}/fdp/fdp.json`)
+            for (const key in fdp) delete fdp[key]
+            Object.assign(fdp, response.data)
+            console.log(`Got FDP data ${fdp.general.update_timestamp}`)
+            response = await axios.get(`${backendBaseUrl}/fdp/fdp.geojson`)
+            for (const key in geo) delete geo[key]
+            Object.assign(geo, response.data)
+            console.log(`Got FDP geojson data`)
+        } catch (error) {
             console.error("Failed to fetch FDP data", error)
-        })
+        } finally {
+            fdp.loading = false
+        }
     }
 
     if ((window as any).fdpRefreshInterval) clearInterval((window as any).fdpRefreshInterval)
