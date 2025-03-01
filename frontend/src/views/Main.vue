@@ -214,8 +214,8 @@ const availableWindows = shallowReactive({
     arrdep: {
         title: "ARR DEP",
         component: ArrDep,
-        width: 600,
-        height: 600,
+        width: 680,
+        height: 400,
     },
 } as any)
 

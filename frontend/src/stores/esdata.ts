@@ -12,6 +12,44 @@ export const useEsdataStore = defineStore("esdata", () => {
     const subscriptions = reactive([] as string[])
     const loading = ref(false)
 
+    const statusLabel = {
+        PRE: "PRE",
+        STAT: "STA",
+        INVFP: "IFP",
+        NOFP: "NFP",
+        NOFDP: "NFD",
+        ONFREQ: "FRQ",
+        "DE-ICE": "REA",
+        STARTUP: "S/U",
+        PUSH: "S/P",
+        TAXI: "TXO",
+        LINEUP: "xLU",
+        DEPA: "xTO",
+        ARR: "ARR",
+        LAND: "LAN",
+        TAXIIN: "TXI",
+        PARK: "PRK",
+    } as { [key: string]: string }
+
+    const statusDescription = {
+        PRE: "Prefiled",
+        STAT: "Stationary",
+        INVFP: "Invalid flightplan",
+        NOFP: "No flightplan",
+        NOFDP: "No flight data",
+        ONFREQ: "On frequency",
+        "DE-ICE": "Ready",
+        STARTUP: "Startup",
+        PUSH: "Startup/Pushback",
+        TAXI: "Taxi out",
+        LINEUP: "Line up",
+        DEPA: "Takeoff",
+        ARR: "Arriving",
+        LAND: "Landed",
+        TAXIIN: "Taxi in",
+        PARK: "Parked",
+    } as { [key: string]: string }
+
     function subscribe() {
         const subscriptionId = uuid()
         subscriptions.push(subscriptionId)
@@ -53,6 +91,8 @@ export const useEsdataStore = defineStore("esdata", () => {
     return {
         data,
         loading,
+        statusLabel,
+        statusDescription,
         subscribe,
         unsubscribe,
         fetch,

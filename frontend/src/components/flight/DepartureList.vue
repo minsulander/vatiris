@@ -21,7 +21,7 @@
             <td v-if="multipleAirports">{{ dep.adep }}</td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
             <td :class="dep.sortTime < 0 ? 'text-grey-darken-2' : ''">{{ dep.std }}</td>
-            <td>{{ dep.status }}</td>
+            <td>{{ esdata.statusLabel[dep.status] || dep.status }}</td>
             <td>{{ dep.ades }}</td>
         </tr>
     </table>
@@ -43,6 +43,9 @@ table tr:nth-child(even) {
 table tr:nth-child(odd) {
     background: #8ef;
 }
+table td {
+    user-select: auto;
+}
 </style>
 
 <script setup lang="ts">
@@ -57,6 +60,10 @@ import constants from "@/constants"
 
 const props = defineProps({
     airports: {
+        type: Array as PropType<string[]>,
+        default: () => [],
+    },
+    excludeStatus: {
         type: Array as PropType<string[]>,
         default: () => [],
     },
@@ -178,7 +185,7 @@ const departures = computed(() => {
                 adep: airport.icao,
                 ades: pilot.flight_plan?.arrival,
                 sortTime: 0,
-                status: pilot.flight_plan ? "INFP" : "NOFP",
+                status: pilot.flight_plan ? "INVFP" : "NOFP",
                 stand: "",
                 std: "",
             })
@@ -186,7 +193,10 @@ const departures = computed(() => {
     }
 
     return departures
-        .filter((d) => !skipCallsigns.includes(d.callsign))
+        .filter(
+            (dep) =>
+                !skipCallsigns.includes(dep.callsign) && !props.excludeStatus.includes(dep.status),
+        )
         .sort((a, b) => a.sortTime - b.sortTime)
 })
 

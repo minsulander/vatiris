@@ -23,7 +23,7 @@
             <td class="font-weight-medium">{{ arr.stand }}</td>
             <td>{{ arr.sta }}</td>
             <td>{{ arr.eta }}</td>
-            <td>{{ arr.status }}</td>
+            <td>{{ esdata.statusLabel[arr.status] || arr.status }}</td>
             <td>{{ arr.adep }}</td>
         </tr>
     </table>
@@ -45,6 +45,9 @@ table tr:nth-child(even) {
 table tr:nth-child(odd) {
     background: #fe8;
 }
+table td {
+    user-select: auto;
+}
 </style>
 
 <script setup lang="ts">
@@ -59,6 +62,10 @@ import constants from "@/constants"
 
 const props = defineProps({
     airports: {
+        type: Array as PropType<string[]>,
+        default: () => [],
+    },
+    excludeStatus: {
         type: Array as PropType<string[]>,
         default: () => [],
     },
@@ -133,7 +140,7 @@ const arrivals = computed(() => {
                     const seconds = (distance / pilot.groundspeed) * 3600
                     arr.sortTime = seconds
                     arr.eta = moment().utc().add(seconds, "seconds").format("HHmm")
-                    arr.status = "NFDP"
+                    arr.status = "NOFDP"
                 } else if (distance < constants.atAirportDistance) {
                     arr.status = "LAND"
                     arr.sortTime = 0
@@ -148,8 +155,17 @@ const arrivals = computed(() => {
             arr.stand = esd.stand
             if (esd.groundstate) arr.status = esd.groundstate
         }
+        // Skip departure statuses if closer to arrival than departure
+        if (["ONFREQ", "DE-ICE", "STARTUP", "PUSH", "TAXI", "LINEUP", "DEPA"].includes(arr.status)) {
+            const fdpFlight = fdp.fdp.flights[arr.callsign]
+            if (fdpFlight && fdpFlight.arrival_distance < fdpFlight.departure_distance) {
+                arr.status = ""
+            }
+        }
     }
-    return arrivals.filter((arr) => arr.sortTime < 3600).sort((a, b) => a.sortTime - b.sortTime)
+    return arrivals
+        .filter((arr) => arr.sortTime < 3600 && !props.excludeStatus.includes(arr.status))
+        .sort((a, b) => a.sortTime - b.sortTime)
 })
 
 let fdpSubscription: any = undefined
