@@ -10,8 +10,11 @@
         style="height: 100%"
         @click="click"
     >
-        <div class="float-right text-caption font-weight-bold text-orange-darken-4" v-if="outdated">
+        <div v-if="outdated" class="float-right text-caption font-weight-bold text-orange-darken-4">
             {{ time.replace("T", " ") }}
+        </div>
+        <div v-else class="float-right" style="height: 15px; width: 50px">
+            <!--spacer for M W A buttons-->
         </div>
         <pre
             class="pa-1"
@@ -74,7 +77,8 @@ const metreport = computed(() => {
         runway = runway.padEnd(11)
         if (hasVatsimAtis.value && rwyDiffersToVatsim.value && !metarAuto.value) {
             runway = `<span class="text-orange-darken-3 font-weight-bold">${runway}</span>`
-            if (otherRunway) otherRunway = `<span class="text-orange-darken-3 font-weight-bold">${otherRunway}</span>`
+            if (otherRunway)
+                otherRunway = `<span class="text-orange-darken-3 font-weight-bold">${otherRunway}</span>`
         } else if (hasVatsimAtis.value) {
             runway = `<span class="text-grey-darken-1">${runway}</span>`
             if (otherRunway) otherRunway = `<span class="text-grey-darken-1">${otherRunway}</span>`
@@ -90,16 +94,22 @@ const metreport = computed(() => {
                 qnhTrend.value > 0
                     ? " <div style='display: inline-block; transform: rotate(-90deg);'><i class='mdi mdi-play'></i></div>"
                     : qnhTrend.value < 0
-                    ? " <div style='display: inline-block; transform: rotate(90deg);'><i class='mdi mdi-play'></i></div>"
-                    : " <i class='mdi mdi-play'></i>"
+                      ? " <div style='display: inline-block; transform: rotate(90deg);'><i class='mdi mdi-play'></i></div>"
+                      : " <i class='mdi mdi-play'></i>"
             metreport = metreport.replace('id="qnh-trend">', `'id="qnh-trend">${trend}`)
         }
     } else {
         metreport = metreport.replace("                        ", "              ")
         if (hasVatsimAtis.value && rwyDiffersToVatsim.value) {
-            metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-orange-darken-3 font-weight-bold'>$1</span>")
+            metreport = metreport.replace(
+                /\nRWY\s+(\d+[LRC]?)/,
+                "\nRWY <span class='text-orange-darken-3 font-weight-bold'>$1</span>",
+            )
         } else if (hasVatsimAtis.value) {
-            metreport = metreport.replace(/\nRWY\s+(\d+[LRC]?)/, "\nRWY <span class='text-grey-darken-1'>$1</span>")
+            metreport = metreport.replace(
+                /\nRWY\s+(\d+[LRC]?)/,
+                "\nRWY <span class='text-grey-darken-1'>$1</span>",
+            )
         }
     }
     return metreport
@@ -121,7 +131,12 @@ const info = computed(() => {
             for (const line of text.split("\n")) {
                 const m = line.match(/^(\d\d[LR]?): /)
                 if (m) {
-                    if (m[1] == runway || (m[1] == "08" && runway == "26") || (m[1] == "01L" && runway == "19R" || (m[1] == "01R" && runway == "19L"))) {
+                    if (
+                        m[1] == runway ||
+                        (m[1] == "08" && runway == "26") ||
+                        (m[1] == "01L" && runway == "19R") ||
+                        (m[1] == "01R" && runway == "19L")
+                    ) {
                         lines.push(line.substring(m[1].length + 2))
                     }
                     continue

@@ -10,8 +10,11 @@
         style="height: 100%"
         @click="click"
     >
-        <div class="float-right text-caption font-weight-bold text-orange-darken-4" v-if="outdated">
+        <div v-if="outdated" class="float-right text-caption font-weight-bold text-orange-darken-4">
             {{ moment(time).utc().format("YYYY-MM-DD HH:mm:ss") }}
+        </div>
+        <div v-else class="float-right" style="height: 15px; width: 50px">
+            <!--spacer for M W A buttons-->
         </div>
         <pre
             class="pa-1"

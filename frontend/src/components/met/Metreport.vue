@@ -1,8 +1,8 @@
 <template>
-    <div class="float-right text-caption">
+    <div class="text-caption" style="position: absolute; right: 0">
         <a
             title="Source: METAR"
-            class="mx-1 font-weight-bold"
+            class="pa-1 font-weight-bold"
             @click="source = 'metar'"
             :style="{ color: source == 'metar' ? '#444' : '#999' }"
             >M</a
@@ -10,7 +10,7 @@
         <a
             v-if="awosAvailable"
             title="Source: WX.AWOS.SE"
-            class="mx-1 font-weight-bold"
+            class="pa-1 font-weight-bold"
             @click="source = 'awos'"
             :style="{ color: source == 'awos' ? '#444' : '#999' }"
             >W</a
@@ -18,7 +18,7 @@
         <a
             v-if="atisAvailable"
             title="Source: ATIS"
-            class="mx-1 font-weight-bold"
+            class="pa-1 font-weight-bold"
             @click="source = 'atis'"
             :style="{ color: source == 'atis' ? '#444' : '#999' }"
             >A</a
