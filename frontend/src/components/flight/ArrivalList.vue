@@ -155,16 +155,28 @@ const arrivals = computed(() => {
             arr.stand = esd.stand
             if (esd.groundstate) arr.status = esd.groundstate
         }
-        // Skip departure statuses if closer to arrival than departure
-        if (["ONFREQ", "DE-ICE", "STARTUP", "PUSH", "TAXI", "LINEUP", "DEPA"].includes(arr.status)) {
+        // Skip departure statuses if departed or closer to arrival than departure
+        if (
+            ["ONFREQ", "DE-ICE", "STARTUP", "PUSH", "TAXI", "LINEUP", "DEPA"].includes(arr.status)
+        ) {
+            const pilot = vatsim.data.pilots.find((p) => p.callsign === arr.callsign)
+            const depAirport = airportStore.airports[arr.adep]
             const fdpFlight = fdp.fdp.flights[arr.callsign]
-            if (fdpFlight && fdpFlight.arrival_distance < fdpFlight.departure_distance) {
+            if (
+                (pilot &&
+                    depAirport &&
+                    distanceToAirport(pilot, depAirport) > constants.atAirportDistance) ||
+                (fdpFlight &&
+                    (fdpFlight.departure_distance > constants.atAirportDistance ||
+                        fdpFlight.arrival_distance < fdpFlight.departure_distance))
+            ) {
                 arr.status = ""
             }
         }
     }
     return arrivals
         .filter((arr) => arr.sortTime < 3600 && !props.excludeStatus.includes(arr.status))
+        .sort((a, b) => (esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0))
         .sort((a, b) => a.sortTime - b.sortTime)
 })
 

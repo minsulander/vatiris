@@ -198,6 +198,7 @@ const departures = computed(() => {
                 !skipCallsigns.includes(dep.callsign) && !props.excludeStatus.includes(dep.status),
         )
         .sort((a, b) => a.sortTime - b.sortTime)
+        .sort((a, b) => (esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0))
 })
 
 let esdataSubscription: any = undefined

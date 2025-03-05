@@ -50,6 +50,25 @@ export const useEsdataStore = defineStore("esdata", () => {
         PARK: "Parked",
     } as { [key: string]: string }
 
+    const statusOrder = {
+        PRE: -5,
+        STAT: -4,
+        INVFP: -3,
+        NOFP: -2,
+        NOFDP: -1,
+        ONFREQ: 1,
+        "DE-ICE": 2,
+        STARTUP: 3,
+        PUSH: 4,
+        TAXI: 5,
+        LINEUP: 6,
+        DEPA: 7,
+        ARR: 8,
+        LAND: 9,
+        TAXIIN: 10,
+        PARK: 11,
+    } as { [key: string]: number }
+
     function subscribe() {
         const subscriptionId = uuid()
         subscriptions.push(subscriptionId)
@@ -93,6 +112,7 @@ export const useEsdataStore = defineStore("esdata", () => {
         loading,
         statusLabel,
         statusDescription,
+        statusOrder,
         subscribe,
         unsubscribe,
         fetch,
