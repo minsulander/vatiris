@@ -57,8 +57,9 @@ export const useMetarStore = defineStore("metar", () => {
             if (parsed.cavok) {
                 visibility = "CAVOK"
             } else if (parsed.visibility) {
-                if (parsed.visibility.value >= 5000 && parsed.visibility.unit == "m") {
-                    visibility += `${Math.floor(parsed.visibility.value / 1000)}KM`
+                if ((parsed.visibility.value >= 5000 && parsed.visibility.value != 9999 && parsed.visibility.unit == "m") ||
+                    (parsed.visibility.value == 9999 && parsed.visibility.unit == "m")) {
+                    visibility += `${Math.ceil(parsed.visibility.value / 1000)}KM`
                 } else {
                     visibility += `${parsed.visibility.value}`
                     if (parsed.visibility.unit != "m") {
