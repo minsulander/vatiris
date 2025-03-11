@@ -61,6 +61,16 @@
                     >{{ stars }}</v-btn
                 >
             </span>
+            <v-btn
+                variant="text"
+                rounded="0"
+                size="small"
+                color="white"
+                style="float: right; margin-bottom: -4px"
+            >
+                AIP
+                <submenu :items="aipItems" />
+            </v-btn>
         </div>
         <div v-if="image" style="width: 100%; height: calc(100% - 20px); overflow: auto">
             <Image :id="image" :src="`/quickref/${image}.png`" />
@@ -72,15 +82,18 @@
 
 <script setup lang="ts">
 import Image from "@/components/Image.vue"
-import { computed, onMounted, onUnmounted, ref, watch } from "vue"
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 import moment from "moment"
 import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
+import Submenu from "./menu/Submenu.vue"
+import useEventBus from "@/eventbus"
 
 const props = defineProps<{ ad: string; type: string; src?: string }>()
 
 const wx = useWxStore()
 const vatsim = useVatsimStore()
+const bus = useEventBus()
 
 const storageKey = `quickref_${props.ad}_${props.type}`
 
@@ -230,6 +243,15 @@ const image = computed(() => {
             return `essa-${props.type.toLowerCase()}-` + `${config + 7}`.padStart(2, "0")
     }
     return ""
+})
+
+const aipItems = reactive({} as any)
+
+import("@/data/aip.json").then((module) => {
+    const aip = module.default as any
+    for (const document of aip.airports.find((a: any) => a.icao == props.ad).documents) {
+        aipItems[document.name] = `aip${document.prefix}`
+    }
 })
 
 let wxSubscription: any = undefined

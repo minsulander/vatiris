@@ -1,5 +1,15 @@
 <template>
-    <div style="height: 25px; margin-top: -5px; margin-left: -10px; background: #777; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+    <div
+        style="
+            height: 25px;
+            margin-top: -5px;
+            margin-left: -10px;
+            background: #777;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        "
+    >
         <v-btn variant="text" rounded="0" size="small" color="white" v-if="bookmarks.length > 0">
             <v-icon>mdi-menu</v-icon>
             <v-menu activator="parent" style="user-select: none" location="bottom">
@@ -35,6 +45,17 @@
             {{ updatedBy }}
             {{ updatedTime }}
             <span class="text-white" v-if="revision">#{{ revision }}</span>
+            <v-btn
+                v-if="Object.keys(aipItems).length > 0"
+                variant="text"
+                rounded="0"
+                size="small"
+                color="white"
+                style="margin-top: -2px"
+            >
+                AIP
+                <submenu :items="aipItems" />
+            </v-btn>
         </span>
     </div>
     <div
@@ -50,6 +71,7 @@
 </template>
 
 <script setup lang="ts">
+import Submenu from "./menu/Submenu.vue"
 import useEventBus from "@/eventbus"
 import { backendBaseUrl, useAuthStore } from "@/stores/auth"
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
@@ -70,6 +92,18 @@ const bus = useEventBus()
 bus.on("refresh", () => {
     fetch()
 })
+
+const aipItems = reactive({} as any)
+
+if (props.book == "lop") {
+    const ad = props.page.toUpperCase()
+    import("@/data/aip.json").then((module) => {
+        const aip = module.default as any
+        for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
+            aipItems[document.name] = `aip${document.prefix}`
+        }
+    })
+}
 
 onMounted(() => {
     fetch()
@@ -125,9 +159,11 @@ watch(() => auth.user, fetch)
 async function fetch() {
     if (!auth.user) return
     try {
-        const page = (await axios.get(`${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}`, {
-            headers: { Authorization: `Bearer ${auth.token.access_token}` },
-        })).data
+        const page = (
+            await axios.get(`${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}`, {
+                headers: { Authorization: `Bearer ${auth.token.access_token}` },
+            })
+        ).data
         loading.value = false
         content.value = `<h1 class='page-name'>${page.name}</h1>\n${page.html}`
         revision.value = page.revision

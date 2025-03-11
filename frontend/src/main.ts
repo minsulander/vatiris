@@ -66,6 +66,7 @@ import { useOccupancyStore } from "./stores/occupancy"
 import { useEsdataStore } from "./stores/esdata"
 import moment from "moment"
 import axios from "axios"
+import useEventBus from "./eventbus"
 
 const global = window as any
 
@@ -85,3 +86,4 @@ global.dct = useDctStore()
 global.fdp = useFdpStore()
 global.occupancy = useOccupancyStore()
 global.esdata = useEsdataStore()
+global.bus = useEventBus()

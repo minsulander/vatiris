@@ -19,7 +19,7 @@
                 :class="action in windows.winbox ? '' : 'text-grey'"
                 :key="label + action"
                 @click="click($event, action)"
-                @contextmenu.prevent="unselect(action)"
+                @contextmenu.prevent="bus.emit('unselect', action)"
             >
                 <v-list-item-title
                     >{{ label }}
@@ -45,16 +45,10 @@
                     >
                 </v-list-item-title>
                 <template v-if="typeof action == 'object' && Object.keys(filteredItems).length > 1">
-                    <submenu :items="action" :sub="true" @select="select" @unselect="unselect" />
+                    <submenu :items="action" :sub="true" />
                 </template>
                 <template v-else-if="typeof action == 'object'">
-                    <submenu
-                        v-model="open"
-                        :items="action"
-                        :sub="true"
-                        @select="select"
-                        @unselect="unselect"
-                    />
+                    <submenu v-model="open" :items="action" :sub="true" />
                 </template>
             </v-list-item>
         </v-list>
@@ -62,15 +56,16 @@
 </template>
 
 <script setup lang="ts">
+import useEventBus from "@/eventbus"
 import { useWindowsStore } from "@/stores/windows"
-import { computed, onMounted, ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 
 const props = defineProps<{
     items: { [key: string]: string }
     sub?: boolean
 }>()
-const emit = defineEmits(["select", "unselect"])
 const windows = useWindowsStore()
+const bus = useEventBus()
 
 const filterField = ref()
 const filter = ref("")
@@ -96,7 +91,7 @@ function filterEnter(event: KeyboardEvent) {
         } else {
             if (event.shiftKey) event.stopPropagation()
             if (event.ctrlKey || event.altKey || event.metaKey) id = "ctrl+" + id
-            select(id)
+            bus.emit("select", id)
             filter.value = ""
         }
     } else {
@@ -107,15 +102,7 @@ function filterEnter(event: KeyboardEvent) {
 function click(event: KeyboardEvent | MouseEvent, id: string) {
     if (event.shiftKey) event.stopPropagation()
     if (event.ctrlKey || event.altKey || event.metaKey) id = "ctrl+" + id
-    emit("select", id)
-}
-
-function unselect(id: string) {
-    emit("unselect", id)
-}
-
-function select(id: string) {
-    emit("select", id)
+    bus.emit("select", id)
 }
 
 watch(filterField, () => {

@@ -4,20 +4,19 @@
             v-if="typeof options == 'string'"
             type="text"
             :color="options in windows.winbox ? '' : 'grey'"
-            @click="emit('select', options)"
+            @click="bus.emit('select', options)"
+            @contextmenu.prevent="bus.emit('unselect', options)"
         >
             {{ title }}
         </v-btn>
         <v-btn v-else type="text" class="text-grey">
             {{ title }}
-            <submenu :items="options" @select="select" @unselect="unselect" />
+            <submenu :items="options" />
         </v-btn>
     </template>
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits(["select", "unselect"])
-
 import Submenu from "@/components/menu/Submenu.vue"
 import { computed, reactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
@@ -27,6 +26,7 @@ import { useAuthStore } from "@/stores/auth"
 const windows = useWindowsStore()
 const dct = useDctStore()
 const auth = useAuthStore()
+const bus = useEventBus()
 
 const authorizedMenuItems = computed(() => {
     const items = { ...menuItems }
@@ -190,6 +190,7 @@ const menuItems = reactive({
 } as any)
 
 import { metarAirports, wxAirports } from "@/metcommon"
+import useEventBus from "@/eventbus"
 
 for (const icao of wxAirports) {
     menuItems.MET.AIRPORT[icao] = `airport${icao}`
@@ -231,12 +232,4 @@ import("@/data/occupancy-sectors.json").then((module) => {
         menuItems.Traffic[entry.section][entry.title] = `occupancy-${id}`
     }
 })
-
-function select(id: string) {
-    emit("select", id)
-}
-
-function unselect(id: string) {
-    emit("unselect", id)
-}
 </script>

@@ -1,7 +1,7 @@
 <template>
     <v-app-bar color="#2b2d31" height="30" elevation="0">
         <system-menu />
-        <main-menu @select="select" @unselect="unselect" />
+        <main-menu />
         <v-spacer />
         <main-toolbar />
     </v-app-bar>
@@ -59,11 +59,13 @@ import Pdf from "@/components/Pdf.vue"
 import Iframe from "@/components/Iframe.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
+import useEventBus from "@/eventbus"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
 
 const wakelock = useWakeLock()
+const bus = useEventBus()
 
 export interface WindowSpec {
     title: string
@@ -209,7 +211,7 @@ const availableWindows = shallowReactive({
         component: ATCBookings,
         width: 330,
         height: 420,
-        class: "no-max"
+        class: "no-max",
     },
     arrdep: {
         title: "ARR DEP",
@@ -412,6 +414,8 @@ function unselect(id: string) {
 onMounted(() => {
     wakelock.request("screen")
     document.addEventListener("visibilitychange", onVisibilityChange)
+    bus.on("select", select)
+    bus.on("unselect", unselect)
 })
 
 function onVisibilityChange() {
