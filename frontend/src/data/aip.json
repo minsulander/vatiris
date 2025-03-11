@@ -2982,12 +2982,12 @@
         },
         {
           "prefix": "ESSA-4-37",
-          "name": "RNAV (DME/DME or GNSS) SID RWY 19R",
+          "name": "SID RNAV RWY 19R ARS5G, BABAP5G, KOGAV5G, NOSLI5G, PETEV1G, RESNA5G, TOVRI6G, TRS5G",
           "url": "https://api.vatiris.se/aip/14032/ES_AD_2_ESSA_4-37_en"
         },
         {
           "prefix": "ESSA-4-41",
-          "name": " PROP RNAV RWY 19R HAPZI 1G ",
+          "name": "SID PROP RNAV RWY 19R HAPZI 1G ",
           "url": "https://api.vatiris.se/aip/11526/ES_AD_2_ESSA_4-41_en"
         },
         {
