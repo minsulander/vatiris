@@ -9,6 +9,7 @@
 
 namespace VatIRIS
 {
+
 class VatIRISPlugin : public EuroScopePlugIn::CPlugIn
 {
     public:

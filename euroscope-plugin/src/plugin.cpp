@@ -5,8 +5,8 @@
 #include "json.hpp"
 #include <chrono>
 #include <format>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <windows.h>
 #include <wininet.h>
@@ -28,19 +28,22 @@ VatIRISPlugin::VatIRISPlugin()
     updateAll = false;
     debug = false;
 
-	GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
-	std::string settingsPath = DllPathFile;
-	settingsPath.resize(settingsPath.size() - strlen("VatIRIS.dll"));
-	settingsPath += "VatIRISPlugin.txt";
+    GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
+    std::string settingsPath = DllPathFile;
+    settingsPath.resize(settingsPath.size() - strlen("VatIRIS.dll"));
+    settingsPath += "VatIRISPlugin.txt";
     std::ifstream settingsFile(settingsPath);
     if (settingsFile.is_open()) {
         std::string line;
         while (std::getline(settingsFile, line)) {
             if (line.empty()) continue;
             std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-            if (line == "debug") debug = true;
-            else if (line == "updateall") updateAll = true;
-            else DisplayMessage("Unknown setting: " + line);
+            if (line == "debug")
+                debug = true;
+            else if (line == "updateall")
+                updateAll = true;
+            else
+                DisplayMessage("Unknown setting: " + line);
         }
     }
     DebugMessage("Version " + std::string(PLUGIN_VERSION) + (updateAll ? " updateAll" : ""));
@@ -52,15 +55,16 @@ VatIRISPlugin::~VatIRISPlugin()
 
 void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
+    if (disabled || !FilterFlightPlan(FlightPlan)) return;
+    std::string callsign = FlightPlan.GetCallsign();
+    std::stringstream out;
+    out << "FlightPlanDataUpdate " << callsign;
+    out << " state " << FlightPlan.GetState() << " fpstate " << FlightPlan.GetFPState();
+    if (FlightPlan.GetSimulated()) out << " simulated";
+    if (strlen(FlightPlan.GetTrackingControllerCallsign()) > 0)
+        out << " controller " << FlightPlan.GetTrackingControllerCallsign();
+    out << " ete " << FlightPlan.GetPositionPredictions().GetPointsNumber();
     // TODO remove not really useful
-    // if (disabled || !FilterFlightPlan(FlightPlan)) return;
-    // std::string callsign = FlightPlan.GetCallsign();
-    // std::stringstream out;
-    // out << "FlightPlanDataUpdate " << callsign;
-    // out << " state " << FlightPlan.GetState() << " fpstate " << FlightPlan.GetFPState();
-    // if (FlightPlan.GetSimulated()) out << " simulated";
-    // if (strlen(FlightPlan.GetTrackingControllerCallsign()) > 0)
-    //     out << " controller " << FlightPlan.GetTrackingControllerCallsign();
     // for (int i = 0; i < FlightPlan.GetExtractedRoute().GetPointsNumber(); i++) {
     //     out << " " << FlightPlan.GetExtractedRoute().GetPointName(i);
     //     out << " (" << FlightPlan.GetExtractedRoute().GetPointAirwayName(i) << ")";
@@ -68,8 +72,8 @@ void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPla
     // }
     // out << " closest " << FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex();
     // out << " assigned " << FlightPlan.GetExtractedRoute().GetPointsAssignedIndex();
-    // DebugMessage(out.str());
-    // UpdateRoute(FlightPlan);
+    DebugMessage(out.str());
+    UpdateRoute(FlightPlan);
 }
 
 void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan, int DataType)
@@ -223,6 +227,7 @@ void VatIRISPlugin::UpdateMyself()
     pendingUpdates[callsign]["name"] = me.GetFullName();
     pendingUpdates[callsign]["frequency"] = me.GetPrimaryFrequency();
     pendingUpdates[callsign]["controller"] = me.IsController();
+    pendingUpdates[callsign]["pluginVersion"] = PLUGIN_VERSION;
     SelectActiveSectorfile();
     for (EuroScopePlugIn::CSectorElement airport =
          SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT);
@@ -287,11 +292,22 @@ bool VatIRISPlugin::FilterFlightPlan(EuroScopePlugIn::CFlightPlan FlightPlan)
 
 void VatIRISPlugin::UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
-    // TODO remove not really useful
-    // std::string callsign = FlightPlan.GetCallsign();
+    std::string callsign = FlightPlan.GetCallsign();
     // pendingUpdates[callsign]["origin"] = FlightPlan.GetExtractedRoute().GetPointName(0);
-    // pendingUpdates[callsign]["destination"] =
-    // FlightPlan.GetExtractedRoute().GetPointName(FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
+    // pendingUpdates[callsign]["destination"] = FlightPlan.GetExtractedRoute().GetPointName(FlightPlan.GetExtractedRoute().GetPointsNumber() - 1);
+    EuroScopePlugIn::CFlightPlanData fpData = FlightPlan.GetFlightPlanData();
+    if (fpData.IsReceived()) {
+        if (strlen(fpData.GetArrivalRwy()) > 0) pendingUpdates[callsign]["arrRwy"] = fpData.GetArrivalRwy();
+        if (strlen(fpData.GetStarName()) > 0) pendingUpdates[callsign]["star"] = fpData.GetStarName();
+        if (strlen(fpData.GetDepartureRwy()) > 0) pendingUpdates[callsign]["depRwy"] = fpData.GetDepartureRwy();
+        if (strlen(fpData.GetSidName()) > 0) pendingUpdates[callsign]["sid"] = fpData.GetSidName();
+    }
+    int ete = FlightPlan.GetPositionPredictions().GetPointsNumber();
+    // pendingUpdates[callsign]["ete"] = ete;
+    if (ete > 0) {
+        pendingUpdates[callsign]["eta"] = std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
+    }
+    // TODO remove not really useful
     // if (FlightPlan.GetExtractedRoute().GetPointsNumber() > 2) {
     //     pendingUpdates[callsign]["departure"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(1);
     //     pendingUpdates[callsign]["arrival"] = FlightPlan.GetExtractedRoute().GetPointAirwayName(
