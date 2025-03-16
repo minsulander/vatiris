@@ -6,14 +6,30 @@
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
-                <th>Flight</th>
-                <th>Type</th>
-                <th v-if="multipleAirports">DEST</th>
-                <th>Park</th>
-                <th>STA</th>
-                <th>ETA</th>
-                <th>Status</th>
-                <th>DEP</th>
+                <th @click="clickHeader('callsign')">
+                    Flight <v-icon>{{ sortIcon("callsign") }}</v-icon>
+                </th>
+                <th @click="clickHeader('type')">
+                    Type <v-icon>{{ sortIcon("type") }}</v-icon>
+                </th>
+                <th v-if="multipleAirports" @click="clickHeader('ades')">
+                    DEST <v-icon>{{ sortIcon("ades") }}</v-icon>
+                </th>
+                <th @click="clickHeader('stand')">
+                    Park <v-icon>{{ sortIcon("stand") }}</v-icon>
+                </th>
+                <th @click="clickHeader('sta')">
+                    STA <v-icon>{{ sortIcon("sta") }}</v-icon>
+                </th>
+                <th @click="clickHeader('eta')">
+                    ETA <v-icon>{{ sortIcon("eta") }}</v-icon>
+                </th>
+                <th @click="clickHeader('status')">
+                    Status <v-icon>{{ sortIcon("status") }}</v-icon>
+                </th>
+                <th @click="clickHeader('adep')">
+                    DEP <v-icon>{{ sortIcon("adep") }}</v-icon>
+                </th>
             </tr>
         </thead>
         <tr v-for="arr in arrivals" :key="arr.callsign">
@@ -33,6 +49,9 @@
 table tr th {
     font-weight: bold;
     color: #555;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
 }
 table tr th,
 table tr td {
@@ -48,6 +67,10 @@ table tr:nth-child(odd) {
 table td {
     user-select: auto;
 }
+table th .v-icon {
+    margin-left: -5px;
+    margin-right: -5px;
+}
 </style>
 
 <script setup lang="ts">
@@ -55,11 +78,10 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
-import { computed, onMounted, onUnmounted, reactive, type PropType } from "vue"
+import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
 import { distanceToAirport, flightplanArrivalTime } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
-import * as turf from "@turf/turf"
 
 const props = defineProps({
     airports: {
@@ -76,6 +98,16 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+
+const sortBy = ref("eta")
+const sortDescending = ref(false)
+const sortIcon = (key: string) =>
+    sortBy.value != key
+        ? ""
+        : sortDescending.value
+          ? "mdi-triangle-small-down"
+          : "mdi-triangle-small-up"
+
 const multipleAirports = computed(() => props.airports.length == 0 || props.airports.length > 1)
 
 interface Arrival {
@@ -184,20 +216,76 @@ const arrivals = computed(() => {
     }
     return arrivals
         .filter((arr) => arr.sortTime < 3600 && !props.excludeStatus.includes(arr.status))
-        .sort((a, b) => (esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0))
-        .sort((a, b) => a.sortTime - b.sortTime)
+        .sort((a, b) =>
+            sortBy.value == "eta"
+                ? (esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0)
+                : a.sortTime - b.sortTime,
+        )
+        .sort((a, b) => {
+            let order = sortDescending.value ? -1 : 1
+            switch (sortBy.value) {
+                case "callsign":
+                    return order * a.callsign.localeCompare(b.callsign)
+                case "type":
+                    return order * a.type.localeCompare(b.type)
+                case "ades":
+                    return order * (a.ades || "ZZZZ").localeCompare(b.ades || "ZZZZ")
+                case "adep":
+                    return order * (a.adep || "ZZZZ").localeCompare(b.adep || "ZZZZ")
+                case "stand":
+                    return order * (a.stand || "").localeCompare(b.stand || "")
+                case "sta":
+                    return order * (parseInt(a.sta) - parseInt(b.sta))
+                case "status":
+                    return (
+                        order *
+                        ((esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0))
+                    )
+                default:
+                    return order * (a.sortTime - b.sortTime)
+            }
+        })
 })
 
 let fdpSubscription: any = undefined
 let esdataSubscription: any = undefined
 
+function clickHeader(name: string) {
+    if (sortBy.value === name) {
+        sortDescending.value = !sortDescending.value
+    } else {
+        sortBy.value = name
+        sortDescending.value = false
+    }
+}
+
 onMounted(() => {
     fdpSubscription = fdp.subscribe()
     esdataSubscription = esdata.subscribe()
+    loadOptions()
 })
 
 onUnmounted(() => {
     fdp.unsubscribe(fdpSubscription)
     esdata.unsubscribe(esdataSubscription)
 })
+
+watch([sortBy, sortDescending], () => {
+    saveOptions()
+})
+
+function loadOptions() {
+    if ("arrOptions" in localStorage) {
+        const options = JSON.parse(localStorage.arrOptions)
+        sortBy.value = options.sortBy || sortBy.value
+        sortDescending.value = options.sortDescending || sortDescending.value
+    }
+}
+
+function saveOptions() {
+    localStorage.arrOptions = JSON.stringify({
+        sortBy: sortBy.value,
+        sortDescending: sortDescending.value,
+    })
+}
 </script>
