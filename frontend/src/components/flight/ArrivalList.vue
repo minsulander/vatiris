@@ -55,10 +55,11 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
-import { computed, onMounted, onUnmounted, type PropType } from "vue"
+import { computed, onMounted, onUnmounted, reactive, type PropType } from "vue"
 import { distanceToAirport, flightplanArrivalTime } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
+import * as turf from "@turf/turf"
 
 const props = defineProps({
     airports: {
@@ -110,6 +111,13 @@ const arrivals = computed(() => {
                 sortTime: flightplanArrivalTime(pilot.flight_plan)
                     ?.utc()
                     .diff(moment().utc(), "seconds"),
+                stand:
+                    pilot.groundspeed < constants.motionGroundspeed
+                        ? airportStore.getStandNameAtLocation(pilot.flight_plan?.arrival, [
+                              pilot.longitude,
+                              pilot.latitude,
+                          ])
+                        : "",
             } as Arrival
         })
     for (const arr of arrivals) {
@@ -152,8 +160,8 @@ const arrivals = computed(() => {
         // Add Euroscope data if there is any
         if (esdata.data && arr.callsign in esdata.data) {
             const esd = esdata.data[arr.callsign]
-            arr.stand = esd.stand
             if (esd.groundstate) arr.status = esd.groundstate
+            if (!arr.stand) arr.stand = esd.stand
         }
         // Skip departure statuses if departed or closer to arrival than departure
         if (

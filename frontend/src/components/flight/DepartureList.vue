@@ -53,7 +53,7 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
-import { computed, onMounted, onUnmounted, type PropType } from "vue"
+import { computed, onMounted, onUnmounted, reactive, type PropType } from "vue"
 import { flightplanDepartureTime, distanceToAirport } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
@@ -92,6 +92,7 @@ const departures = computed(() => {
     let departures = vatsim.data.pilots
         .filter((pilot) => {
             if (!pilot.flight_plan) return false
+            if (pilot.groundspeed >= constants.inflightGroundspeed) return false
             if (props.airports.length == 0 && !pilot.flight_plan.departure.startsWith("ES"))
                 return false
             if (props.airports.length > 0 && !props.airports.includes(pilot.flight_plan.departure))
@@ -110,6 +111,13 @@ const departures = computed(() => {
                 std: flightplanDepartureTime(pilot.flight_plan)?.format("HHmm"),
                 ades: pilot.flight_plan?.arrival,
                 sortTime: depTime ? depTime.diff(moment().utc(), "seconds") : 0,
+                stand:
+                    pilot.groundspeed < constants.motionGroundspeed
+                        ? airportStore.getStandNameAtLocation(pilot.flight_plan?.departure, [
+                              pilot.longitude,
+                              pilot.latitude,
+                          ])
+                        : "",
             } as Departure
         })
     const skipCallsigns = [] as string[]
@@ -186,8 +194,14 @@ const departures = computed(() => {
                 ades: pilot.flight_plan?.arrival,
                 sortTime: 0,
                 status: pilot.flight_plan ? "INVFP" : "NOFP",
-                stand: "",
                 std: "",
+                stand:
+                    pilot.groundspeed < constants.motionGroundspeed
+                        ? airportStore.getStandNameAtLocation(pilot.flight_plan?.departure, [
+                              pilot.longitude,
+                              pilot.latitude,
+                          ])
+                        : "",
             })
         }
     }
