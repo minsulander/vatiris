@@ -64,6 +64,7 @@ import { useTafStore } from "@/stores/taf"
 import { useFdpStore } from "@/stores/fdp"
 import { useOccupancyStore } from "./stores/occupancy"
 import { useEsdataStore } from "./stores/esdata"
+import { useAirportStore } from "./stores/airport"
 import moment from "moment"
 import axios from "axios"
 import useEventBus from "./eventbus"
@@ -87,3 +88,4 @@ global.fdp = useFdpStore()
 global.occupancy = useOccupancyStore()
 global.esdata = useEsdataStore()
 global.bus = useEventBus()
+global.airport = useAirportStore()

@@ -6,13 +6,27 @@
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
-                <th>Flight</th>
-                <th>Type</th>
-                <th v-if="multipleAirports">DEP</th>
-                <th>Park</th>
-                <th>STD</th>
-                <th>Status</th>
-                <th>DEST</th>
+                <th @click="clickHeader('callsign')">
+                    Flight <v-icon>{{ sortIcon("callsign") }}</v-icon>
+                </th>
+                <th @click="clickHeader('type')">
+                    Type <v-icon>{{ sortIcon("type") }}</v-icon>
+                </th>
+                <th v-if="multipleAirports" @click="clickHeader('adep')">
+                    DEP <v-icon>{{ sortIcon("adep") }}</v-icon>
+                </th>
+                <th @click="clickHeader('stand')">
+                    Park <v-icon>{{ sortIcon("stand") }}</v-icon>
+                </th>
+                <th @click="clickHeader('std')">
+                    STD <v-icon>{{ sortIcon("std") }}</v-icon>
+                </th>
+                <th @click="clickHeader('status')">
+                    Status <v-icon>{{ sortIcon("status") }}</v-icon>
+                </th>
+                <th @click="clickHeader('ades')">
+                    DEST <v-icon>{{ sortIcon("ades") }}</v-icon>
+                </th>
             </tr>
         </thead>
         <tr v-for="dep in departures" :key="dep.callsign">
@@ -31,6 +45,8 @@
 table tr th {
     font-weight: bold;
     color: #555;
+    cursor: pointer;
+    user-select: none;
 }
 table tr th,
 table tr td {
@@ -46,6 +62,10 @@ table tr:nth-child(odd) {
 table td {
     user-select: auto;
 }
+table th .v-icon {
+    margin-left: -5px;
+    margin-right: -5px;
+}
 </style>
 
 <script setup lang="ts">
@@ -53,7 +73,7 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
-import { computed, onMounted, onUnmounted, type PropType } from "vue"
+import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
 import { flightplanDepartureTime, distanceToAirport } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
@@ -73,6 +93,16 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+
+const sortBy = ref("status")
+const sortDescending = ref(false)
+const sortIcon = (key: string) =>
+    sortBy.value != key
+        ? ""
+        : sortDescending.value
+          ? "mdi-triangle-small-down"
+          : "mdi-triangle-small-up"
+
 const multipleAirports = computed(() => props.airports.length == 0 || props.airports.length > 1)
 
 interface Departure {
@@ -92,6 +122,7 @@ const departures = computed(() => {
     let departures = vatsim.data.pilots
         .filter((pilot) => {
             if (!pilot.flight_plan) return false
+            if (pilot.groundspeed >= constants.inflightGroundspeed) return false
             if (props.airports.length == 0 && !pilot.flight_plan.departure.startsWith("ES"))
                 return false
             if (props.airports.length > 0 && !props.airports.includes(pilot.flight_plan.departure))
@@ -110,6 +141,13 @@ const departures = computed(() => {
                 std: flightplanDepartureTime(pilot.flight_plan)?.format("HHmm"),
                 ades: pilot.flight_plan?.arrival,
                 sortTime: depTime ? depTime.diff(moment().utc(), "seconds") : 0,
+                stand:
+                    pilot.groundspeed < constants.motionGroundspeed
+                        ? airportStore.getStandNameAtLocation(pilot.flight_plan?.departure, [
+                              pilot.longitude,
+                              pilot.latitude,
+                          ])
+                        : "",
             } as Departure
         })
     const skipCallsigns = [] as string[]
@@ -134,7 +172,7 @@ const departures = computed(() => {
         // Add Euroscope data if there is any
         if (dep.callsign in esdata.data) {
             const esd = esdata.data[dep.callsign]
-            dep.stand = esd.stand
+            if (!dep.stand) dep.stand = esd.stand
             if (esd.groundstate) dep.status = esd.groundstate
         }
     }
@@ -186,8 +224,14 @@ const departures = computed(() => {
                 ades: pilot.flight_plan?.arrival,
                 sortTime: 0,
                 status: pilot.flight_plan ? "INVFP" : "NOFP",
-                stand: "",
                 std: "",
+                stand:
+                    pilot.groundspeed < constants.motionGroundspeed
+                        ? airportStore.getStandNameAtLocation(pilot.flight_plan?.departure, [
+                              pilot.longitude,
+                              pilot.latitude,
+                          ])
+                        : "",
             })
         }
     }
@@ -197,16 +241,70 @@ const departures = computed(() => {
             (dep) =>
                 !skipCallsigns.includes(dep.callsign) && !props.excludeStatus.includes(dep.status),
         )
-        .sort((a, b) => a.sortTime - b.sortTime)
-        .sort((a, b) => (esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0))
+        .sort((a, b) =>
+            sortBy.value == "status"
+                ? a.sortTime - b.sortTime
+                : (esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0),
+        )
+        .sort((a, b) => {
+            let order = sortDescending.value ? -1 : 1
+            switch (sortBy.value) {
+                case "callsign":
+                    return order * a.callsign.localeCompare(b.callsign)
+                case "type":
+                    return order * a.type.localeCompare(b.type)
+                case "adep":
+                    return order * (a.adep || "ZZZZ").localeCompare(b.adep || "ZZZZ")
+                case "ades":
+                    return order * (a.ades || "ZZZZ").localeCompare(b.ades || "ZZZZ")
+                case "stand":
+                    return order * (a.stand || "").localeCompare(b.stand || "")
+                case "std":
+                    return order * a.std.localeCompare(b.std)
+                default:
+                    return (
+                        order *
+                        ((esdata.statusOrder[b.status] || 0) - (esdata.statusOrder[a.status] || 0))
+                    )
+            }
+        })
 })
+
+function clickHeader(name: string) {
+    if (sortBy.value === name) {
+        sortDescending.value = !sortDescending.value
+    } else {
+        sortBy.value = name
+        sortDescending.value = false
+    }
+}
 
 let esdataSubscription: any = undefined
 onMounted(() => {
     esdataSubscription = esdata.subscribe()
+    loadOptions()
 })
 
 onUnmounted(() => {
     esdata.unsubscribe(esdataSubscription)
 })
+
+watch([sortBy, sortDescending], () => {
+    saveOptions()
+})
+
+function loadOptions() {
+    if ("depOptions" in localStorage) {
+        const options = JSON.parse(localStorage.depOptions)
+        sortBy.value = options.sortBy || sortBy.value
+        sortDescending.value = options.sortDescending || sortDescending.value
+    }
+}
+
+function saveOptions() {
+    localStorage.depOptions = JSON.stringify({
+        sortBy: sortBy.value,
+        sortDescending: sortDescending.value,
+    })
+}
 </script>
