@@ -117,6 +117,30 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
         } else if (scratch.find("GRP/S/") != std::string::npos) {
             pendingUpdates[callsign]["stand"] = scratch.substr(6);
         }
+        // /PRESHDG/ 
+        // /ASP=/ /ASP+/ /ASP-/
+        // /ES
+        // /C_FLAG_ACK/
+        // /C_FLAG_RESET/
+        // MISAP_
+        // /ROF/SAS525/ESMM_5_CTR
+        // /LAM/ROF/ESMM_5_CTR
+        // /ROF/RYR6Q/EKCH_F_APP
+        // /COB
+        // /PLU
+        // /TIT
+        // /OPTEXT2_REQ/ESMM_7_CTR/LHA3218/NC M7
+        // /SBY/RTI/EDDB_S_APP/S290+
+        // /ACP/RTI/EDDB_S_APP
+        // /SBY/RTI/EDDB_S_APP/S250-
+        // /ACP/RTI/EDDB_S_APP
+        // /OPTEXT2_REQ/ESSA_M_APP/NRD1121/"NORTH RIDER"
+        // /FTEXT/L0
+        // /HOLD/ERNOV/
+        // /XHOLD/ERNOV/
+        // /HOLD//0
+        // /ARC+/
+        // /ACK_STAR/RISMA3S
         break;
     }
     case EuroScopePlugIn::CTR_DATA_TYPE_GROUND_STATE:
