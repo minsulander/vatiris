@@ -1,5 +1,5 @@
 <template>
-    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
+    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777; white-space: nowrap">
         <v-btn
             variant="text"
             rounded="0"
@@ -83,12 +83,12 @@
     <div v-if="ad.length == 1 && ad[0] == 'NONE'" class="ma-1">
         Select aerodromes in the menu above.
     </div>
-    <div v-else class="d-flex" style="height: calc(100% - 20px)">
+    <div v-else class="d-flex" style="height: calc(100% - 20px); overflow: hidden">
         <div
             v-if="arr"
             class="flex-1-0"
-            style="min-height: 0; max-height: 100%; overflow: auto; border-right: 1px solid #ccc"
-            :style="{ 'max-width': dep ? '50%' : '100%' }"
+            style="min-height: 0; max-height: 100%; overflow-y: auto; overflow-x: hidden; border-right: 1px solid #ccc"
+            :style="{ 'max-width': dep ? '51%' : '100%' }"
         >
             <!--
             <div
@@ -103,7 +103,7 @@
         <div
             v-if="dep"
             class="flex-1-0"
-            style="min-height: 0; max-height: 100%; overflow: auto; border-left: 1px solid #ccc"
+            style="min-height: 0; max-height: 100%; overflow-y: auto; overflow-x: hidden; border-left: 1px solid #ccc"
         >
             <!--
             <div

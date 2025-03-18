@@ -47,8 +47,9 @@ table tr th {
     color: #555;
     cursor: pointer;
     user-select: none;
+    font-size: 12px;
+    padding: 0 1px;
 }
-table tr th,
 table tr td {
     font-size: 14px;
     padding: 0 2px;

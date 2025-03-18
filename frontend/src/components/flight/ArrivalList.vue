@@ -52,8 +52,9 @@ table tr th {
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
+    font-size: 12px;
+    padding: 0 1px;
 }
-table tr th,
 table tr td {
     font-size: 14px;
     padding: 0 2px;
