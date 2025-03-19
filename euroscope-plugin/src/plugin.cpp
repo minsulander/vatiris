@@ -27,6 +27,7 @@ VatIRISPlugin::VatIRISPlugin()
     disabled = true; // ... until connected - see OnTimer
     updateAll = false;
     debug = false;
+    mutex = CreateMutex(NULL, FALSE, NULL);
 
     GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
     std::string settingsPath = DllPathFile;
@@ -51,6 +52,10 @@ VatIRISPlugin::VatIRISPlugin()
 
 VatIRISPlugin::~VatIRISPlugin()
 {
+    if (mutex) {
+        CloseHandle(mutex);
+        mutex = NULL;
+    }
 }
 
 void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan)
@@ -281,17 +286,28 @@ void VatIRISPlugin::UpdateMyself()
 void VatIRISPlugin::PostUpdates()
 {
     lastPostTime = std::time(NULL);
-    if (!mutex) mutex = CreateMutex(NULL, FALSE, NULL);
+    if (!mutex) {
+        DebugMessage("Mutex not initialized");
+        return;
+    }
+
     DWORD waitResult = WaitForSingleObject(mutex, 0); // Check mutex state
     if (waitResult == WAIT_TIMEOUT) {
         DebugMessage("Post thread is busy");
-    } else if (waitResult == WAIT_OBJECT_0) {
-        ReleaseMutex(mutex);
-        DebugMessage("Posting updates " + std::to_string(pendingUpdates.size()));
-        ThreadData *data = new ThreadData{ "backend.vatiris.se", "esdata", pendingUpdates };
-        CreateThread(NULL, 0, PostJson, data, 0, NULL);
-        pendingUpdates.clear();
+        return;
     }
+    auto updates = pendingUpdates;
+    pendingUpdates.clear();
+    DebugMessage("Posting updates " + std::to_string(updates.size()));
+    ThreadData *data = new ThreadData{ "backend.vatiris.se", "esdata", updates };
+    HANDLE thread = CreateThread(NULL, 0, PostJson, data, 0, NULL);
+    if (thread) {
+        CloseHandle(thread);
+    } else {
+        delete data;
+        DebugMessage("Failed to create post thread");
+    }
+    ReleaseMutex(mutex);
 }
 
 void VatIRISPlugin::DebugMessage(const std::string &message, const std::string &sender)
@@ -307,7 +323,10 @@ void VatIRISPlugin::DisplayMessage(const std::string &message, const std::string
 bool VatIRISPlugin::FilterFlightPlan(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
     if (!FlightPlan.IsValid()) return false;
+    if (!FlightPlan.GetFlightPlanData().IsReceived()) return false;
     if (!updateAll && !FlightPlan.GetTrackingControllerIsMe()) return false;
+    if (!FlightPlan.GetFlightPlanData().GetOrigin()) return false;
+    if (!FlightPlan.GetFlightPlanData().GetDestination()) return false;
     if (strncmp(FlightPlan.GetFlightPlanData().GetOrigin(), "ES", 2) != 0 &&
         strncmp(FlightPlan.GetFlightPlanData().GetDestination(), "ES", 2) != 0)
         return false;
