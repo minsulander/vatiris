@@ -102,7 +102,7 @@ const menuItems = reactive({
             ESCF: "wiki-lop-escf",
             // ESCM // See Stockholm LPM
             ESDF: "wiki-lop-esdf",
-            ESGG: "wikipdf-lop-esgg",
+            ESGG: "wiki-lop-esgg",
             "ESGG APP": "wikipdf-lop-esgg-app",
             ESGJ: "wiki-lop-esgj",
             ESGP: "wiki-lop-esgp",

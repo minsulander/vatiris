@@ -24,6 +24,11 @@
         "book": "lop",
         "page": "rtc"
     },
+    "lop-esgg": {
+        "title": "LOP ESGG",
+        "book": "lop",
+        "page": "esgg"
+    },
     "lop-esgj": {
         "title": "LOP ESGJ",
         "book": "lop",
