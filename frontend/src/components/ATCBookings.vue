@@ -12,7 +12,7 @@
         </thead>
         <tbody>
           <tr v-for="position in sortedBookings" :key="position.callsign">
-            <td>{{ position.callsign }}</td>
+            <td>{{ getPositionName(position.callsign) }}</td>
             <td>
               <template v-for="(booking, index) in getTodayBookings(position.callsign)" :key="index">
                 {{ formatTimeRange(booking) }}<br v-if="index < getTodayBookings(position.callsign).length - 1">
@@ -38,6 +38,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import moment from 'moment'
+import { getPositionName } from '../data/positions'
 
 const props = defineProps<{ src?: string }>()
 const div = ref()
