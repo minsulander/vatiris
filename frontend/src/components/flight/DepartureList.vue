@@ -182,6 +182,7 @@ const departures = computed(() => {
     let prefileDeps = vatsim.data.prefiles
         .filter((prefile) => {
             if (!prefile.flight_plan) return false
+            if (departures.find((d) => d.callsign === prefile.callsign)) return false
             if (props.airports.length == 0 && !prefile.flight_plan.departure.startsWith("ES"))
                 return false
             if (
@@ -212,6 +213,7 @@ const departures = computed(() => {
         const airport = airportStore.airports[icao]
         for (const pilot of vatsim.data.pilots.filter(
             (p) =>
+                !departures.find((d) => d.callsign === p.callsign) &&
                 p.groundspeed < constants.inflightGroundspeed &&
                 distanceToAirport(p, airport) < constants.atAirportDistance &&
                 (!p.flight_plan ||
