@@ -32,7 +32,8 @@ import Welcome from "@/components/Welcome.vue"
 import Metreport from "@/components/met/Metreport.vue"
 import MetsensorWX from "@/components/met/MetsensorWX.vue"
 import Notam from "@/components/Notam.vue"
-import LfvEcharts from "@/components/LfvEcharts.vue"
+import EchartsIframe from "@/components/EchartsIframe.vue"
+import EchartsCustom from "@/components/EchartsCustom.vue"
 import Smhi from "@/components/met/Smhi.vue"
 import Image from "@/components/Image.vue"
 import ECFMP from "@/components/ECFMP.vue"
@@ -89,7 +90,13 @@ const availableWindows = shallowReactive({
     },
     echarts: {
         title: "LFV eCharts",
-        component: LfvEcharts,
+        component: EchartsIframe,
+        width: 600,
+        height: 600,
+    },
+    echarts2: {
+        title: "eCharts",
+        component: EchartsCustom,
         width: 600,
         height: 600,
     },
