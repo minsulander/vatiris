@@ -38,7 +38,7 @@ VatIRISPlugin::VatIRISPlugin()
         std::string line;
         while (std::getline(settingsFile, line)) {
             if (line.empty()) continue;
-            std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+            for (auto &c : line) c = (char) std::tolower(c);
             if (line == "debug")
                 debug = true;
             else if (line == "updateall")
@@ -69,7 +69,6 @@ void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPla
             return;
         }
         
-        std::string callsign = FlightPlan.GetCallsign();
         std::stringstream out;
         out << "FlightPlanDataUpdate " << callsign;
         out << " state " << FlightPlan.GetState() << " fpstate " << FlightPlan.GetFPState();
@@ -225,8 +224,8 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
 
 void VatIRISPlugin::OnFlightPlanDisconnect(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
+    if (disabled || !FilterFlightPlan(FlightPlan)) return;
     // TODO remove not really useful
-    // if (disabled || !FilterFlightPlan(FlightPlan)) return;
     // std::stringstream out;
     // out << "FlightPlanDisconnect " << FlightPlan.GetCallsign();
     // DebugMessage(out.str());
