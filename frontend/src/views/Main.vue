@@ -60,6 +60,8 @@ import Iframe from "@/components/Iframe.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
 import useEventBus from "@/eventbus"
+import Callsign from "@/components/Callsign.vue"
+import AirportICAO from "@/components/Airport.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -128,6 +130,18 @@ const availableWindows = shallowReactive({
         component: Aircraft,
         width: 800,
         height: 400,
+    },
+    callsign: {
+        title: "Callsigns ICAO",
+        component: Callsign,
+        width: 600,
+        height: 500,
+    },
+    airport: {
+        title: "Airports ICAO",
+        component: AirportICAO,
+        width: 600,
+        height: 500,
     },
     notepad: {
         title: "NOTEPAD",
