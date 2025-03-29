@@ -180,9 +180,9 @@ const menuItems = reactive({
             "ESGG PUSH": "GGpush",
         },
         "CODES (ICAO)": {
-            "AIRCRAFT TYPES": "aircraft",
-            CALLSIGNS: "callsign",
-            AERODROMES: "airport",
+            "AIRCRAFT TYPES": "aircrafttypes",
+            CALLSIGNS: "callsigns",
+            AERODROMES: "aerodromes",
         },
         "REGIONAL AD": "regional",
         "TEXT ALIAS": "alias",

@@ -35,7 +35,7 @@ export default defineConfig({
             // in case the app grows large, and it's not by accident this time,
             // increase this:
             workbox: {
-                maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+                maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
             },
             manifest: {
                 name: "VatIRIS",

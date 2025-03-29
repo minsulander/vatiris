@@ -146,16 +146,7 @@ export default {
   methods: {
     loadAirportData() {
       try {
-        // Create a Windows-1252 decoder
-        const decoder = new TextDecoder('windows-1252');
-        
-        // Convert the raw text to Uint8Array
-        const encoder = new TextEncoder();
-        const uint8Array = encoder.encode(airportDataText);
-        
-        // Decode using Windows-1252
-        const decodedText = decoder.decode(uint8Array);
-        const lines = decodedText.trim().split(/\r?\n/);
+        const lines = airportDataText.trim().split(/\r?\n/);
 
         const startIndex = lines.reduce((lastIndex, line, currentIndex) => {
           return line.startsWith(';====') ? currentIndex : lastIndex;
@@ -198,13 +189,13 @@ export default {
 
     normalizeText(text) {
       return text
-        .replace(/[едбавг]/gi, 'a')
-        .replace(/[цутфх]/gi, 'o')
-        .replace(/[йикл]/gi, 'e')
-        .replace(/[Е]/g, 'A')
-        .replace(/[Д]/g, 'A')
-        .replace(/[Ц]/g, 'O')
-        .replace(/[Й]/g, 'E');
+        .replace(/[пїЅпїЅпїЅпїЅпїЅпїЅ]/gi, 'a')
+        .replace(/[пїЅпїЅпїЅпїЅпїЅ]/gi, 'o')
+        .replace(/[пїЅпїЅпїЅпїЅ]/gi, 'e')
+        .replace(/[пїЅ]/g, 'A')
+        .replace(/[пїЅ]/g, 'A')
+        .replace(/[пїЅ]/g, 'O')
+        .replace(/[пїЅ]/g, 'E');
     },
 
     sortBy(key) {

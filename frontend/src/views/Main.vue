@@ -39,7 +39,6 @@ import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
-import Aircraft from "@/components/Aircraft.vue"
 import Alias from "@/components/Alias.vue"
 import Checklist from "@/components/Checklist.vue"
 import MetarTaf from "@/components/met/MetarTaf.vue"
@@ -60,8 +59,9 @@ import Iframe from "@/components/Iframe.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
 import useEventBus from "@/eventbus"
-import Callsign from "@/components/Callsign.vue"
-import AirportICAO from "@/components/Airport.vue"
+import AircraftTypes from "@/components/icao/AircraftTypes.vue"
+import Callsigns from "@/components/icao/Callsigns.vue"
+import Aerodromes from "@/components/icao/Aerodromes.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -125,23 +125,23 @@ const availableWindows = shallowReactive({
         width: 700,
         height: 600,
     },
-    aircraft: {
+    aircrafttypes: {
         title: "Aircraft Types ICAO",
-        component: Aircraft,
+        component: AircraftTypes,
         width: 800,
         height: 400,
     },
-    callsign: {
+    callsigns: {
         title: "Callsigns ICAO",
-        component: Callsign,
-        width: 600,
-        height: 500,
+        component: Callsigns,
+        width: 800,
+        height: 400,
     },
-    airport: {
-        title: "Airports ICAO",
-        component: AirportICAO,
-        width: 600,
-        height: 500,
+    aerodromes: {
+        title: "Aerodromes ICAO",
+        component: Aerodromes,
+        width: 800,
+        height: 400,
     },
     notepad: {
         title: "NOTEPAD",
