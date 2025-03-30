@@ -28,7 +28,7 @@
             :y1="center - (radius * -1) * Math.cos(toRadians(runway.heading)) + topMargin"
             :x2="center + radius * Math.sin(toRadians(runway.heading))"
             :y2="center - radius * Math.cos(toRadians(runway.heading)) + topMargin"
-            :stroke="colors.circle"
+            :stroke="'#b6b6b6'"
             stroke-width="36"
             :style="{
               transition: 'all 0.3s ease-in-out'
@@ -101,7 +101,7 @@
           :d="getVrbArcPath"
           :stroke="colors.vrb"
           fill="none"
-          stroke-width="8"
+          stroke-width="9"
         />
         
         <!-- Wind direction arrow -->
@@ -433,7 +433,7 @@ const getVrbArcPath = computed(() => {
     ? (360 - startAngle) + endAngle 
     : endAngle - startAngle;
 
-  const arcRadius = radius.value * 0.973;
+  const arcRadius = radius.value * 0.97;
   
   const x1 = center.value + arcRadius * Math.sin(toRadians(startAngle));
   const y1 = center.value - arcRadius * Math.cos(toRadians(startAngle));
