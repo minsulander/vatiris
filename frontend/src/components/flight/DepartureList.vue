@@ -117,6 +117,8 @@ interface Departure {
     sortTime: number
 }
 
+const storedStand = {} as { [key: string]: string }
+
 const departures = computed(() => {
     if (!vatsim.data || !vatsim.data.pilots) return []
     // Start with VATSIM pilots
@@ -135,7 +137,7 @@ const departures = computed(() => {
         })
         .map((pilot) => {
             const depTime = flightplanDepartureTime(pilot.flight_plan)
-            return {
+            const dep = {
                 callsign: pilot.callsign,
                 type: pilot.flight_plan?.aircraft_short,
                 adep: pilot.flight_plan?.departure,
@@ -150,6 +152,9 @@ const departures = computed(() => {
                           ])
                         : "",
             } as Departure
+            if (dep.stand) storedStand[dep.callsign] = dep.stand
+            else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
+            return dep
         })
     const skipCallsigns = [] as string[]
     for (const dep of departures) {
@@ -208,19 +213,26 @@ const departures = computed(() => {
     for (const dep of prefileDeps) departures.push(dep)
 
     // Find invalid/no flightplan pilots at known airports
+    const candidatePilots = vatsim.data.pilots.filter(
+        (p) =>
+            p.groundspeed < constants.inflightGroundspeed &&
+            p.latitude > 55 &&
+            p.latitude < 69 &&
+            p.longitude > 10 &&
+            p.longitude < 24 &&
+            !departures.find((d) => d.callsign === p.callsign),
+    )
     for (const icao of Object.keys(airportStore.airports)) {
         if (props.airports.length > 0 && !props.airports.includes(icao)) continue
         const airport = airportStore.airports[icao]
-        for (const pilot of vatsim.data.pilots.filter(
+        for (const pilot of candidatePilots.filter(
             (p) =>
-                !departures.find((d) => d.callsign === p.callsign) &&
-                p.groundspeed < constants.inflightGroundspeed &&
                 distanceToAirport(p, airport) < constants.atAirportDistance &&
                 (!p.flight_plan ||
                     (p.flight_plan.departure !== airport.icao &&
                         p.flight_plan.arrival !== airport.icao)),
         )) {
-            departures.push({
+            const dep = {
                 callsign: pilot.callsign,
                 type: pilot.flight_plan?.aircraft_short,
                 adep: airport.icao,
@@ -230,15 +242,20 @@ const departures = computed(() => {
                 std: "",
                 stand:
                     pilot.groundspeed < constants.motionGroundspeed
-                        ? airportStore.getStandNameAtLocation(pilot.flight_plan?.departure, [
+                        ? airportStore.getStandNameAtLocation(airport.icao, [
                               pilot.longitude,
                               pilot.latitude,
                           ])
                         : "",
-            })
+            }
+            if (dep.stand) storedStand[dep.callsign] = dep.stand
+            else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
+            departures.push(dep)
         }
     }
-
+    for (const callsign of Object.keys(storedStand)) {
+        if (!departures.find(d => d.callsign == callsign)) delete storedStand[callsign]
+    }
     return departures
         .filter(
             (dep) =>

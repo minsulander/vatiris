@@ -198,6 +198,8 @@ const arrivals = computed(() => {
         }
         // Skip departure statuses if departed or closer to arrival than departure
         if (
+            fdp.fdp &&
+            fdp.fdp.flights &&
             ["ONFREQ", "DE-ICE", "STARTUP", "PUSH", "TAXI", "LINEUP", "DEPA"].includes(arr.status)
         ) {
             const pilot = vatsim.data.pilots.find((p) => p.callsign === arr.callsign)
