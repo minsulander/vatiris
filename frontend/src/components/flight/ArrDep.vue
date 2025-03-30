@@ -49,7 +49,7 @@
                     <v-list-item
                         v-for="id in filteredAd"
                         :key="id"
-                        :class="ad.includes(id) ? '' : 'text-grey'"
+                        :class="ad.includes(id) || ad.length == 0 ? '' : 'text-grey'"
                         @click="clickAd(id)"
                     >
                         <v-list-item-title>{{ id }}</v-list-item-title>
@@ -147,6 +147,10 @@ const filteredAd = computed(() => {
 function clickAd(icao: string) {
     if (ad.includes(icao)) {
         ad.splice(ad.indexOf(icao), 1)
+    } else if (ad.length == 0) {
+        for (const a of Object.keys(airportStore.airports).sort()) {
+            if (a != icao) ad.push(a)
+        }
     } else {
         if (ad.includes("NONE")) ad.splice(ad.indexOf("NONE"), 1)
         ad.push(icao)
