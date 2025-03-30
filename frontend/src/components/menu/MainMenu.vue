@@ -52,6 +52,9 @@ const menuItems = reactive({
         METSENSOR: {
             // filled in code
         } as { [key: string]: string },
+        WINDROSE: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
         "METAR/TAF": "metartaf",
         SMHI: "smhi",
         "SWC NORDEN": "swc",
@@ -199,6 +202,7 @@ import useEventBus from "@/eventbus"
 for (const icao of wxAirports) {
     menuItems.MET.AIRPORT[icao] = `airport${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
+    menuItems.MET.WINDROSE[icao] = `windrose${icao}`
 }
 
 for (const icao of metarAirports) {

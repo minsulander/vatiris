@@ -62,6 +62,7 @@ import useEventBus from "@/eventbus"
 import AircraftTypes from "@/components/icao/AircraftTypes.vue"
 import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
+import Windrose from "@/components/met/Windrose.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -233,6 +234,12 @@ const availableWindows = shallowReactive({
         width: 680,
         height: 400,
     },
+    windrose: {
+        title: "Windrose",
+        component: Windrose,
+        width: 300,
+        height: 300,
+    },
 } as any)
 
 for (const icao of metarAirports) {
@@ -270,6 +277,14 @@ for (const icao of wxAirports) {
         props: { id: icao },
         width: 360,
         height: 380,
+        class: "no-max",
+    }
+    availableWindows[`windrose${icao}`] = {
+        title: `WINDROSE ${icao}`,
+        component: Windrose,
+        props: { id: icao },
+        width: 400,
+        height: 400,
         class: "no-max",
     }
 }
