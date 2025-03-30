@@ -112,9 +112,6 @@
           :y2="getArrowY(1) + topMargin"
           :stroke="colors.arrow"
           stroke-width="6"
-          :style="{
-            transition: 'all 0.3s ease-in-out'
-          }"
         />
         
         <!-- Update centered wind information -->
@@ -229,6 +226,20 @@ const outdated = ref(false)
 let changeTimeouts: any[] = []
 let checkOutdatedInterval: any = undefined
 
+const emit = defineEmits(['update:modelValue']);
+
+// Add computed for current runway
+const currentRunway = computed({
+  get: () => {
+    console.log('Current runway getter:', props.modelValue);
+    return props.modelValue;
+  },
+  set: (value) => {
+    console.log('Setting runway to:', value);
+    emit('update:modelValue', value);
+  }
+});
+
 // Get wind data from wind store
 const windData = computed(() => {
   if (!props.id || !windStore.windData[props.id]) {
@@ -237,7 +248,10 @@ const windData = computed(() => {
 
   const data = windStore.windData[props.id];
   const selectedRunway = currentRunway.value;
+  console.log('Selected runway:', selectedRunway);
+  
   const runwayData = data.runways.find(r => r.name === selectedRunway);
+  console.log('Found runway data:', runwayData);
 
   return {
     direction: data.direction || 0,
@@ -339,21 +353,6 @@ const updateSize = () => {
     containerSize.value = containerRef.value.clientWidth;
   }
 };
-
-// Add emit for runway changes
-const emit = defineEmits(['update:modelValue']);
-
-// Add computed for current runway
-const currentRunway = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
-});
-
-function click() {
-  for (const timeout of changeTimeouts) clearTimeout(timeout)
-  changeTimeouts.splice(0)
-  changed.value = false
-}
 
 onMounted(() => {
   updateSize();
@@ -564,5 +563,28 @@ svg {
 
 .wind-rose-container.flash {
   background-color: rgba(102, 102, 255, 0.1);
+}
+
+.runway-button {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  margin: 0 2px;
+  cursor: pointer;
+  color: #999;
+  font-weight: bold;
+  font-size: calc(var(--computed-size) / 25);
+  border-radius: 4px;
+  pointer-events: auto;
+}
+
+.runway-button.active {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.runway-button:hover {
+  background-color: #f0f0f0;
+  color: #000;
 }
 </style>
