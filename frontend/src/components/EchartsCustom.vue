@@ -693,7 +693,7 @@ function setupLayers() {
         })
 }
 
-function addGeoJsonLayer(name: string, url: string, style: StyleLike | undefined = undefined) {
+function addGeoJsonLayer(name: string, url: string, style: Style | any | undefined = undefined) {
     addLayer(
         name,
         new VectorLayer({
