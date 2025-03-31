@@ -10,6 +10,9 @@ export const presetKeys = [
     "notamOptions",
     "metartafOptions",
     "arrdepOptions",
+    "echartsMapCenter",
+    "echartsMapZoom",
+    "echartsMapLayers",
 ]
 
 export const usePresetStore = defineStore("preset", () => {
