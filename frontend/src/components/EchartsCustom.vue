@@ -1,32 +1,67 @@
 <template>
-    <div ref="mapcontainer" style="width: 100%; height: 100%">
-        <div style="position: relative">
-            <div class="echarts-controls" style="position: absolute; margin-top: -3px; margin-left: -5px; z-index: 100">
-                <v-btn color="#777" rounded="0" size="x-small">
-                    <!--<v-icon>mdi-layers-triple</v-icon>--> Layers
-                    <v-menu
-                        activator="parent"
-                        transition="slide-y-transition"
-                        :close-on-content-click="false"
-                        @click:outside="lastFocused = Date.now()"
+    <div
+        style="
+            height: 25px;
+            margin-top: -5px;
+            margin-left: -5px;
+            background: #777;
+            white-space: nowrap;
+        "
+    >
+        <v-btn variant="text" rounded="0" size="small" color="white"
+            >layers
+            <v-menu
+                activator="parent"
+                transition="slide-y-transition"
+                :close-on-content-click="false"
+                @click:outside="lastFocused = Date.now()"
+            >
+                <v-list density="compact">
+                    <v-list-item
+                        v-for="(name, key) in selectableLayers"
+                        :key="key"
+                        @click="toggleLayer(key)"
                     >
-                        <v-list density="compact">
-                            <v-list-item
-                                v-for="(name, key) in selectableLayers"
-                                :key="key"
-                                @click="toggleLayer(key)"
-                            >
-                                <v-list-item-title
-                                    :class="
-                                        selectedLayers.includes(key) ? 'text-white' : 'text-grey'
-                                    "
-                                    >{{ name }}</v-list-item-title
-                                >
-                            </v-list-item>
-                        </v-list>
-                    </v-menu>
-                </v-btn>
-            </div>
+                        <v-list-item-title
+                            :class="selectedLayers.includes(key) ? 'text-white' : 'text-grey'"
+                            >{{ name }}</v-list-item-title
+                        >
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+        </v-btn>
+        <span class="float-right mr-1 pt-1 text-caption text-grey-lighten-2">
+            <v-btn
+                variant="text"
+                rounded="0"
+                size="small"
+                :color="resettable ? 'white' : 'grey'"
+                style="margin-top: -3px"
+                @click="reset"
+                >RES</v-btn
+            >
+            <v-btn
+                variant="text"
+                rounded="0"
+                size="small"
+                :color="resettable ? 'white' : 'grey'"
+                style="margin-top: -3px"
+                @click="set"
+                >SET</v-btn
+            >
+            <v-btn
+                variant="text"
+                rounded="0"
+                size="small"
+                :color="selection.length > 0 ? 'white' : 'grey'"
+                style="margin-top: -3px"
+                @click="clearSelection"
+                >CLEAR</v-btn
+            >
+        </span>
+    </div>
+    <div ref="mapcontainer" style="width: 100%; height: calc(100% - 20px)">
+        <div style="position: relative">
             <div
                 v-if="selection.length > 0"
                 style="
@@ -37,16 +72,9 @@
                     max-width: 300px;
                     overflow: auto;
                 "
-                class="py-1 pl-2 pr-4 text-caption"
+                class="py-1 px-2 text-caption"
+                @contextmenu.prevent="clearSelection"
             >
-                <v-btn
-                    variant="text"
-                    icon="mdi-close"
-                    size="small"
-                    color="grey"
-                    style="position: absolute; right: 0; margin-right: -12px; margin-top: -10px"
-                    @click="clearSelection"
-                />
                 <div v-for="selection in selectionPropsSorted" :key="selection.IDNR">
                     <div
                         v-if="selection.LOWER && selection.UPPER"
@@ -99,19 +127,6 @@
     </div>
 </template>
 
-<style>
-.winbox .echarts-controls {
-    opacity: 0;
-}
-.winbox.focus .echarts-controls,
-.winbox:hover .echarts-controls {
-    opacity: 1;
-}
-.echarts-controls {
-    transition: opacity 0.2s;
-}
-</style>
-
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 import { Feature, Map, View } from "ol"
@@ -125,7 +140,6 @@ import { bbox } from "ol/loadingstrategy"
 import { Style, Stroke, Fill, RegularShape, Text } from "ol/style"
 import Select, { SelectEvent } from "ol/interaction/Select"
 import type { FeatureLike } from "ol/Feature"
-import type { Geometry } from "ol/geom"
 import useEventBus from "@/eventbus"
 import { useWindowsStore } from "@/stores/windows"
 import Layer from "ol/layer/Layer"
@@ -187,6 +201,10 @@ const selectionPropsSorted = computed(() =>
     }),
 )
 
+const resetCenter = ref(undefined as any)
+const resetZoom = ref(undefined as number | undefined)
+const resettable = ref(false)
+
 let map: Map | undefined = undefined
 let select: Select | undefined = undefined
 let lastFocused = Date.now()
@@ -229,11 +247,17 @@ onMounted(() => {
         //console.log(map.getEventCoordinate(evt))
     })
 
-    map.on("moveend", () => {
-        if (!map) return
-        localStorage["echartsMapCenter"] = JSON.stringify(map.getView().getCenter())
-        localStorage["echartsMapZoom"] = JSON.stringify(map.getView().getZoom())
-    })
+    // delay about to not trigger on first (programmatic) move
+    setTimeout(
+        () =>
+            map?.on("moveend", () => {
+                if (!map) return
+                localStorage["echartsMapCenter"] = JSON.stringify(map.getView().getCenter())
+                localStorage["echartsMapZoom"] = JSON.stringify(map.getView().getZoom())
+                resettable.value = true
+            }),
+        500,
+    )
 
     select = new Select({
         multi: true,
@@ -274,7 +298,8 @@ onMounted(() => {
         },
 
         condition: (e) => {
-            if (selection.length == 0 && lastFocused > 0 && Date.now() - lastFocused < 1000) return false
+            if (selection.length == 0 && lastFocused > 0 && Date.now() - lastFocused < 1000)
+                return false
             return e.type == "singleclick"
         },
     })
@@ -304,6 +329,8 @@ onMounted(() => {
             if (source) source.refresh()
         })
     })
+
+    set()
 })
 
 onUnmounted(() => {})
@@ -693,6 +720,8 @@ function setupLayers() {
         })
 }
 
+watch(selectedLayers, setupLayers)
+
 function addGeoJsonLayer(name: string, url: string, style: Style | any | undefined = undefined) {
     addLayer(
         name,
@@ -731,5 +760,17 @@ function clearSelection() {
     selectionProps.splice(0)
 }
 
-watch(selectedLayers, setupLayers)
+function set() {
+    if (!map) return
+    resetCenter.value = map.getView().getCenter()
+    resetZoom.value = map.getView().getZoom()
+    resettable.value = false
+}
+
+function reset() {
+    if (!map) return
+    if (resetCenter.value) map.getView().setCenter(resetCenter.value)
+    if (resetZoom.value) map.getView().setZoom(resetZoom.value)
+    setTimeout(() => (resettable.value = false), 500)
+}
 </script>
