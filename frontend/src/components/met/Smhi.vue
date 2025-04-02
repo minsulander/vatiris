@@ -250,6 +250,7 @@ onMounted(() => {
             center,
             zoom,
         }),
+        controls: [],
     })
 
     map.on("moveend", () => {

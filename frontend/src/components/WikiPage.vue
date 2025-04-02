@@ -51,7 +51,7 @@
                 rounded="0"
                 size="small"
                 color="white"
-                style="margin-top: -2px"
+                style="margin-top: -3px"
             >
                 AIP
                 <submenu :items="aipItems" />
