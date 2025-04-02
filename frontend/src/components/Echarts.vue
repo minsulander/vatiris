@@ -73,10 +73,18 @@
                     max-width: 300px;
                     overflow: auto;
                 "
-                class="py-1 px-2 text-caption"
+                class="text-caption"
                 @contextmenu.prevent="clearSelection"
             >
-                <div v-for="selection in selectionPropsSorted" :key="selection.IDNR">
+                <div
+                    v-for="selection in selectionPropsSorted"
+                    :key="selection.IDNR"
+                    :data-idnr="selection.IDNR || selection.ID"
+                    class="selection px-1 pb-1"
+                    @mouseenter="mouseEnterSelection"
+                    @mouseleave="mouseLeaveSelection"
+                    @click="console.log(selection)"
+                >
                     <div
                         v-if="selection.LOWER && selection.UPPER"
                         class="ml-3 float-right"
@@ -128,6 +136,12 @@
     </div>
 </template>
 
+<style scoped>
+div.selection:hover {
+    background: #ccc;
+}
+</style>
+
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 import { Feature, Map, View } from "ol"
@@ -157,22 +171,22 @@ const mapcontainer = ref()
 const selectableLayers = reactive({
     arp: "Airports",
     hrp: "Heliports",
-    ctr: "Control Zones",
-    tma: "Terminal Monitoring Areas",
-    tiatizatz: "Traffic Information Area/Zones",
-    deleg: "Delegated Airspace",
-    acc: "ATC Sectors",
-    aor: "Area of Responsibility",
-    rd: "Restricted/Danger Areas",
+    ctr: "CTR",
+    tma: "TMA",
+    tiatizatz: "TIA/TIZ/ATZ",
+    deleg: "Delegated airspace",
+    acc: "ACC sectors",
+    aor: "AOR",
+    rd: "R/D areas",
     sup: "Current SUP",
     cbatra: "CBA/TRA",
-    pca: "Prior Coordination Airspace",
+    pca: "PCA",
     pcs: "PCA sub-parts",
-    vfr: "VFR entry/exit points",
-    route: "Routes",
-    dnpt: "Designated points",
-    navaid: "DME, VOR, NDB",
-    wpt: "Terminal waypoints",
+    vfr: "VFR entry/exit",
+    dnpt: "Significant points",
+    wpt: "Terminal points",
+    navaid: "DME/VOR/NDB",
+    route: "ATS routes",
 })
 
 const selectedLayers = reactive(["tma", "tiatizatz", "ctr", "vfr", "arp"])
@@ -266,15 +280,15 @@ onMounted(() => {
         style: (feature: FeatureLike) => {
             const props = feature.getProperties()
             let text: Text | undefined = undefined
-            if (props.TYPEOFPOINT) {
+            if (props.TYPEOFPOINT || props.TYPEOFLINE || (props.TYPEOFAREA && props.TYPEOFAREA.startsWith("EXE"))) {
                 text = new Text({
                     text:
-                        props.TYPEOFPOINT == "ECTR"
+                        props.TYPEOFPOINT == "ECTR" || props.TYPEOFAREA
                             ? props.LOCATION
-                            : props.NAMEOFPOINT || props.POSITIONINDICATOR,
-                    font: "10px sans-serif",
+                            : props.NAMEOFPOINT || props.NAMEOFLINE || props.POSITIONINDICATOR,
+                    font: "bold 10px sans-serif",
                     fill: new Fill({
-                        color: "#000",
+                        color: props.hover ? "#000" : "#33f",
                     }),
                     offsetY: 10,
                 })
@@ -282,19 +296,20 @@ onMounted(() => {
             return new Style({
                 image: new RegularShape({
                     fill: new Fill({
-                        color: "#33f",
+                        color: props.hover ? "#000" : "#33f",
                     }),
-                    points: 5,
+                    points: 10,
                     radius: 5,
                 }),
                 stroke: new Stroke({
-                    color: "#33f",
-                    width: 2,
+                    color: props.hover ? "#000" : "#33f",
+                    width: props.hover ? 3 : 2,
                 }),
                 fill: new Fill({
-                    color: "#33f1",
+                    color: props.hover ? "#0001" : "#33f1",
                 }),
                 text,
+                zIndex: props.hover ? 1000 : undefined,
             })
         },
 
@@ -332,6 +347,7 @@ onMounted(() => {
     })
 
     set()
+    ;(window as any).map = map
 })
 
 onUnmounted(() => {})
@@ -741,6 +757,42 @@ function addLayer(key: string, layer: Layer) {
     if (key in layers) return
     layers[key] = layer
     map?.addLayer(layer)
+}
+
+function mouseEnterSelection(e: MouseEvent) {
+    const div = e.currentTarget as HTMLElement
+    const idnr = div.getAttribute("data-idnr")
+    if (!div || !idnr || !map) return
+    const feature = findFeature(idnr)
+    if (feature) {
+        feature.setProperties({ ...feature.getProperties(), hover: true })
+        feature.changed()
+    }
+}
+
+function mouseLeaveSelection(e: MouseEvent) {
+    const div = e.currentTarget as HTMLElement
+    const idnr = div.getAttribute("data-idnr")
+    if (!div || !idnr || !map) return
+    const feature = findFeature(idnr)
+    if (feature) {
+        feature.setProperties({ ...feature.getProperties(), hover: false })
+        feature.changed()
+    }
+}
+
+function findFeature(idnr: string) {
+    if (!map) return
+    let feature: FeatureLike | undefined = undefined
+    for (const layer of map.getAllLayers()) {
+        const source = layer.getSource() as VectorSource
+        if (!source || !source.getFeatures) continue
+        feature = source
+            .getFeatures()
+            .find((f) => f.getProperties().IDNR == idnr || f.getProperties().ID == idnr)
+        if (feature) break
+    }
+    return feature
 }
 
 function toggleLayer(key: string) {
