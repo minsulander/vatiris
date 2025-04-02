@@ -6,6 +6,7 @@
             margin-left: -5px;
             background: #777;
             white-space: nowrap;
+            overflow: hidden;
         "
     >
         <v-btn variant="text" rounded="0" size="small" color="white"
@@ -60,7 +61,7 @@
             >
         </span>
     </div>
-    <div ref="mapcontainer" style="width: 100%; height: calc(100% - 20px)">
+    <div ref="mapcontainer" style="width: 100%; height: calc(100% - 20px); overflow: hidden">
         <div style="position: relative">
             <div
                 v-if="selection.length > 0"
