@@ -68,29 +68,41 @@ void VatIRISPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPla
         if (disabled || !FilterFlightPlan(FlightPlan)) return;
 
         std::string callsign = FlightPlan.GetCallsign();
-        if (callsign.empty()) {
-            DisplayMessage("OnFlightPlanControllerAssignedDataUpdate: Empty callsign");
+        if (callsign.empty() || callsign.length() > 20) {
+            DisplayMessage("OnFlightPlanFlightPlanDataUpdate: Invalid callsign");
+            return;
+        }
+
+        EuroScopePlugIn::CFlightPlanData fpData = FlightPlan.GetFlightPlanData();
+        if (!fpData.IsReceived()) {
+            DebugMessage("Invalid flight plan data");
             return;
         }
 
         std::stringstream out;
         out << "FlightPlanDataUpdate " << callsign;
-        out << " state " << FlightPlan.GetState() << " fpstate " << FlightPlan.GetFPState();
+        
+        // Safe state checks
+        int state = FlightPlan.GetState();
+        int fpstate = FlightPlan.GetFPState();
+        if (state >= 0 && state <= 10 && fpstate >= 0 && fpstate <= 10) {
+            out << " state " << state << " fpstate " << fpstate;
+        }
+
         if (FlightPlan.GetSimulated()) out << " simulated";
-        if (strlen(FlightPlan.GetTrackingControllerCallsign()) > 0)
-            out << " controller " << FlightPlan.GetTrackingControllerCallsign();
-        out << " ete " << FlightPlan.GetPositionPredictions().GetPointsNumber();
-        // TODO remove not really useful
-        // for (int i = 0; i < FlightPlan.GetExtractedRoute().GetPointsNumber(); i++) {
-        //     out << " " << FlightPlan.GetExtractedRoute().GetPointName(i);
-        //     out << " (" << FlightPlan.GetExtractedRoute().GetPointAirwayName(i) << ")";
-        //     out << " [" << FlightPlan.GetExtractedRoute().GetPointDistanceInMinutes(i) << "]";
+
+        const char* trackingController = FlightPlan.GetTrackingControllerCallsign();
+        if (trackingController && strlen(trackingController) > 0 && strlen(trackingController) < 20) {
+            out << " controller " << trackingController;
+        }
+
+        // int ete = FlightPlan.GetPositionPredictions().GetPointsNumber();
+        // if (ete >= 0 && ete <= 1000) { // Reasonable ETE range
+        //     out << " ete " << ete;
         // }
-        // out << " closest " << FlightPlan.GetExtractedRoute().GetPointsCalculatedIndex();
-        // out << " assigned " << FlightPlan.GetExtractedRoute().GetPointsAssignedIndex();
+
         DebugMessage(out.str());
         UpdateRoute(FlightPlan);
-
     } catch (const std::exception &e) {
         DisplayMessage(std::string("OnFlightPlanFlightPlanDataUpdate exception: ") + e.what());
     } catch (...) {
@@ -104,29 +116,48 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
         if (disabled || !FilterFlightPlan(FlightPlan)) return;
 
         std::string callsign = FlightPlan.GetCallsign();
-        if (callsign.empty()) {
-            DisplayMessage("OnFlightPlanControllerAssignedDataUpdate: Empty callsign");
+        if (callsign.empty() || callsign.length() > 20) {
+            DisplayMessage("OnFlightPlanControllerAssignedDataUpdate: Invalid callsign");
+            return;
+        }
+
+        if (DataType < EuroScopePlugIn::CTR_DATA_TYPE_SQUAWK || 
+            DataType > EuroScopePlugIn::CTR_DATA_TYPE_DIRECT_TO) {
+            DebugMessage("Invalid DataType received: " + std::to_string(DataType));
             return;
         }
 
         const char *controllerCallsign = FlightPlan.GetTrackingControllerCallsign();
-        if (controllerCallsign) {
+        if (controllerCallsign && strlen(controllerCallsign) > 0 && strlen(controllerCallsign) < 20) {
             pendingUpdates[callsign]["controller"] = controllerCallsign;
         }
+
+        const EuroScopePlugIn::CFlightPlanControllerAssignedData ctrData = FlightPlan.GetControllerAssignedData();
 
         std::stringstream out;
         out << "ControllerAssignedDataUpdate " << callsign;
         if (controllerCallsign && strlen(controllerCallsign) > 0)
             out << " controller " << controllerCallsign;
+
         switch (DataType) {
-        case EuroScopePlugIn::CTR_DATA_TYPE_SQUAWK:
-            out << " squawk " << FlightPlan.GetControllerAssignedData().GetSquawk();
+        case EuroScopePlugIn::CTR_DATA_TYPE_SQUAWK: {
+            const char* squawk = ctrData.GetSquawk();
+            if (squawk && strlen(squawk) == 4) { // Valid squawk is always 4 digits
+                out << " squawk " << squawk;
+                pendingUpdates[callsign]["squawk"] = squawk;
+            }
             break;
-        case EuroScopePlugIn::CTR_DATA_TYPE_FINAL_ALTITUDE:
-            out << " rfl " << FlightPlan.GetControllerAssignedData().GetFinalAltitude();
+        }
+        case EuroScopePlugIn::CTR_DATA_TYPE_FINAL_ALTITUDE: {
+            int rfl = ctrData.GetFinalAltitude();
+            if (rfl >= 0 && rfl <= 100000) { // Reasonable altitude range
+                out << " rfl " << rfl;
+                pendingUpdates[callsign]["rfl"] = rfl;
+            }
             break;
+        }
         case EuroScopePlugIn::CTR_DATA_TYPE_TEMPORARY_ALTITUDE: {
-            int cfl = FlightPlan.GetControllerAssignedData().GetClearedAltitude();
+            int cfl = ctrData.GetClearedAltitude();
             out << " cfl " << cfl;
             pendingUpdates[callsign]["cfl"] = cfl;
             // 0 - no cleared level (use the final instead of)
@@ -139,15 +170,26 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
             break;
         }
         case EuroScopePlugIn::CTR_DATA_TYPE_COMMUNICATION_TYPE:
-            out << " comm " << FlightPlan.GetControllerAssignedData().GetCommunicationType();
+            out << " comm " << ctrData.GetCommunicationType();
             break;
         case EuroScopePlugIn::CTR_DATA_TYPE_SCRATCH_PAD_STRING: {
-            if (strlen(FlightPlan.GetControllerAssignedData().GetScratchPadString()) == 0) return;
-            std::string scratch = FlightPlan.GetControllerAssignedData().GetScratchPadString();
+            const char* scratchStr = ctrData.GetScratchPadString();
+            if (!scratchStr || strlen(scratchStr) == 0) return;
+            
+            // Limit scratch pad string length
+            if (strlen(scratchStr) > 50) {
+                DebugMessage("Scratch pad string too long: " + std::string(scratchStr));
+                return;
+            }
+            
+            std::string scratch = scratchStr;
             out << " scratch " << scratch;
+            
+            // Safe string comparisons
             if (scratch == "LINEUP" || scratch == "ONFREQ" || scratch == "DE-ICE") {
                 pendingUpdates[callsign]["groundstate"] = scratch;
-            } else if (scratch.find("GRP/S/") != std::string::npos) {
+            } else if (scratch.length() > 6 && scratch.find("GRP/S/") != std::string::npos) {
+                // Ensure we have enough characters for substr(6)
                 pendingUpdates[callsign]["stand"] = scratch.substr(6);
             }
             // Scratch pad inputs noticed in the wild (if we ever want to
@@ -192,38 +234,55 @@ void VatIRISPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CF
         case EuroScopePlugIn::CTR_DATA_TYPE_DEPARTURE_SEQUENCE:
             out << " dsq"; // TODO where dis dsq?
             break;
-        case EuroScopePlugIn::CTR_DATA_TYPE_SPEED:
-            out << " asp " << FlightPlan.GetControllerAssignedData().GetAssignedSpeed();
-            pendingUpdates[callsign]["asp"] = FlightPlan.GetControllerAssignedData().GetAssignedSpeed();
-            break;
-        case EuroScopePlugIn::CTR_DATA_TYPE_MACH:
-            out << " mach " << FlightPlan.GetControllerAssignedData().GetAssignedMach();
-            pendingUpdates[callsign]["mach"] = FlightPlan.GetControllerAssignedData().GetAssignedMach();
-            break;
-        case EuroScopePlugIn::CTR_DATA_TYPE_RATE:
-            out << " arc " << FlightPlan.GetControllerAssignedData().GetAssignedRate();
-            pendingUpdates[callsign]["arc"] = FlightPlan.GetControllerAssignedData().GetAssignedRate();
-            break;
-        case EuroScopePlugIn::CTR_DATA_TYPE_HEADING:
-            out << " ahdg " << FlightPlan.GetControllerAssignedData().GetAssignedHeading();
-            pendingUpdates[callsign]["ahdg"] = FlightPlan.GetControllerAssignedData().GetAssignedHeading();
-            pendingUpdates[callsign]["direct"] = "";
-            break;
-        case EuroScopePlugIn::CTR_DATA_TYPE_DIRECT_TO:
-            out << " direct " << FlightPlan.GetControllerAssignedData().GetDirectToPointName();
-            pendingUpdates[callsign]["direct"] =
-            FlightPlan.GetControllerAssignedData().GetDirectToPointName();
-            pendingUpdates[callsign]["ahdg"] = 0;
+        case EuroScopePlugIn::CTR_DATA_TYPE_SPEED: {
+            int speed = ctrData.GetAssignedSpeed();
+            if (speed >= 0 && speed <= 1500) { // Reasonable speed range
+                out << " asp " << speed;
+                pendingUpdates[callsign]["asp"] = speed;
+            }
             break;
         }
-        for (int i = 0; i < 9; i++) {
-            if (strlen(FlightPlan.GetControllerAssignedData().GetFlightStripAnnotation(i)) > 0)
-                out << " a" << i << " "
-                    << FlightPlan.GetControllerAssignedData().GetFlightStripAnnotation(i);
-            // a6 stand
-            // a7 C
-            // a7 /s+ = - etc
+        case EuroScopePlugIn::CTR_DATA_TYPE_MACH: {
+            double mach = ctrData.GetAssignedMach();
+            if (mach >= 0.0 && mach <= 10.0) { // Reasonable mach range
+                out << " mach " << mach;
+                pendingUpdates[callsign]["mach"] = mach;
+            }
+            break;
         }
+        case EuroScopePlugIn::CTR_DATA_TYPE_RATE: {
+            int rate = ctrData.GetAssignedRate();
+            if (rate >= -50000 && rate <= 50000) { // Reasonable rate range
+                out << " arc " << rate;
+                pendingUpdates[callsign]["arc"] = rate;
+            }
+            break;
+        }
+        case EuroScopePlugIn::CTR_DATA_TYPE_HEADING: {
+            int heading = ctrData.GetAssignedHeading();
+            if (heading >= 0 && heading <= 360) { // Valid heading range
+                out << " ahdg " << heading;
+                pendingUpdates[callsign]["ahdg"] = heading;
+                pendingUpdates[callsign]["direct"] = "";
+            }
+            break;
+        }
+        case EuroScopePlugIn::CTR_DATA_TYPE_DIRECT_TO: {
+            const char* directTo = ctrData.GetDirectToPointName();
+            if (directTo && strlen(directTo) > 0 && strlen(directTo) < 50) { // Reasonable waypoint name length
+                out << " direct " << directTo;
+                pendingUpdates[callsign]["direct"] = directTo;
+                pendingUpdates[callsign]["ahdg"] = 0;
+            }
+            break;
+        }
+        }
+        // for (int i = 0; i < 9; i++) {
+        //     const char* annotation = ctrData.GetFlightStripAnnotation(i);
+        //     if (annotation && strlen(annotation) > 0 && strlen(annotation) < 50) { // Reasonable length limit
+        //         out << " a" << i << " " << annotation;
+        //     }
+        // }
         DebugMessage(out.str());
         UpdateRoute(FlightPlan);
     } catch (const std::exception &e) {
@@ -274,6 +333,7 @@ void VatIRISPlugin::OnTimer(int counter)
     try {
         if (disabled && GetConnectionType() == EuroScopePlugIn::CONNECTION_TYPE_DIRECT) {
             disabled = false;
+            enabledTime = std::time(NULL);
             DebugMessage("VatIRIS updates enabled");
         } else if (!disabled && GetConnectionType() != EuroScopePlugIn::CONNECTION_TYPE_DIRECT) {
             disabled = true;
@@ -283,6 +343,7 @@ void VatIRISPlugin::OnTimer(int counter)
             return;
         }
 
+        if (std::time(NULL) - enabledTime < 10) return;
         if (counter % 30 == 0) UpdateMyself();
         if (pendingUpdates.empty()) return;
         if (std::time(NULL) - lastPostTime < (5 + (std::rand() % 10))) return;
@@ -297,74 +358,115 @@ void VatIRISPlugin::OnTimer(int counter)
 void VatIRISPlugin::UpdateMyself()
 {
     try {
+        // Limit the size of controller updates
+        if (pendingUpdates.size() > 1000) {
+            DebugMessage("Too many pending updates in UpdateMyself");
+            pendingUpdates.clear();
+        }
+
         EuroScopePlugIn::CController me = ControllerMyself();
         if (!me.IsValid()) {
             DebugMessage("UpdateMyself: Controller not valid");
             return;
         }
+
         std::string callsign = me.GetCallsign();
-        if (callsign.empty()) {
-            DebugMessage("UpdateMyself: Empty callsign");
+        if (callsign.empty() || callsign.length() > 20) {
+            DebugMessage("UpdateMyself: Invalid callsign");
             return;
         }
 
+        // Validate and limit controller data
         const char *fullName = me.GetFullName();
-        if (fullName && *fullName) pendingUpdates[callsign]["name"] = fullName;
+        if (fullName && *fullName && strlen(fullName) < 50) {
+            pendingUpdates[callsign]["name"] = fullName;
+        }
 
-        pendingUpdates[callsign]["frequency"] = me.GetPrimaryFrequency();
+        double frequency = me.GetPrimaryFrequency();
+        if (frequency >= 100.0 && frequency <= 200.0) {
+            pendingUpdates[callsign]["frequency"] = frequency;
+        }
+
         pendingUpdates[callsign]["controller"] = me.IsController();
         pendingUpdates[callsign]["pluginVersion"] = PLUGIN_VERSION;
 
-        SelectActiveSectorfile();
-
-        for (EuroScopePlugIn::CSectorElement airport =
-             SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT);
-             airport.IsValid();
-             airport = SectorFileElementSelectNext(airport, EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT)) {
-            const char *airportName = airport.GetName();
-            if (!airportName || !*airportName) continue;
-            if (airport.IsElementActive(false))
-                pendingUpdates[callsign]["rwyconfig"][airportName]["arr"] = true;
-            if (airport.IsElementActive(true))
-                pendingUpdates[callsign]["rwyconfig"][airportName]["dep"] = true;
+        // Limit the size of the rwyconfig structure
+        nlohmann::json& rwyconfig = pendingUpdates[callsign]["rwyconfig"];
+        if (rwyconfig.size() > 100) {
+            DebugMessage("Too many airports in rwyconfig");
+            rwyconfig.clear();
         }
 
-        // Add validity check for sector file before processing runways
-        if (!SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY).IsValid()) {
+        SelectActiveSectorfile();
+
+        // Safe airport iteration with count limit
+        int airportCount = 0;
+        const int MAX_AIRPORTS = 1000;
+        for (EuroScopePlugIn::CSectorElement airport =
+             SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT);
+             airport.IsValid() && airportCount < MAX_AIRPORTS;
+             airport = SectorFileElementSelectNext(airport, EuroScopePlugIn::SECTOR_ELEMENT_AIRPORT)) {
+            
+            airportCount++;
+            const char *airportName = airport.GetName();
+            if (!airportName || !*airportName || strlen(airportName) > 10) continue;
+
+            std::string airportStr = airportName;
+            airportStr.erase(std::remove_if(airportStr.begin(), airportStr.end(), ::isspace), airportStr.end());
+            if (airportStr.empty()) continue;
+
+            if (airport.IsElementActive(false))
+                rwyconfig[airportStr]["arr"] = true;
+            if (airport.IsElementActive(true))
+                rwyconfig[airportStr]["dep"] = true;
+        }
+
+        // Safe runway iteration with count limit
+        int runwayCount = 0;
+        const int MAX_RUNWAYS = 1000;
+        EuroScopePlugIn::CSectorElement runway = SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
+        if (!runway.IsValid()) {
             return;
         }
 
-        for (EuroScopePlugIn::CSectorElement runway =
-             SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
-             runway.IsValid();
-             runway = SectorFileElementSelectNext(runway, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY)) {
+        do {
+            runwayCount++;
             const char *airportName = runway.GetAirportName();
-            if (!airportName || !*airportName) {
-                DebugMessage("UpdateMyself: Invalid runway airport name");
-                continue;
-            }
+            if (!airportName || !*airportName || strlen(airportName) > 10) continue;
 
             std::string airport = airportName;
-            if (airport.empty()) continue;
             airport.erase(std::remove_if(airport.begin(), airport.end(), ::isspace), airport.end());
+            if (airport.empty()) continue;
 
             const char *rwyName0 = runway.GetRunwayName(0);
             const char *rwyName1 = runway.GetRunwayName(1);
 
-            // More careful runway name handling
-            if (rwyName0 && *rwyName0 && runway.IsElementActive(false, 0))
-                pendingUpdates[callsign]["rwyconfig"][airport][rwyName0]["arr"] = true;
-            if (rwyName1 && *rwyName1 && runway.IsElementActive(false, 1))
-                pendingUpdates[callsign]["rwyconfig"][airport][rwyName1]["arr"] = true;
-            if (rwyName0 && *rwyName0 && runway.IsElementActive(true, 0))
-                pendingUpdates[callsign]["rwyconfig"][airport][rwyName0]["dep"] = true;
-            if (rwyName1 && *rwyName1 && runway.IsElementActive(true, 1))
-                pendingUpdates[callsign]["rwyconfig"][airport][rwyName1]["dep"] = true;
-        }
+            // Validate runway names
+            if (rwyName0 && *rwyName0 && strlen(rwyName0) <= 5) {
+                if (runway.IsElementActive(false, 0))
+                    rwyconfig[airport][rwyName0]["arr"] = true;
+                if (runway.IsElementActive(true, 0))
+                    rwyconfig[airport][rwyName0]["dep"] = true;
+            }
+
+            if (rwyName1 && *rwyName1 && strlen(rwyName1) <= 5) {
+                if (runway.IsElementActive(false, 1))
+                    rwyconfig[airport][rwyName1]["arr"] = true;
+                if (runway.IsElementActive(true, 1))
+                    rwyconfig[airport][rwyName1]["dep"] = true;
+            }
+
+            runway = SectorFileElementSelectNext(runway, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY);
+        } while (runway.IsValid() && runwayCount < MAX_RUNWAYS);
+
     } catch (const std::exception &e) {
         DisplayMessage(std::string("UpdateMyself exception: ") + e.what());
+        // Clear updates on error to prevent corrupted state
+        pendingUpdates.clear();
     } catch (...) {
         DisplayMessage("UpdateMyself: Unknown exception");
+        // Clear updates on error to prevent corrupted state
+        pendingUpdates.clear();
     }
 }
 
@@ -387,6 +489,15 @@ void VatIRISPlugin::PostUpdates()
     }
 
     try {
+        // Limit the size of updates to prevent memory issues
+        const size_t MAX_UPDATES = 1000;
+        if (pendingUpdates.size() > MAX_UPDATES) {
+            DebugMessage("Too many pending updates, clearing old ones");
+            pendingUpdates.clear();
+            ReleaseMutex(mutex);
+            return;
+        }
+
         auto updates = pendingUpdates;
         pendingUpdates.clear();
         DebugMessage("Posting updates " + std::to_string(updates.size()));
@@ -400,8 +511,12 @@ void VatIRISPlugin::PostUpdates()
             return;
         }
         CloseHandle(thread);
+    } catch (const std::exception &e) {
+        DisplayMessage(std::string("PostUpdates exception: ") + e.what());
+        pendingUpdates.clear(); // Clear updates on error
     } catch (...) {
-        DisplayMessage("Post thread error");
+        DisplayMessage("PostUpdates: Unknown exception");
+        pendingUpdates.clear(); // Clear updates on error
     }
     ReleaseMutex(mutex);
 }
@@ -418,24 +533,45 @@ void VatIRISPlugin::DisplayMessage(const std::string &message, const std::string
 
 bool VatIRISPlugin::FilterFlightPlan(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
-    if (!FlightPlan.IsValid()) return false;
-    if (!FlightPlan.GetFlightPlanData().IsReceived()) return false;
-    if (!updateAll && !FlightPlan.GetTrackingControllerIsMe()) return false;
-    if (!FlightPlan.GetFlightPlanData().GetOrigin()) return false;
-    if (!FlightPlan.GetFlightPlanData().GetDestination()) return false;
-    if (strncmp(FlightPlan.GetFlightPlanData().GetOrigin(), "ES", 2) != 0 &&
-        strncmp(FlightPlan.GetFlightPlanData().GetDestination(), "ES", 2) != 0)
+    try {
+        if (!FlightPlan.IsValid()) return false;
+        
+        EuroScopePlugIn::CFlightPlanData fpData = FlightPlan.GetFlightPlanData();
+        if (!fpData.IsReceived()) return false;
+        
+        const char* origin = fpData.GetOrigin();
+        const char* destination = fpData.GetDestination();
+        if (!origin || !destination || !*origin || !*destination) return false;
+        
+        // Safe string comparison with length check
+        if (strlen(origin) < 2 || strlen(destination) < 2) return false;
+        if (strncmp(origin, "ES", 2) != 0 && strncmp(destination, "ES", 2) != 0) return false;
+        
+        return true;
+    } catch (...) {
+        DisplayMessage("FilterFlightPlan: Exception occurred");
         return false;
-    return true;
+    }
 }
 
 void VatIRISPlugin::UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
     try {
+        // Limit the size of flight updates
+        if (pendingUpdates.size() > 1000) {
+            DebugMessage("Too many pending updates in UpdateRoute");
+            pendingUpdates.clear();
+        }
+
         std::string callsign = FlightPlan.GetCallsign();
-        if (callsign.empty()) {
-            DisplayMessage("UpdateRoute: Empty callsign");
+        if (callsign.empty() || callsign.length() > 20) {
+            DisplayMessage("UpdateRoute: Invalid callsign");
             return;
+        }
+
+        if (pendingUpdates.size() > 1000) {
+            DebugMessage("Too many pending updates, clearing old ones");
+            pendingUpdates.clear();
         }
 
         EuroScopePlugIn::CFlightPlanData fpData = FlightPlan.GetFlightPlanData();
@@ -446,21 +582,21 @@ void VatIRISPlugin::UpdateRoute(EuroScopePlugIn::CFlightPlan FlightPlan)
         const char *depRwy = fpData.GetDepartureRwy();
         const char *sidName = fpData.GetSidName();
 
-        // Safer string handling with explicit null checks
-        if (arrRwy && *arrRwy) pendingUpdates[callsign]["arrRwy"] = arrRwy;
-        if (starName && *starName) pendingUpdates[callsign]["star"] = starName;
-        if (depRwy && *depRwy) pendingUpdates[callsign]["depRwy"] = depRwy;
-        if (sidName && *sidName) pendingUpdates[callsign]["sid"] = sidName;
+        // Safer string handling with explicit null checks and length limits
+        if (arrRwy && *arrRwy && strlen(arrRwy) < 5) pendingUpdates[callsign]["arrRwy"] = arrRwy;
+        if (starName && *starName && strlen(starName) < 10) pendingUpdates[callsign]["star"] = starName;
+        if (depRwy && *depRwy && strlen(depRwy) < 5) pendingUpdates[callsign]["depRwy"] = depRwy;
+        if (sidName && *sidName && strlen(sidName) < 10) pendingUpdates[callsign]["sid"] = sidName;
 
-        int ete = FlightPlan.GetPositionPredictions().GetPointsNumber();
-        if (ete > 0) {
-            try {
-                pendingUpdates[callsign]["eta"] =
-                std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
-            } catch (const std::exception &e) {
-                DisplayMessage(std::string("UpdateRoute format exception: ") + e.what());
-            }
-        }
+        // int ete = FlightPlan.GetPositionPredictions().GetPointsNumber();
+        // if (ete > 0) {
+        //     try {
+        //         pendingUpdates[callsign]["eta"] =
+        //         std::format("{:%FT%TZ}", std::chrono::system_clock::now() + std::chrono::minutes(ete));
+        //     } catch (const std::exception &e) {
+        //         DisplayMessage(std::string("UpdateRoute format exception: ") + e.what());
+        //     }
+        // }
     } catch (const std::exception &e) {
         DisplayMessage(std::string("UpdateRoute exception: ") + e.what());
     } catch (...) {

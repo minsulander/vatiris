@@ -35,6 +35,6 @@ class VatIRISPlugin : public EuroScopePlugIn::CPlugIn
     bool updateAll;
     bool debug;
     nlohmann::json pendingUpdates;
-    std::time_t lastUpdateTime, lastPostTime;
+    std::time_t lastUpdateTime, lastPostTime, enabledTime;
 };
 } // namespace VatIRIS
