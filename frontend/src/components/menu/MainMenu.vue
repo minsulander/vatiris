@@ -1,24 +1,54 @@
 <template>
-    <template v-for="(options, title) in authorizedMenuItems" :key="title">
-        <v-btn
-            v-if="typeof options == 'string'"
-            type="text"
-            :color="options in windows.winbox ? '' : 'grey'"
-            @click="bus.emit('select', options)"
-            @contextmenu.prevent="bus.emit('unselect', options)"
-        >
-            {{ title }}
-        </v-btn>
-        <v-btn v-else type="text" class="text-grey">
-            {{ title }}
-            <submenu :items="options" />
-        </v-btn>
+    <v-btn
+        v-if="!searching"
+        type="icon"
+        icon="mdi-magnify"
+        class="text-grey"
+        size="small"
+        @click="clickSearch"
+    />
+    <v-combobox
+        v-if="searching"
+        v-model="searchText"
+        :items="searchItems"
+        :custom-filter="filterSearch"
+        autofocus
+        hide-details
+        clearable
+        clear-icon="mdi-close"
+        placeholder="Search menu items"
+        @keydown.esc="clearSearch"
+        @keydown.enter="enterSearch"
+        @blur="blurSearch"
+        @update:search="changeSearch"
+        style="width: 100%"
+        density="compact"
+    />
+
+    <template v-if="!searching">
+        <span style="max-width: 100%; white-space: nowrap; overflow: auto">
+            <template v-for="(options, title) in authorizedMenuItems" :key="title">
+                <v-btn
+                    v-if="typeof options == 'string'"
+                    type="text"
+                    :color="options in windows.winbox ? '' : 'grey'"
+                    @click="bus.emit('select', options)"
+                    @contextmenu.prevent="bus.emit('unselect', options)"
+                >
+                    {{ title }}
+                </v-btn>
+                <v-btn v-else type="text" class="text-grey">
+                    {{ title }}
+                    <submenu :items="options" />
+                </v-btn>
+            </template>
+        </span>
     </template>
 </template>
 
 <script setup lang="ts">
 import Submenu from "@/components/menu/Submenu.vue"
-import { computed, reactive } from "vue"
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
 import { useAuthStore } from "@/stores/auth"
@@ -235,5 +265,89 @@ import("@/data/occupancy-sectors.json").then((module) => {
         if (!(entry.section in menuItems.Traffic)) menuItems.Traffic[entry.section] = {}
         menuItems.Traffic[entry.section][entry.title] = `occupancy-${id}`
     }
+})
+
+const searchText = ref(undefined as any)
+const searching = ref(false)
+
+const searchItems = computed(() => {
+    const flattenedItems: { title: string; value: string }[] = []
+
+    const flattenMenu = (items: Record<string, any>, parentPath: string[] = []) => {
+        for (const [key, value] of Object.entries(items)) {
+            const currentPath = [...parentPath, key]
+
+            if (typeof value === "string") {
+                flattenedItems.push({
+                    title: currentPath.join(" > "),
+                    value,
+                })
+            } else if (typeof value === "object") {
+                flattenMenu(value, currentPath)
+            }
+        }
+    }
+
+    flattenMenu(authorizedMenuItems.value)
+    return flattenedItems
+})
+
+function filterSearch(value: string, searchTerm: string, item: any) {
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/)
+    return searchWords.every((word) => item.title.toLowerCase().includes(word))
+}
+
+function clickSearch() {
+    searching.value = true
+}
+
+function blurSearch() {
+    setTimeout(() => {
+        if (document.activeElement?.tagName == "BODY") clearSearch()
+    }, 100)
+}
+
+function clearSearch() {
+    searchText.value = undefined
+    searching.value = false
+}
+
+function enterSearch(e: Event) {
+    if (typeof searchText.value != "string") return
+    const match = searchItems.value.find((i) =>
+        filterSearch(i.value, searchText.value as string, i),
+    )
+    if (match) bus.emit("select", match.value)
+    clearSearch()
+}
+
+function changeSearch() {
+    if (typeof searchText.value == "object") {
+        const selected = searchText.value as any
+        if (selected && selected.value) {
+            bus.emit("select", selected.value)
+            clearSearch()
+        }
+    }
+}
+
+onMounted(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (
+            document.activeElement?.tagName != "INPUT" &&
+            document.activeElement?.tagName != "TEXTAREA" &&
+            (e.shiftKey || e.ctrlKey) &&
+            (e.key === "/" || e.key == "7" || e.key === " " || e.key === "Enter")
+        ) {
+            e.preventDefault()
+            clickSearch()
+        }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    onUnmounted(() => {
+        window.removeEventListener("keydown", handleKeyDown)
+    })
 })
 </script>

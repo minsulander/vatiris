@@ -109,6 +109,12 @@
                 <v-list-item
                     v-if="!auth.pending && auth.user"
                     class="text-grey"
+                    @click="bus.emit('select', 'about')"
+                    >ABOUT</v-list-item
+                >
+                <v-list-item
+                    v-if="!auth.pending && auth.user"
+                    class="text-grey"
                     @click="auth.logout"
                     >LOGOUT</v-list-item
                 >

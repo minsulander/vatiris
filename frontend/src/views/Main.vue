@@ -20,6 +20,23 @@
             </Window>
         </template>
         <Welcome v-if="!Object.values(windows.layout).find((l) => l.enabled)" />
+        <v-dialog v-model="showAboutDialog" max-width="730">
+            <v-card>
+                <v-card-title class="font-weight-light text-grey pl-6 pt-3">
+                    <img src="/vatiris-icon2.png" style="max-width: 40px; float: right" />
+                    About VatIRIS
+                </v-card-title>
+                <v-card-text>
+                    <About />
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" color="primary" @click="showAboutDialog = false"
+                        >Got it</v-btn
+                    >
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-main>
 </template>
 
@@ -46,7 +63,7 @@ import Sun from "@/components/met/Sun.vue"
 import Airport from "@/components/met/Airport.vue"
 import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
-import { onBeforeUnmount, onMounted, onUnmounted, shallowReactive } from "vue"
+import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
@@ -55,7 +72,7 @@ import OccupancyChart from "@/components/fdp/OccupancyChart.vue"
 import { useWakeLock } from "@vueuse/core"
 import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
-import Iframe from "@/components/Iframe.vue"
+import About from "@/components/About.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
 import useEventBus from "@/eventbus"
@@ -80,6 +97,7 @@ export interface WindowSpec {
 
 const windows = useWindowsStore()
 
+const showAboutDialog = ref(false)
 const availableWindows = shallowReactive({
     notam: {
         title: "NOTAM",
@@ -410,16 +428,18 @@ function select(id: string | object) {
                 windows.layout[id] = { enabled: true }
             }
         }
+        windows.focusId = id
     } else if (id.startsWith && id.startsWith("https://")) {
         const [url, target] = id.split("|")
         window.open(url, target || "_blank")
+    } else if (id == "about") {
+        showAboutDialog.value = true
     } else {
         console.error(`Unknown menu selection: ${id}`)
     }
 }
 
 function unselect(id: string) {
-    console.log("unselect", id)
     if (id in windows.winbox) {
         windows.winbox[id].close()
     }
@@ -430,6 +450,47 @@ onMounted(() => {
     document.addEventListener("visibilitychange", onVisibilityChange)
     bus.on("select", select)
     bus.on("unselect", unselect)
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.shiftKey || e.ctrlKey) && e.key === "Escape" && windows.focusId) {
+            unselect(windows.focusId)
+        }
+        if (
+            document.activeElement?.tagName != "INPUT" &&
+            document.activeElement?.tagName != "TEXTAREA"
+        ) {
+            if (e.shiftKey && e.key === "ArrowLeft" && windows.focusId) {
+                const winbox = windows.winbox[windows.focusId]
+                if (winbox) winbox.move(0, winbox.y)
+            }
+            if (e.shiftKey && e.key === "ArrowRight" && windows.focusId) {
+                const winbox = windows.winbox[windows.focusId]
+                if (winbox) {
+                    const windowWidth = window.innerWidth
+                    const boxWidth = winbox.width
+                    winbox.move(windowWidth - boxWidth, winbox.y)
+                }
+            }
+            if (e.shiftKey && e.key === "ArrowUp" && windows.focusId) {
+                const winbox = windows.winbox[windows.focusId]
+                if (winbox) winbox.move(winbox.x, 0)
+            }
+            if (e.shiftKey && e.key === "ArrowDown" && windows.focusId) {
+                const winbox = windows.winbox[windows.focusId]
+                if (winbox) {
+                    const windowHeight = window.innerHeight
+                    const boxHeight = winbox.height
+                    winbox.move(winbox.x, windowHeight - boxHeight)
+                }
+            }
+        }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    onUnmounted(() => {
+        window.removeEventListener("keydown", handleKeyDown)
+    })
 })
 
 function onVisibilityChange() {

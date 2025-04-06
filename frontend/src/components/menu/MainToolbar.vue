@@ -1,6 +1,6 @@
 <template>
-    <v-btn class="text-grey" @click="showAboutDialog = true">About</v-btn>
-    <PLS/>
+    <v-btn v-if="!auth.pending && !auth.user" class="text-grey" @click="bus.emit('select', 'about')">About</v-btn>
+    <PLS v-if="!auth.pending && auth.user"/>
     <v-btn
         v-if="!fullscreen"
         type="icon"
@@ -16,32 +16,17 @@
         @click="exitFullScreen"
     ></v-btn>
     <clock class="mx-2 text-grey" />
-    <v-dialog v-model="showAboutDialog" max-width="730">
-        <v-card>
-            <v-card-title class="font-weight-light text-grey pl-6 pt-3">
-                <img src="/vatiris-icon2.png" style="max-width: 40px; float: right" />
-                About VatIRIS
-            </v-card-title>
-            <v-card-text>
-                <About />
-            </v-card-text>
-            <v-card-actions>
-                <v-spacer />
-                <v-btn variant="text" color="primary" @click="showAboutDialog = false"
-                    >Got it</v-btn
-                >
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
 </template>
 
 <script setup lang="ts">
 import Clock from "@/components/Clock.vue"
-import About from "@/components/About.vue"
 import PLS from "@/components/PLS.vue"
+import useEventBus from "@/eventbus"
+import { useAuthStore } from "@/stores/auth"
 import { ref, onMounted } from "vue"
 
-const showAboutDialog = ref(false)
+const auth = useAuthStore()
+const bus = useEventBus()
 const fullscreen = ref(window.innerHeight == screen.height)
 
 function requestFullScreen() {
