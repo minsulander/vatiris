@@ -9,7 +9,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const metreportFlash = ref(true)
     const metsensorFlash = ref(false)
     const enablePLS = ref(false)
-    const plsLogic = ref("CID")
+    const plsLogic = ref("simple")
     const useVatsimConnect = ref(true)
     const cid1 = ref("")
     const cid2 = ref("")
@@ -63,6 +63,12 @@ export const useSettingsStore = defineStore("settings", () => {
             } else if (plsLogic.value === "Position") {
                 cid1.value = ""
                 cid2.value = ""
+                useVatsimConnect.value = false
+            } else if (plsLogic.value === "simple") {
+                cid1.value = ""
+                cid2.value = ""
+                position1.value = ""
+                position2.value = ""
                 useVatsimConnect.value = false
             }
 

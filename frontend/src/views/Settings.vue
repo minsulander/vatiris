@@ -41,6 +41,7 @@
                 <v-col cols="12" sm="4" v-if="settings.enablePLS">
                     <div class="text-caption text-grey-lighten-2">PLS Logic</div>
                     <v-btn-toggle v-model="settings.plsLogic" mandatory>
+                        <v-btn value="simple">Simple</v-btn>
                         <v-btn value="CID">CID</v-btn>
                         <v-btn value="Position">Position</v-btn>
                     </v-btn-toggle>

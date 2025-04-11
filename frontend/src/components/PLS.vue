@@ -23,7 +23,7 @@
                     </v-tooltip>
                 </span>
             </v-col>
-            <v-col cols="auto">
+            <v-col cols="auto" v-if="settings.plsLogic !== 'simple'">
                 <v-btn icon class="text-grey" @click="openPositionModal">
                     <v-icon>{{ hasControllerData ? "mdi-account" : "mdi-account-outline" }}</v-icon>
                 </v-btn>
@@ -171,12 +171,15 @@ import { ref, onMounted, watch, computed, onUnmounted } from "vue"
 import useEventBus from "@/eventbus"
 import { useSettingsStore } from "@/stores/settings"
 import { useAuthStore } from "@/stores/auth"
+import { useVatsimStore } from "@/stores/vatsim"
+import type { Controller } from "@/stores/vatsim"
 import moment from "moment"
 
 const plsApiBaseUrl = import.meta.env.VITE_PLSAPI_BASE_URL || "http://localhost:3001/api"
 
 const settings = useSettingsStore()
 const auth = useAuthStore()
+const vatsim = useVatsimStore()
 const bus = useEventBus()
 
 const matchedController1 = ref(null as any)
@@ -239,6 +242,34 @@ const matchControllers = (controllers: any) => {
             availableControllers,
             awayControllers,
         )
+    } else if (settings.plsLogic === "simple") {
+        const cid1 = settings.useVatsimConnect ? auth.user?.cid.toString() : settings.cid1
+        const cid2 = settings.cid2
+
+        // Find controllers in VATSIM data
+        const vatsimController1 = cid1 ? vatsim.data.controllers.find((c: Controller) => c.cid.toString() === cid1) : null
+        const vatsimController2 = cid2 ? vatsim.data.controllers.find((c: Controller) => c.cid.toString() === cid2) : null
+
+        // Convert VATSIM controller to PLS format
+        matchedController1.value = vatsimController1 ? {
+            cid: vatsimController1.cid,
+            name: vatsimController1.name,
+            position: vatsimController1.callsign,
+            callsign: vatsimController1.callsign,
+            timestamp: vatsimController1.logon_time
+        } : null
+
+        matchedController2.value = vatsimController2 ? {
+            cid: vatsimController2.cid,
+            name: vatsimController2.name,
+            position: vatsimController2.callsign,
+            callsign: vatsimController2.callsign,
+            timestamp: vatsimController2.logon_time
+        } : null
+
+        // Set controller status based on callsign in simple mode
+        controllerStatus1.value = vatsimController1?.callsign?.includes("_OBS") ? "O" : ""
+        controllerStatus2.value = vatsimController2?.callsign?.includes("_OBS") ? "O" : ""
     } else if (settings.plsLogic === "Position") {
         // Only look in activeControllers for position logic
         matchedController1.value = settings.position1
@@ -515,6 +546,17 @@ bus.on("settingsChanged", (updatedSettings) => {
     // Re-fetch controllers and match based on new settings
     fetchControllers()
 })
+
+// Update the watch for VATSIM data changes
+watch(
+    () => vatsim.data.controllers,
+    () => {
+        if (settings.plsLogic === "simple") {
+            matchControllers({ activeControllers: [], availableControllers: [], awayControllers: [] })
+        }
+    },
+    { deep: true }
+)
 </script>
 
 <style scoped>
