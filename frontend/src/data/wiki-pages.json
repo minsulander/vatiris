@@ -1,13 +1,13 @@
 {
     "quickref-esos-acc": {
-        "title": "ESOS ACC Appendix A",
+        "title": "ESOS ACC Appendix B",
         "book": "lop",
-        "page": "esos-acc-appendix-a"
+        "page": "esos-acc-appendix-b"
     },
     "quickref-esmm-acc": {
-        "title": "ESMM ACC Appendix A",
+        "title": "ESMM ACC Appendix B",
         "book": "lop",
-        "page": "esmm-acc-appendix-a"
+        "page": "esmm-acc-appendix-b"
     },
     "vatiris": {
         "title": "VatIRIS Manual",
