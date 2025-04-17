@@ -4,7 +4,7 @@ interface PositionMapping {
 
 // Map of position callsigns to their display names
 export const positionNames: PositionMapping = {
-    ESAA_CTR: "ESAA CTR",
+    ESAA_CTR: "ESAA",
     ESAA_PLN_CTR: "ESAA PLN",
     ESCF_APP: "ÖKC APP (T3)",
     ESCF_F_APP: "ÖKC APP (P3)",
