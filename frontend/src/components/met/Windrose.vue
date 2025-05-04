@@ -117,7 +117,7 @@
                 <!-- Update centered wind information -->
                 <text
                     :x="center"
-                    :y="center + topMargin - size / 20"
+                    :y="center + topMargin - size / 20 - (shouldReadVariable ? size / 30 : 0)"
                     text-anchor="middle"
                     dominant-baseline="central"
                     :fill="colors.text"
@@ -129,7 +129,7 @@
                 </text>
                 <text
                     :x="center"
-                    :y="center + topMargin + size / 12"
+                    :y="center + topMargin + size / 12 - (shouldReadVariable ? size / 30 : 0)"
                     text-anchor="middle"
                     dominant-baseline="central"
                     :fill="colors.text"
@@ -137,8 +137,20 @@
                     font-weight="bold"
                     v-if="windData.speed !== undefined"
                 >
-                    {{ windData.speed.toString().padStart(1, "0") }}
+                    {{ windData.speed.toString() }}
                     <tspan :font-size="size / 20" font-weight="normal">kt</tspan>
+                </text>
+                <text
+                    :x="center"
+                    :y="center + topMargin + size / 12 + size / 17"
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    :fill="colors.text"
+                    :font-size="size / 22"
+                    font-weight="bold"
+                    v-if="shouldReadVariable"
+                >
+                    {{ windData.vrbFrom }} - {{ windData.vrbTo }}
                 </text>
             </svg>
 
@@ -161,33 +173,82 @@
                 <div class="content-rows">
                     <div class="top-row">
                         <span class="min-wind">
-                            <span v-if="windData.minWind">MIN {{ windData.minWind }}</span>
+                            <span v-if="windData.minWind"
+                                >MIN
+                                <span
+                                    style="font-size: 28px"
+                                    :style="{
+                                        'font-weight':
+                                            windData.speed &&
+                                            windData.speed - windData.minWind >= 10
+                                                ? 'bold'
+                                                : 'normal',
+                                    }"
+                                    >{{ windData.minWind }}</span
+                                ></span
+                            >
                         </span>
                         <div class="runway-info">
                             <div class="airport-code">{{ props.id }}</div>
                             <div class="runway-display">RWY {{ currentRunway || "--" }}</div>
                         </div>
                         <span class="max-wind">
-                            <span v-if="windData.maxWind">MAX {{ windData.maxWind }}</span>
-                        </span>
+                            <span v-if="windData.maxWind"
+                                >MAX
+                                <span
+                                    style="font-size: 28px"
+                                    :style="{
+                                        'font-weight':
+                                            windData.speed &&
+                                            windData.maxWind - windData.speed >= 10
+                                                ? 'bold'
+                                                : 'normal',
+                                    }"
+                                    >{{ windData.maxWind }}</span
+                                ></span
+                            >
+                            <span v-else-if="windData.gust"
+                                >GUST
+                                <span
+                                    style="font-size: 28px"
+                                    :style="{
+                                        'font-weight':
+                                            windData.speed && windData.gust - windData.speed >= 10
+                                                ? 'bold'
+                                                : 'normal',
+                                    }"
+                                    >{{ windData.gust }}</span
+                                ></span
+                            ></span
+                        >
                     </div>
                     <div class="bottom-row">
-                        <div class="wind-components">
-                            <div
-                                :class="
-                                    windData.headWind < -5
-                                        ? 'text-orange-darken-2 font-weight-bold'
-                                        : ''
-                                "
-                                v-if="windData.headWind !== undefined"
-                            >
-                                {{ Math.abs(windData.headWind) }} KT
-                                {{ windData.headWind >= 0 ? "HEAD" : "TAIL" }}
-                            </div>
-                            <div v-if="windData.crossWind !== undefined">
-                                {{ windData.crossWind }} KT
-                                {{ windData.crossWindDir === "L" ? "LEFT" : "RIGHT" }}
-                            </div>
+                        <div
+                            class="wind-head"
+                            :class="
+                                windData.headWind < -5
+                                    ? 'text-orange-darken-2 font-weight-bold'
+                                    : ''
+                            "
+                            v-if="
+                                windData.headWind !== undefined &&
+                                Math.abs(windData.headWind) > 0 &&
+                                windData.direction != 'VRB'
+                            "
+                        >
+                            {{ Math.abs(windData.headWind) }} KT
+                            {{ windData.headWind >= 0 ? "HEAD" : "TAIL" }}
+                        </div>
+                        <div
+                            class="wind-cross"
+                            v-if="
+                                windData.crossWind !== undefined &&
+                                windData.crossWind > 0 &&
+                                windData.direction != 'VRB'
+                            "
+                        >
+                            {{ windData.crossWind }} KT
+                            {{ windData.crossWindDir === "L" ? "LEFT" : "RIGHT" }}
                         </div>
                     </div>
                 </div>
@@ -265,6 +326,7 @@ const windData = computed(() => {
         speed: runwayData?.speed || data.speed,
         vrbFrom: runwayData?.variableFrom || data.variableFrom,
         vrbTo: runwayData?.variableTo || data.variableTo,
+        gust: runwayData?.gust || data.gust,
         minWind: runwayData?.minWind || data.minWind,
         maxWind: runwayData?.maxWind || data.maxWind,
         headWind: runwayData?.headWind,
@@ -305,21 +367,28 @@ const runwayData = computed(() => {
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const containerSize = ref(0)
-const topMargin = 35
 const bottomMargin = 0
 
 const computedSize = computed(() => {
     return Math.min(containerSize.value, props.size)
 })
 
+const topMargin = computed(() => 35)
 const center = computed(() => props.size / 2)
 const radius = computed(() => (props.size / 2) * 0.9)
 
-const headingPoints = Array.from({ length: 12 }, (_, i) => i * 30)
+const shouldReadVariable = computed(() => {
+    if (!windData.value) return false
+    if (windData.value.direction === "VRB") return true
+    if (windData.value.vrbFrom !== undefined && windData.value.vrbTo !== undefined) {
+        let diff = windData.value.vrbTo - windData.value.vrbFrom
+        if (diff < 0) diff += 360
+        return diff >= 60
+    }
+    return false
+})
 
-const tenDegreePoints = Array.from({ length: 36 }, (_, i) => i * 10).filter(
-    (angle) => angle % 30 !== 0,
-)
+const headingPoints = Array.from({ length: 12 }, (_, i) => i * 30)
 
 const toRadians = (degrees: number) => degrees * (Math.PI / 180)
 
@@ -462,7 +531,7 @@ const getVrbArcPath = computed(() => {
 
     const largeArcFlag = sweepAngle > 180 ? 1 : 0
 
-    return `M ${x1} ${y1 + topMargin} A ${arcRadius} ${arcRadius} 0 ${largeArcFlag} 1 ${x2} ${y2 + topMargin}`
+    return `M ${x1} ${y1 + topMargin.value} A ${arcRadius} ${arcRadius} 0 ${largeArcFlag} 1 ${x2} ${y2 + topMargin.value}`
 })
 </script>
 
@@ -546,22 +615,32 @@ svg {
 .runway-display {
     font-weight: bold;
     font-size: calc(var(--computed-size) / 12);
+    white-space: nowrap;
 }
 
 .min-wind,
 .max-wind {
     font-size: calc(var(--computed-size) / 25);
+    width: 30%;
 }
-
+.max-wind {
+    text-align: right;
+}
 .bottom-row {
-    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    color: #333333;
+    margin-top: 0;
     bottom: 1%;
     left: 5%;
     color: #333333;
 }
 
-.wind-components {
-    font-size: calc(var(--computed-size) / 25);
+.wind-cross {
+    right: 0;
+    text-align: right;
 }
 
 .wind-components > div {

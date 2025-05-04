@@ -11,6 +11,7 @@ export interface RunwayWindData {
     heading: number
     direction?: number | string // Can be numeric degrees or variable "VRB"
     speed?: number // Speed value
+    gust?: number // Gust value if present
     variableFrom?: number // Variable wind direction range start
     variableTo?: number // Variable wind direction range end
     minWind?: number
@@ -101,10 +102,13 @@ export const useWindStore = defineStore("wind", () => {
     }
 
     function calculateWindComponents(
-        windDirection: number,
+        windDirection: number | string | undefined,
         windSpeed: number,
         runwayHeading: number,
     ) {
+        if (windDirection === undefined || windSpeed === undefined) return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
+        if (windDirection === "VRB") return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
+        if (typeof windDirection === "string") windDirection = parseInt(windDirection)
         const angle = Math.abs(windDirection - runwayHeading)
         const headWind = Math.round(windSpeed * Math.cos((angle * Math.PI) / 180))
         const crossWind = Math.abs(Math.round(windSpeed * Math.sin((angle * Math.PI) / 180)))
@@ -118,7 +122,6 @@ export const useWindStore = defineStore("wind", () => {
 
         const runways = getRunwaysForAirport(icao)
 
-        const windDir = typeof parsed.wind.degrees === "number" ? parsed.wind.degrees : 0
         const windSpeed = parsed.wind.speed || 0
 
         const windData = {
@@ -134,18 +137,20 @@ export const useWindStore = defineStore("wind", () => {
                     heading: rwy.le.heading,
                     direction: parsed.wind?.degrees || parsed.wind?.direction,
                     speed: windSpeed,
+                    gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
-                    ...calculateWindComponents(windDir, windSpeed, rwy.le.heading),
+                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, windSpeed, rwy.le.heading),
                 },
                 {
                     name: rwy.he.name,
                     heading: rwy.he.heading,
                     direction: parsed.wind?.degrees || parsed.wind?.direction,
                     speed: windSpeed,
+                    gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
-                    ...calculateWindComponents(windDir, windSpeed, rwy.he.heading),
+                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, windSpeed, rwy.he.heading),
                 },
             ]),
             timestamp: metarStore.time,
