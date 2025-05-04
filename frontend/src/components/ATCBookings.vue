@@ -39,6 +39,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import moment from 'moment'
 import { getPositionName } from '../data/positions'
+import useEventBus from '@/eventbus';
 
 const props = defineProps<{ src?: string }>()
 const div = ref()
@@ -194,6 +195,11 @@ function formatTimeRange(booking: any) {
 
 onMounted(() => {
   fetchBookings()
+  const bus = useEventBus();
+  bus.on("refresh", () => {
+    bookings.value = []
+    fetchBookings()
+  })
 })
 
 // Add watch for div to handle external link
