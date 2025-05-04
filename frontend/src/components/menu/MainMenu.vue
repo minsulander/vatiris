@@ -83,6 +83,9 @@ const menuItems = reactive({
         METSENSOR: {
             // filled in code
         } as { [key: string]: string },
+        WINDROSE: {
+            // This will be filled in with ICAO codes
+        } as { [key: string]: string },
         "METAR/TAF": "metartaf",
         SMHI: "smhi",
         "SWC NORDEN": "swc",
@@ -240,6 +243,7 @@ for (const icao of metarAirports) {
         menuItems.MET.METREPORT[`${icao} DEP`] = `metrep${icao}dep`
     }
     menuItems.MET.SUN[icao] = `sun${icao}`
+    menuItems.MET.WINDROSE[icao] = `windrose${icao}`
 }
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {
