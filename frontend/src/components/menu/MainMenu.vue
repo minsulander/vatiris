@@ -234,7 +234,6 @@ import useEventBus from "@/eventbus"
 for (const icao of wxAirports) {
     menuItems.MET.AIRPORT[icao] = `airport${icao}`
     menuItems.MET.METSENSOR[icao] = `metsen${icao}`
-    menuItems.MET.WINDROSE[icao] = `windrose${icao}`
 }
 
 for (const icao of metarAirports) {
@@ -244,6 +243,7 @@ for (const icao of metarAirports) {
         menuItems.MET.METREPORT[`${icao} DEP`] = `metrep${icao}dep`
     }
     menuItems.MET.SUN[icao] = `sun${icao}`
+    menuItems.MET.WINDROSE[icao] = `windrose${icao}`
 }
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {

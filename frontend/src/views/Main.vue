@@ -295,6 +295,14 @@ for (const icao of metarAirports) {
         height: 380,
         class: "no-max",
     }
+    availableWindows[`windrose${icao}`] = {
+        title: `WINDROSE ${icao}`,
+        component: Windrose,
+        props: { id: icao },
+        width: 400,
+        height: 500,
+        class: "no-max",
+    }
 }
 for (const icao of wxAirports) {
     availableWindows[`metsen${icao}`] = {
@@ -303,14 +311,6 @@ for (const icao of wxAirports) {
         props: { id: icao },
         width: 360,
         height: 380,
-        class: "no-max",
-    }
-    availableWindows[`windrose${icao}`] = {
-        title: `WINDROSE ${icao}`,
-        component: Windrose,
-        props: { id: icao },
-        width: 400,
-        height: 400,
         class: "no-max",
     }
 }
