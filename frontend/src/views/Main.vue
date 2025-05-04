@@ -79,6 +79,7 @@ import useEventBus from "@/eventbus"
 import AircraftTypes from "@/components/icao/AircraftTypes.vue"
 import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
+import Iframe from "@/components/Iframe.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -251,6 +252,13 @@ const availableWindows = shallowReactive({
         width: 680,
         height: 400,
     },
+    sectors: {
+        title: "Sectors",
+        component: Iframe,
+        props: { src: "https://esaa-sectors.lusep.fi/" },
+        width: 800,
+        height: 600,
+    }
 } as any)
 
 for (const icao of metarAirports) {

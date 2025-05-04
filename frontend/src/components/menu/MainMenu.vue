@@ -65,8 +65,9 @@ const authorizedMenuItems = computed(() => {
         delete items.ATFM
         delete items.Documents
         delete items.Traffic
-        delete items.DCT
         delete items.ATS
+        delete items.SECTORS
+        delete items.DCT
     }
     return items
 })
@@ -220,6 +221,7 @@ const menuItems = reactive({
     },
     Traffic: {},
     ATS: "atcbookings",
+    SECTORS: "sectors",
     DCT: {}, // We'll populate this dynamically
 } as any)
 

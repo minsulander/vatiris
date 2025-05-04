@@ -194,6 +194,7 @@ const confirmation = ref({})
 
 function refresh() {
     bus.emit("refresh")
+    if (windows.focusId) windows.winbox[windows.focusId].focus()
 }
 
 function saveCurrentPreset() {
