@@ -97,7 +97,13 @@
 
                 <!-- Variable wind arc -->
                 <path
-                    v-if="windData?.vrbFrom !== undefined && windData?.vrbTo !== undefined"
+                    v-if="
+                        windData?.vrbFrom !== undefined &&
+                        windData?.vrbTo !== undefined &&
+                        windData?.vrbFrom !== windData?.vrbTo &&
+                        windData?.speed !== undefined &&
+                        windData?.speed >= 1
+                    "
                     :d="getVrbArcPath"
                     :stroke="colors.vrb"
                     fill="none"
@@ -106,6 +112,11 @@
 
                 <!-- Wind direction arrow -->
                 <line
+                    v-if="
+                        windData?.direction !== undefined &&
+                        windData?.speed !== undefined &&
+                        windData?.speed >= 1
+                    "
                     :x1="getArrowX(0.5)"
                     :y1="getArrowY(0.5) + topMargin"
                     :x2="getArrowX(1)"
@@ -125,7 +136,13 @@
                     font-weight="bold"
                     v-if="windData.direction !== undefined"
                 >
-                    {{ formatHeading(windData.direction) }}
+                    {{
+                        windData.speed !== undefined &&
+                        windData.speed >= 1 &&
+                        windData.direction !== 0
+                            ? formatHeading(windData.direction)
+                            : "- - -"
+                    }}
                 </text>
                 <text
                     :x="center"
@@ -150,7 +167,7 @@
                     font-weight="bold"
                     v-if="shouldReadVariable"
                 >
-                    {{ windData.vrbFrom }} - {{ windData.vrbTo }}
+                    {{ formatHeading(windData.vrbFrom) }} - {{ formatHeading(windData.vrbTo) }}
                 </text>
             </svg>
 
@@ -223,32 +240,34 @@
                         >
                     </div>
                     <div class="bottom-row">
-                        <div
-                            class="wind-head"
-                            :class="
-                                windData.headWind < -5
-                                    ? 'text-orange-darken-2 font-weight-bold'
-                                    : ''
-                            "
-                            v-if="
-                                windData.headWind !== undefined &&
-                                Math.abs(windData.headWind) > 0 &&
-                                windData.direction != 'VRB'
-                            "
-                        >
-                            {{ Math.abs(windData.headWind) }} KT
-                            {{ windData.headWind >= 0 ? "HEAD" : "TAIL" }}
+                        <div class="wind-head">
+                            <span
+                                v-if="
+                                    windData.headWind !== undefined &&
+                                    Math.abs(windData.headWind) > 0 &&
+                                    windData.direction != 'VRB'
+                                "
+                                :class="
+                                    windData.headWind < -5
+                                        ? 'text-orange-darken-2 font-weight-bold'
+                                        : ''
+                                "
+                            >
+                                {{ Math.abs(windData.headWind) }} KT
+                                {{ windData.headWind >= 0 ? "HEAD" : "TAIL" }}
+                            </span>
                         </div>
-                        <div
-                            class="wind-cross"
-                            v-if="
-                                windData.crossWind !== undefined &&
-                                windData.crossWind > 0 &&
-                                windData.direction != 'VRB'
-                            "
-                        >
-                            {{ windData.crossWind }} KT
-                            {{ windData.crossWindDir === "L" ? "LEFT" : "RIGHT" }}
+                        <div class="wind-cross">
+                            <span
+                                v-if="
+                                    windData.crossWind !== undefined &&
+                                    windData.crossWind > 0 &&
+                                    windData.direction != 'VRB'
+                                "
+                            >
+                                {{ windData.crossWind }} KT
+                                {{ windData.crossWindDir === "L" ? "LEFT" : "RIGHT" }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -379,7 +398,8 @@ const radius = computed(() => (props.size / 2) * 0.9)
 
 const shouldReadVariable = computed(() => {
     if (!windData.value) return false
-    if (windData.value.direction === "VRB") return true
+    if (windData.value.speed === undefined) return false
+    if (windData.value.speed < 1) return false
     if (windData.value.vrbFrom !== undefined && windData.value.vrbTo !== undefined) {
         let diff = windData.value.vrbTo - windData.value.vrbFrom
         if (diff < 0) diff += 360
@@ -423,7 +443,7 @@ const getArrowY = (multiplier: number) => {
     return center.value - radius.value * multiplier * Math.cos(toRadians(windData.value.direction))
 }
 
-const formatHeading = (heading: number | string) => {
+const formatHeading = (heading: number | string | undefined) => {
     if (typeof heading == "undefined") return ""
     if (typeof heading == "string") return heading
     if (heading === 0) return "360"

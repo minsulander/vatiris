@@ -122,11 +122,9 @@ export const useWindStore = defineStore("wind", () => {
 
         const runways = getRunwaysForAirport(icao)
 
-        const windSpeed = parsed.wind.speed || 0
-
         const windData = {
             direction: parsed.wind.degrees || parsed.wind.direction,
-            speed: windSpeed,
+            speed: parsed.wind.speed,
             unit: parsed.wind.unit,
             gust: parsed.wind.gust,
             variableFrom: parsed.wind.minVariation,
@@ -136,21 +134,21 @@ export const useWindStore = defineStore("wind", () => {
                     name: rwy.le.name,
                     heading: rwy.le.heading,
                     direction: parsed.wind?.degrees || parsed.wind?.direction,
-                    speed: windSpeed,
+                    speed: parsed.wind?.speed,
                     gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
-                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, windSpeed, rwy.le.heading),
+                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, parsed.wind?.speed || 0, rwy.le.heading),
                 },
                 {
                     name: rwy.he.name,
                     heading: rwy.he.heading,
                     direction: parsed.wind?.degrees || parsed.wind?.direction,
-                    speed: windSpeed,
+                    speed: parsed.wind?.speed,
                     gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
-                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, windSpeed, rwy.he.heading),
+                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, parsed.wind?.speed || 0, rwy.he.heading),
                 },
             ]),
             timestamp: metarStore.time,
@@ -216,7 +214,7 @@ export const useWindStore = defineStore("wind", () => {
 
         const dir1r = parseInt(rwy1Dir) * Math.PI / 180
         const dir2r = parseInt(rwy2Dir) * Math.PI / 180
-        let averageDirection = Math.round(Math.atan((Math.sin(dir1r) + Math.sin(dir2r)) / (Math.cos(dir1r) + Math.cos(dir2r))) * 180 / Math.PI / 10) * 10
+        let averageDirection = Math.round(Math.atan2((Math.sin(dir1r) + Math.sin(dir2r)), (Math.cos(dir1r) + Math.cos(dir2r))) * 180 / Math.PI / 10) * 10
         if (averageDirection < 0) averageDirection += 360
 
         return {
