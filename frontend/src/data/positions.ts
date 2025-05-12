@@ -56,7 +56,7 @@ export const positionNames: PositionMapping = {
     ESMM_XK_CTR: "ESMM XK",
     ESMM_Y_CTR: "ESMM Y",
     ESMQ_TWR: "ESMQ TWR",
-    ESMS_APP: "ESMS APP",
+    ESMS_APP: "ESMM L",
     ESMS_GND: "ESMS GND",
     ESMS_IS_APP: "ESMM IS",
     ESMS_TWR: "ESMS TWR",
