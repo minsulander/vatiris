@@ -38,9 +38,8 @@
 
 <script setup lang="ts">
 import { QuillEditor } from "@vueup/vue-quill"
-import { ref, watch, onMounted, nextTick } from "vue"
+import { ref, watch } from "vue"
 import useEventBus from "@/eventbus"
-import { IconTrash } from "@tabler/icons-vue"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
 import "@/styles/quill.scss"
 import { useAuthStore } from "@/stores/auth"
