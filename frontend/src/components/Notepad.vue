@@ -1,41 +1,32 @@
 <template>
     <div style="width: 100%; height: 100%; background: #666; overflow-y: hidden">
-        <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
-            <v-btn
-                variant="text"
-                rounded="0"
-                size="small"
-                :color="quillDelta.length > 0 ? 'white' : 'grey-lighten-1'"
-                @click="clear"
-            >
-                CLEAR
-            </v-btn>
+        <div style="height: 100%; margin-top: -5px; margin-left: -5px; background: #777">
+            <QuillEditor
+                ref="editorRef"
+                v-model:content:delta="quillDelta"
+                contentType="delta"
+                @update:content="input"
+                style="
+                    width: 100%;
+                    height: calc(100% - 25px);
+                    font-size: 15px;
+                    margin: 0;
+                    color: black;
+                    padding: 2px;
+                    background: #ddd;
+                    border-color: #777;
+                "
+            />
         </div>
-
-        <QuillEditor
-            ref="editorRef"
-            v-model:content:delta="quillDelta"
-            contentType="delta"
-            @update:content="input"
-            style="
-                width: 100%;
-                height: calc(100% - 25px);
-                font-size: 15px;
-                margin: 0;
-                color: black;
-                padding: 2px;
-                background: #ddd;
-                border-color: transparent;
-            "
-        />
     </div>
 </template>
 
 <script setup lang="ts">
-import { QuillEditor, Quill } from "@vueup/vue-quill"
+import { QuillEditor } from "@vueup/vue-quill"
 import { ref, watch, onMounted } from "vue"
 import useEventBus from "@/eventbus"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
+import "@/styles/quill.scss"
 import { useAuthStore } from "@/stores/auth"
 
 const editorRef = ref(null)
@@ -76,7 +67,7 @@ bus.on("refresh", () => {
 function setEditorContent(delta) {
     const quill = editorRef.value?.getQuill()
     if (quill) {
-        quill.setContents(delta, "api") 
+        quill.setContents(delta, "api")
     }
 }
 
@@ -90,5 +81,4 @@ async function fetchContent() {
         setEditorContent({ ops: [] })
     }
 }
-
 </script>
