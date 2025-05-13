@@ -56,6 +56,7 @@ import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
+import Timer from "@/components/Timer.vue"
 import Alias from "@/components/Alias.vue"
 import Checklist from "@/components/Checklist.vue"
 import MetarTaf from "@/components/met/MetarTaf.vue"
@@ -162,6 +163,12 @@ const availableWindows = shallowReactive({
         component: Aerodromes,
         width: 800,
         height: 400,
+    },
+    timer: {
+        title: "Timer",
+        component: Timer,
+        width: 300,
+        height: 200,
     },
     notepad: {
         title: "NOTEPAD",

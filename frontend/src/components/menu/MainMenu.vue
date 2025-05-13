@@ -221,6 +221,7 @@ const menuItems = reactive({
         },
         "REGIONAL AD": "regional",
         "TEXT ALIAS": "alias",
+        "TIMER": "timer",
         NOTEPAD: "notepad",
     },
     Traffic: {},
