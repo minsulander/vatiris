@@ -1,8 +1,23 @@
 <template>
     <div style="width: 100%; height: 100%; background: #666; overflow-y: hidden">
-        <div style="height: 100%; margin-top: -5px; margin-left: -5px; background: #777">
+        <div style="height: 100%;  margin-left: -5px; background: #777">
+            <div id="notepad-toolbar">
+                <select class="ql-header">
+                    <option selected></option>
+                    <option value="1"></option>
+                    <option value="2"></option>
+                    <option value="3"></option>
+                </select>
+                <button class="ql-bold"></button>
+                <button class="ql-italic"></button>
+                <button class="ql-underline"></button>
+                <button class="ql-list" value="bullet"></button>
+                <button class="ql-list" value="ordered"></button>
+                <button class="ql-clean" @click="clear"></button>
+            </div>
             <QuillEditor
                 ref="editorRef"
+                :toolbar="'#notepad-toolbar'"
                 v-model:content:delta="quillDelta"
                 contentType="delta"
                 @update:content="input"
@@ -23,8 +38,9 @@
 
 <script setup lang="ts">
 import { QuillEditor } from "@vueup/vue-quill"
-import { ref, watch, onMounted } from "vue"
+import { ref, watch, onMounted, nextTick } from "vue"
 import useEventBus from "@/eventbus"
+import { IconTrash } from "@tabler/icons-vue"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
 import "@/styles/quill.scss"
 import { useAuthStore } from "@/stores/auth"
@@ -36,7 +52,7 @@ let postTimeout: any = undefined
 
 function clear() {
     setEditorContent({ ops: [] })
-    input({ content: { ops: [] } })
+    auth.postUserData("notepad", { text: JSON.stringify({ ops: [] }) })
 }
 
 async function input(content) {
@@ -54,10 +70,6 @@ watch(
         if (auth.user) fetchContent()
     },
 )
-
-onMounted(async () => {
-    if (auth.user) fetchContent()
-})
 
 const bus = useEventBus()
 bus.on("refresh", () => {
