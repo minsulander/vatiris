@@ -137,6 +137,7 @@
                     v-if="windData.direction !== undefined"
                 >
                     {{
+                        isLargeVrbRange ? "VRB" :
                         windData.speed !== undefined &&
                         windData.speed >= 1 &&
                         windData.direction !== 0
@@ -165,7 +166,7 @@
                     :fill="colors.text"
                     :font-size="size / 22"
                     font-weight="bold"
-                    v-if="shouldReadVariable"
+                    v-if="shouldReadVariable && !isLargeVrbRange"
                 >
                     {{ formatHeading(windData.vrbFrom) }} - {{ formatHeading(windData.vrbTo) }}
                 </text>
@@ -237,7 +238,7 @@
                                     >{{ windData.gust }}</span
                                 ></span
                             ></span
-                        >
+                        </div>
                     </div>
                     <div class="bottom-row">
                         <div class="wind-head">
@@ -401,9 +402,18 @@ const shouldReadVariable = computed(() => {
     if (windData.value.speed === undefined) return false
     if (windData.value.speed < 1) return false
     if (windData.value.vrbFrom !== undefined && windData.value.vrbTo !== undefined) {
-        let diff = windData.value.vrbTo - windData.value.vrbFrom
-        if (diff < 0) diff += 360
-        return diff >= 60
+        // Always count clockwise from smaller to larger angle
+        let from = windData.value.vrbFrom
+        let to = windData.value.vrbTo
+        
+        // If from is larger than to, we need to add 360 to to
+        if (from > to) {
+            to += 360
+        }
+        
+        // Now the difference will always be the clockwise distance
+        const diff = to - from
+        return diff >= 60 && diff < 180
     }
     return false
 })
@@ -552,6 +562,23 @@ const getVrbArcPath = computed(() => {
     const largeArcFlag = sweepAngle > 180 ? 1 : 0
 
     return `M ${x1} ${y1 + topMargin.value} A ${arcRadius} ${arcRadius} 0 ${largeArcFlag} 1 ${x2} ${y2 + topMargin.value}`
+})
+
+const isLargeVrbRange = computed(() => {
+    if (!windData.value?.vrbFrom || !windData.value?.vrbTo) return false
+    
+    // Always count clockwise from smaller to larger angle
+    let from = windData.value.vrbFrom
+    let to = windData.value.vrbTo
+    
+    // If from is larger than to, we need to add 360 to to
+    if (from > to) {
+        to += 360
+    }
+    
+    // Now the difference will always be the clockwise distance
+    const diff = to - from
+    return diff >= 180
 })
 </script>
 
