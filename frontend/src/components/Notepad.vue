@@ -2,18 +2,14 @@
     <div style="width: 100%; height: 100%; background: #666; overflow-y: hidden">
         <div style="height: 100%;  margin-left: -5px; background: #777">
             <div id="notepad-toolbar">
-                <select class="ql-header">
-                    <option selected>NORMAL</option>
-                    <option value="1">HEADING 1</option>
-                    <option value="2">HEADING 2</option>
-                    <option value="3">HEADING 3</option>
-                </select>
+                <button class="ql-header" value="1"></button>
+                <button class="ql-header" value="2"></button>
                 <button class="ql-bold"></button>
                 <button class="ql-italic"></button>
                 <button class="ql-underline"></button>
                 <button class="ql-list" value="bullet"></button>
                 <button class="ql-list" value="ordered"></button>
-                <button class="ql-clean" @click="clear"></button>
+                <button class="trashbin" @click="clear"><span>Cl</span></button>
             </div>
             <QuillEditor
                 ref="editorRef"
@@ -37,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { QuillEditor } from "@vueup/vue-quill"
+import { Delta, QuillEditor } from "@vueup/vue-quill"
 import { ref, watch } from "vue"
 import useEventBus from "@/eventbus"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
@@ -88,8 +84,32 @@ async function fetchContent() {
         const delta = data.text ? JSON.parse(data.text) : { ops: [] }
         setEditorContent(delta)
     } catch (e) {
+        let delta: any = { ops: [] }
+        if (typeof data.text === "string") {
+            delta = {
+                ops: [{ insert: data.text + "\n" }]
+            }
+        }
         console.error("Invalid Delta data in DB:", e)
-        setEditorContent({ ops: [] })
+        setEditorContent(delta)
     }
 }
 </script>
+
+<style scoped>
+    .trashbin {
+        border: none;
+        cursor: pointer;
+        height: 22px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .trashbin span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+</style>
