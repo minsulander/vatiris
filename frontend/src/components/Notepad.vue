@@ -3,10 +3,10 @@
         <div style="height: 100%;  margin-left: -5px; background: #777">
             <div id="notepad-toolbar">
                 <select class="ql-header">
-                    <option selected></option>
-                    <option value="1"></option>
-                    <option value="2"></option>
-                    <option value="3"></option>
+                    <option selected>NORMAL</option>
+                    <option value="1">HEADING 1</option>
+                    <option value="2">HEADING 2</option>
+                    <option value="3">HEADING 3</option>
                 </select>
                 <button class="ql-bold"></button>
                 <button class="ql-italic"></button>
