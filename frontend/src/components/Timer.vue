@@ -1,8 +1,8 @@
 <template>
     <div>
         <input type="text" v-model="timerName" placeholder="Timer Name" />
-        <div style="text-align: center">
-            <span style="font-size: 2em">{{ formattedTime }}</span>
+        <div style="text-align: center; ">
+            <span>{{ formattedTime }}</span>
             <div style="margin-top: 8px">
                 <button
                     @click="togglePause"
@@ -66,19 +66,19 @@ button {
 }
 input {
     background-color: #ddd;
-    color: black;
+    color: #777;
     border: none;
     outline: none;
     width: 100%;
-    font-size: 2em;
+    font-size: 2.4em;
     text-align: center;
-    color: black;
     padding: 2px;
     background: #ddd;
     border-color: transparent;
 }
 
 span {
-    color: black;
+    color: #777;
+    font-size: 1.6em !important;
 }
 </style>
