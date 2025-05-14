@@ -8,10 +8,7 @@
             <span v-if="isPaused">&#9654;</span>
             <span v-else>&#10073;&#10073;</span>
         </button>
-        <div class="timer-center">
-            <input type="text" v-model="timerName" placeholder="TIMER NAME" />
-            <span class="timer-time">{{ formattedTime }}</span>
-        </div>
+        <span class="timer-time">{{ formattedTime }}</span>
         <button
             class="side-btn"
             @click="resetTimer"
@@ -24,8 +21,6 @@
 
 <script setup lang="ts">
 import { onUnmounted, ref, computed } from "vue"
-
-const timerName = ref("")
 
 const time = ref(0)
 const isPaused = ref(false)
@@ -66,26 +61,29 @@ onUnmounted(() => {
 <style scoped>
 .timer-container {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     width: 100%;
-    max-width: 320px;
+    max-width: 220px;
     margin: 0 auto;
     padding: 0;
     gap: 0;
+    height: 44px;
+    min-height: 44px;
 }
 .side-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    font-size: 3em;
+    width: 36px;
+    font-size: 2em;
     background: #ddd;
     border: none;
     color: #777;
     cursor: pointer;
     transition: color 0.2s, background 0.2s;
-    padding-left: 2px;
+    padding: 0;
     height: 100%;
+    min-width: 36px;
 }
 .side-btn:hover {
     color: #333;
@@ -93,44 +91,22 @@ onUnmounted(() => {
 }
 
 .pause-btn {
-    margin-top: 1px;
+    margin-top: 0;
 }
 
-.timer-center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0;
-}
-input {
-    background-color: #ddd;
-    color: #777;
-    border: none;
-    outline: none;
-    width: 100%;
-    font-size: 1.2em;
-    text-align: center;
-    padding: 2px 8px;
-    border-radius: 4px 4px 0 0;
-    margin-bottom: 0;
-}
 .timer-time {
     color: #777;
-    font-size: 1.4em;
-    text-align: left;
-    padding: 2px 8px 4px 8px;
+    font-size: 1.2em;
     background: #ddd;
     text-align: center;
-    width: 100%;
+    width: 70px;
     box-sizing: border-box;
-}
-.timer-center,
-.side-btn {
+    padding: 0 6px;
+    border-radius: 4px;
+    margin: 0 4px;
     height: 100%;
-}
-.timer-container {
-    height: 70px;
-    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
