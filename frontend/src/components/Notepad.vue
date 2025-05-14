@@ -90,7 +90,6 @@ async function fetchContent() {
                 ops: [{ insert: data.text + "\n" }]
             }
         }
-        console.error("Invalid Delta data in DB:", e)
         setEditorContent(delta)
     }
 }
@@ -103,6 +102,7 @@ async function fetchContent() {
         height: 22px; 
         display: flex;
         align-items: center;
+        
         justify-content: center;
     }
     .trashbin span {
@@ -111,5 +111,13 @@ async function fetchContent() {
         justify-content: center;
         width: 100%;
         height: 100%;
+        font-weight: bold;
+    }
+    .ql-snow.ql-toolbar button svg, .ql-snow .ql-toolbar button svg{
+        color: white !important;
+    }
+    .ql-stroke {
+        stroke: white !important;
+        color: white !important;
     }
 </style>
