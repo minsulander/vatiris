@@ -467,7 +467,7 @@ function select(id: string | object) {
             title: `TIMER`,
             component: Timer,
             width: 300,
-            height: 200,
+            height: 203,
             class: "no-resize",
         }
         windows.layout[newId] = { enabled: true }
