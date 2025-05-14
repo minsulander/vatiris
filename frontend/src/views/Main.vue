@@ -446,7 +446,7 @@ for (const id in windows.layout) {
             title: id.split("-")[0],
             component: Timer,
             width: 155,
-            height: 75,
+            height: 65,
             class: "no-resize",
         }
     }
@@ -464,10 +464,10 @@ function select(id: string | object) {
         timerCount++
         const newId = prompt("TIMER NAME", "TIMER") + `-${timerCount}`
         availableWindows[newId] = {
-            title: id.split("-")[0],
+            title: newId.split("-")[0],
             component: Timer,
             width: 155,
-            height: 75,
+            height: 65,
             class: "no-resize",
         }
         windows.layout[newId] = { enabled: true }
