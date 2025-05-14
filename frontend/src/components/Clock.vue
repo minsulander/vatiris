@@ -8,6 +8,9 @@
 <script setup lang="ts">
 import moment from "moment"
 import { onMounted, onUnmounted, ref } from "vue"
+import useEventBus from "@/eventbus"
+const bus = useEventBus()
+
 
 const time = ref("99:99:99")
 const timer = ref(false)
@@ -30,12 +33,12 @@ onUnmounted(() => {
 })
 
 function clickTime() {
-    timer.value = true
-    timerElapsed.value = 0
+    bus.emit("select", "timer")
 }
 
 function clickTimer() {
     timer.value = false
     timerElapsed.value = 0
+    
 }
 </script>
