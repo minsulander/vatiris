@@ -436,6 +436,8 @@ for (const direct of directsData) {
     }
 }
 
+let timerCount = 0
+
 function select(id: string | object) {
     let ctrl = false
     if (typeof id == "string" && id.startsWith("ctrl+")) {
@@ -444,9 +446,20 @@ function select(id: string | object) {
     }
     if (typeof id == "object") {
         // submenu
+    } else if (id === "timer") {
+        timerCount++
+        const newId = `timer-${timerCount}`
+        availableWindows[newId] = {
+            title: `Timer`,
+            component: Timer,
+            width: 300,
+            height: 200,
+            class: "no-resize",
+        }
+        windows.layout[newId] = { enabled: true }
+        windows.focusId = newId
     } else if (id in availableWindows) {
         if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
-            // ctrl-click on image/iframe opens in new tab
             window.open(availableWindows[id].props.src, "_blank")
         } else if (id in windows.winbox) {
             if (windows.winbox[id].min) windows.winbox[id].restore()
