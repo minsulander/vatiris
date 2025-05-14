@@ -1,6 +1,6 @@
 <template>
     <div>
-        <input type="text" v-model="timerName" placeholder="Timer Name" />
+        <input type="text" v-model="timerName" placeholder="TIMER NAME" />
         <div style="text-align: center; ">
             <span>{{ formattedTime }}</span>
             <div style="margin-top: 8px">
@@ -8,10 +8,10 @@
                     @click="togglePause"
                     style="font-size: 1.5em; padding: 12px 32px; margin-right: 12px"
                 >
-                    {{ isPaused ? "Resume" : "Pause" }}
+                    {{ isPaused ? "RESUME" : "PAUSE" }}
                 </button>
                 <button @click="resetTimer" style="font-size: 1.5em; padding: 12px 32px">
-                    Reset
+                    RESET
                 </button>
             </div>
         </div>
@@ -70,7 +70,7 @@ input {
     border: none;
     outline: none;
     width: 100%;
-    font-size: 2.4em;
+    font-size: 2.5em;
     text-align: center;
     padding: 2px;
     background: #ddd;
