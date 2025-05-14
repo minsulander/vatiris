@@ -2,7 +2,8 @@
     <div>
         <input
             type="text"
-            :value="timerName"
+            v-model="timerName"
+            placeholder="Timer Name"
             style="
                 width: 100%;
                 font-size: 2em;
@@ -12,11 +13,21 @@
                 background: #ddd;
                 border-color: transparent;
             "/>
-        <div style="margin-top: 16px; text-align: center;">
+        <div style=" text-align: center;">
             <span style="font-size: 2em;">{{ formattedTime }}</span>
             <div style="margin-top: 8px;">
-                <button @click="togglePause">{{ isPaused ? 'Resume' : 'Pause' }}</button>
-                <button @click="resetTimer">Reset</button>
+                <button
+                    @click="togglePause"
+                    style="font-size: 1.5em; padding: 12px 32px; margin-right: 12px;"
+                >
+                    {{ isPaused ? 'Resume' : 'Pause' }}
+                </button>
+                <button
+                    @click="resetTimer"
+                    style="font-size: 1.5em; padding: 12px 32px;"
+                >
+                    Reset
+                </button>
             </div>
         </div>
     </div>
@@ -60,3 +71,16 @@ onUnmounted(() => {
     clearInterval(interval)
 })
 </script>
+
+<style scoped>
+button{
+    background-color: #777;
+    color: white;
+}
+input {
+    background-color: #ddd;
+    color: black;
+    border: none;
+    outline: none;
+}
+</style>
