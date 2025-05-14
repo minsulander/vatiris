@@ -448,7 +448,7 @@ for (const id in windows.layout) {
             component: Timer,
             width: 155,
             height: 65,
-            class: "no-resize",
+            class: "no-resize no-max",
         }
     }
 }
@@ -470,7 +470,7 @@ function select(id: string | object) {
             component: Timer,
             width: 155,
             height: 65,
-            class: "no-resize",
+            class: "no-resize, no-max",
         }
         windows.layout[newId] = { enabled: true, title: timerName }
         windows.focusId = newId
