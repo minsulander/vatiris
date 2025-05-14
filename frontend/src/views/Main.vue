@@ -442,8 +442,9 @@ for (const id in windows.layout) {
     if (id.startsWith("timer-")) {
         const n = parseInt(id.split("-")[1])
         if (!isNaN(n) && n > timerCount) timerCount = n
+        const title = windows.layout[id]?.title || "TIMER" + ` ${n}`
         availableWindows[id] = {
-            title: id.split("-")[0],
+            title,
             component: Timer,
             width: 155,
             height: 65,
@@ -462,15 +463,16 @@ function select(id: string | object) {
         // submenu
     } else if (id === "timer") {
         timerCount++
-        const newId = prompt("TIMER NAME", "TIMER") + `-${timerCount}`
+        const timerName = prompt("TIMER NAME", "TIMER")
+        const newId = "timer" + `-${timerCount}`
         availableWindows[newId] = {
-            title: newId.split("-")[0],
+            title: timerName,
             component: Timer,
             width: 155,
             height: 65,
             class: "no-resize",
         }
-        windows.layout[newId] = { enabled: true }
+        windows.layout[newId] = { enabled: true, title: timerName }
         windows.focusId = newId
     } else if (id in availableWindows) {
         if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
