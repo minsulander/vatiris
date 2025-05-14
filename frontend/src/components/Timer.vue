@@ -1,31 +1,16 @@
 <template>
     <div>
-        <input
-            type="text"
-            v-model="timerName"
-            placeholder="Timer Name"
-            style="
-                width: 100%;
-                font-size: 2em;
-                text-align: center;
-                color: black;
-                padding: 2px;
-                background: #ddd;
-                border-color: transparent;
-            "/>
-        <div style=" text-align: center;">
-            <span style="font-size: 2em;">{{ formattedTime }}</span>
-            <div style="margin-top: 8px;">
+        <input type="text" v-model="timerName" placeholder="Timer Name" />
+        <div style="text-align: center">
+            <span style="font-size: 2em">{{ formattedTime }}</span>
+            <div style="margin-top: 8px">
                 <button
                     @click="togglePause"
-                    style="font-size: 1.5em; padding: 12px 32px; margin-right: 12px;"
+                    style="font-size: 1.5em; padding: 12px 32px; margin-right: 12px"
                 >
-                    {{ isPaused ? 'Resume' : 'Pause' }}
+                    {{ isPaused ? "Resume" : "Pause" }}
                 </button>
-                <button
-                    @click="resetTimer"
-                    style="font-size: 1.5em; padding: 12px 32px;"
-                >
+                <button @click="resetTimer" style="font-size: 1.5em; padding: 12px 32px">
                     Reset
                 </button>
             </div>
@@ -60,8 +45,10 @@ function resetTimer() {
 }
 
 const formattedTime = computed(() => {
-    const minutes = Math.floor(time.value / 60).toString().padStart(2, '0')
-    const seconds = (time.value % 60).toString().padStart(2, '0')
+    const minutes = Math.floor(time.value / 60)
+        .toString()
+        .padStart(2, "0")
+    const seconds = (time.value % 60).toString().padStart(2, "0")
     return `${minutes}:${seconds}`
 })
 
@@ -73,7 +60,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-button{
+button {
     background-color: #777;
     color: white;
 }
@@ -82,5 +69,16 @@ input {
     color: black;
     border: none;
     outline: none;
+    width: 100%;
+    font-size: 2em;
+    text-align: center;
+    color: black;
+    padding: 2px;
+    background: #ddd;
+    border-color: transparent;
+}
+
+span {
+    color: black;
 }
 </style>
