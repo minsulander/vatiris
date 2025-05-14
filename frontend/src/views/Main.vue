@@ -443,10 +443,10 @@ for (const id in windows.layout) {
         const n = parseInt(id.split("-")[1])
         if (!isNaN(n) && n > timerCount) timerCount = n
         availableWindows[id] = {
-            title: `TIMER`,
+            title: availableWindows[id].title``,
             component: Timer,
-            width: 300,
-            height: 100,
+            width: 167,
+            height: 75,
             class: "no-resize",
         }
     }
@@ -464,10 +464,10 @@ function select(id: string | object) {
         timerCount++
         const newId = `timer-${timerCount}`
         availableWindows[newId] = {
-            title: `TIMER`,
+            title: prompt("TIMER NAME", "TIMER"),
             component: Timer,
-            width: 300,
-            height: 100,
+            width: 167,
+            height: 75,
             class: "no-resize",
         }
         windows.layout[newId] = { enabled: true }
