@@ -67,15 +67,14 @@ onUnmounted(() => {
     margin: 0 auto;
     padding: 0;
     gap: 0;
-    height: 44px;
-    min-height: 44px;
+    height: 100%;
 }
 .side-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 36px;
-    font-size: 2em;
+    font-size: 1.5em;
     background: #ddd;
     border: none;
     color: #777;
