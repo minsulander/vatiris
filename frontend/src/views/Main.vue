@@ -464,7 +464,7 @@ function select(id: string | object) {
         timerCount++
         const newId = `timer-${timerCount}`
         availableWindows[newId] = {
-            title: `Timer`,
+            title: `TIMER`,
             component: Timer,
             width: 300,
             height: 200,
