@@ -438,6 +438,20 @@ for (const direct of directsData) {
 
 let timerCount = 0
 
+for (const id in windows.layout) {
+    if (id.startsWith("timer-")) {
+        const n = parseInt(id.split("-")[1])
+        if (!isNaN(n) && n > timerCount) timerCount = n
+        availableWindows[id] = {
+            title: `Timer`,
+            component: Timer,
+            width: 300,
+            height: 200,
+            class: "no-resize",
+        }
+    }
+}
+
 function select(id: string | object) {
     let ctrl = false
     if (typeof id == "string" && id.startsWith("ctrl+")) {
