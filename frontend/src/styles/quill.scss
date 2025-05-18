@@ -1,13 +1,22 @@
-.ql-toolbar {
+.ql-snow.ql-toolbar {
     border: none !important;
     background-color: #777;
-
+    padding: 0;
 }
 
-.ql-toolbar button {
+.ql-snow.ql-toolbar button {
     color: white !important;
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
 }
 
+.ql-container.ql-snow {
+    padding: 0;
+}
+.ql-editor {
+    padding: 4px;
+}
 .ql-editor ol,
 .ql-editor ul {
     padding-left: 0.3em !important;
