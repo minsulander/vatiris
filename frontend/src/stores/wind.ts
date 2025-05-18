@@ -106,7 +106,8 @@ export const useWindStore = defineStore("wind", () => {
         windSpeed: number,
         runwayHeading: number,
     ) {
-        if (windDirection === undefined || windSpeed === undefined) return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
+        if (windDirection === undefined || windSpeed === undefined)
+            return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
         if (windDirection === "VRB") return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
         if (typeof windDirection === "string") windDirection = parseInt(windDirection)
         const angle = Math.abs(windDirection - runwayHeading)
@@ -138,7 +139,11 @@ export const useWindStore = defineStore("wind", () => {
                     gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
-                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, parsed.wind?.speed || 0, rwy.le.heading),
+                    ...calculateWindComponents(
+                        parsed.wind?.degrees || parsed.wind?.direction,
+                        parsed.wind?.speed || 0,
+                        rwy.le.heading,
+                    ),
                 },
                 {
                     name: rwy.he.name,
@@ -148,7 +153,11 @@ export const useWindStore = defineStore("wind", () => {
                     gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
-                    ...calculateWindComponents(parsed.wind?.degrees || parsed.wind?.direction, parsed.wind?.speed || 0, rwy.he.heading),
+                    ...calculateWindComponents(
+                        parsed.wind?.degrees || parsed.wind?.direction,
+                        parsed.wind?.speed || 0,
+                        rwy.he.heading,
+                    ),
                 },
             ]),
             timestamp: metarStore.time,
@@ -212,19 +221,33 @@ export const useWindStore = defineStore("wind", () => {
 
         const runways = getRunwaysForAirport(icao)
 
-        const dir1r = parseInt(rwy1Dir) * Math.PI / 180
-        const dir2r = parseInt(rwy2Dir) * Math.PI / 180
-        let averageDirection = Math.round(Math.atan2((Math.sin(dir1r) + Math.sin(dir2r)), (Math.cos(dir1r) + Math.cos(dir2r))) * 180 / Math.PI / 10) * 10
-        if (averageDirection < 0) averageDirection += 360
+        const dir1r = (parseInt(rwy1Dir) * Math.PI) / 180
+        const dir2r = (parseInt(rwy2Dir) * Math.PI) / 180
+        let averageDirection =
+            Math.round(
+                (Math.atan2(Math.sin(dir1r) + Math.sin(dir2r), Math.cos(dir1r) + Math.cos(dir2r)) *
+                    180) /
+                    Math.PI /
+                    10,
+            ) * 10
+        if (averageDirection <= 0) averageDirection += 360
 
         return {
             direction: averageDirection,
             speed: Math.round((parseInt(rwy1Speed) + parseInt(rwy2Speed)) / 2),
             unit: "KT",
-            variableFrom: vrbMatch ? Math.min(parseInt(vrbMatch[1]), parseInt(vrbMatch[3])) : undefined,
-            variableTo: vrbMatch ? Math.max(parseInt(vrbMatch[2]), parseInt(vrbMatch[4])) : undefined,
-            minWind: minMaxMatch ? Math.min(parseInt(minMaxMatch[1]), parseInt(minMaxMatch[3])) : undefined,
-            maxWind: minMaxMatch ? Math.max(parseInt(minMaxMatch[2]), parseInt(minMaxMatch[4])) : undefined,
+            variableFrom: vrbMatch
+                ? Math.min(parseInt(vrbMatch[1]), parseInt(vrbMatch[3]))
+                : undefined,
+            variableTo: vrbMatch
+                ? Math.max(parseInt(vrbMatch[2]), parseInt(vrbMatch[4]))
+                : undefined,
+            minWind: minMaxMatch
+                ? Math.min(parseInt(minMaxMatch[1]), parseInt(minMaxMatch[3]))
+                : undefined,
+            maxWind: minMaxMatch
+                ? Math.max(parseInt(minMaxMatch[2]), parseInt(minMaxMatch[4]))
+                : undefined,
             runways: runways.flatMap((rwy) => {
                 // Get specific wind data for each runway end
                 const leData = rwyData.get(rwy.le.name)
@@ -275,6 +298,7 @@ export const useWindStore = defineStore("wind", () => {
         subscriptions[subscriptionId] = icao
         if (wxAirports.includes(icao)) wxStore.subscribe(icao)
         if (metarAirports.includes(icao)) metarStore.subscribe(icao)
+        windData[icao] = getWind(icao) || { runways: [] }
         return subscriptionId
     }
 

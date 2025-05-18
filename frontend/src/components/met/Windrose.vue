@@ -4,7 +4,7 @@
         ref="containerRef"
         :style="{ '--computed-size': `${computedSize}px` }"
     >
-        <div v-if="!props.id || !windData" class="pa-3 text-center">NO DATA</div>
+        <div v-if="!id || !windData" class="pa-3 text-center">NO DATA</div>
         <template v-else>
             <div style="position: relative">
                 <div
@@ -137,16 +137,17 @@
                     v-if="windData.direction !== undefined"
                 >
                     {{
-                        isLargeVrbRange ? "VRB" :
-                        windData.speed !== undefined &&
-                        windData.speed >= 1 &&
-                        windData.direction !== 0
-                            ? formatHeading(windData.direction)
-                            : "- - -"
+                        isLargeVrbRange
+                            ? "VRB"
+                            : windData.speed !== undefined &&
+                                windData.speed >= 1 &&
+                                windData.direction !== 0
+                              ? formatHeading(windData.direction)
+                              : "- - -"
                     }}
                 </text>
                 <text
-                    :x="center"
+                    :x="center - (shouldReadMin || shouldReadMax ? size / 20 : 0)"
                     :y="center + topMargin + size / 12 - (shouldReadVariable ? size / 30 : 0)"
                     text-anchor="middle"
                     dominant-baseline="central"
@@ -155,8 +156,56 @@
                     font-weight="bold"
                     v-if="windData.speed !== undefined"
                 >
-                    {{ windData.speed.toString() }}
-                    <tspan :font-size="size / 20" font-weight="normal">kt</tspan>
+                    <tspan>{{ windData.speed.toString() }}</tspan>
+                    <tspan
+                        v-if="!shouldReadMin && !shouldReadMax && !shouldReadGust"
+                        :font-size="size / 20"
+                        font-weight="normal"
+                    >
+                        kt
+                    </tspan>
+                    <tspan v-if="shouldReadGust" :font-size="size / 32" font-weight="normal">
+                        GUST
+                    </tspan>
+                    <tspan v-if="shouldReadGust" :font-size="size / 18">{{ windData.gust }}</tspan>
+                </text>
+                <text
+                    v-if="shouldReadMin"
+                    :x="center + size / 9"
+                    :y="
+                        center +
+                        topMargin +
+                        size / 12 -
+                        (shouldReadVariable ? size / 30 : 0) -
+                        (shouldReadMax ? size / 35 : 0)
+                    "
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    :fill="colors.text"
+                    :font-size="size / 18"
+                    font-weight="bold"
+                >
+                    <tspan :font-size="size / 32" font-weight="normal">MIN&nbsp;</tspan>
+                    <tspan>{{ windData.minWind }}</tspan>
+                </text>
+                <text
+                    v-if="shouldReadMax"
+                    :x="center + size / 9"
+                    :y="
+                        center +
+                        topMargin +
+                        size / 12 -
+                        (shouldReadVariable ? size / 30 : 0) +
+                        (shouldReadMin ? size / 35 : 0)
+                    "
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    :fill="colors.text"
+                    :font-size="size / 18"
+                    font-weight="bold"
+                >
+                    <tspan :font-size="size / 32" font-weight="normal">MAX&nbsp;</tspan>
+                    <tspan>{{ windData.maxWind }}</tspan>
                 </text>
                 <text
                     :x="center"
@@ -196,18 +245,14 @@
                                 <span
                                     style="font-size: 28px"
                                     :style="{
-                                        'font-weight':
-                                            windData.speed &&
-                                            windData.speed - windData.minWind >= 10
-                                                ? 'bold'
-                                                : 'normal',
+                                        'font-weight': shouldReadMin ? 'bold' : 'normal',
                                     }"
                                     >{{ windData.minWind }}</span
                                 ></span
                             >
                         </span>
                         <div class="runway-info">
-                            <div class="airport-code">{{ props.id }}</div>
+                            <div class="airport-code">{{ id }}</div>
                             <div class="runway-display">RWY {{ currentRunway || "--" }}</div>
                         </div>
                         <span class="max-wind">
@@ -216,11 +261,7 @@
                                 <span
                                     style="font-size: 28px"
                                     :style="{
-                                        'font-weight':
-                                            windData.speed &&
-                                            windData.maxWind - windData.speed >= 10
-                                                ? 'bold'
-                                                : 'normal',
+                                        'font-weight': shouldReadMax ? 'bold' : 'normal',
                                     }"
                                     >{{ windData.maxWind }}</span
                                 ></span
@@ -230,15 +271,12 @@
                                 <span
                                     style="font-size: 28px"
                                     :style="{
-                                        'font-weight':
-                                            windData.speed && windData.gust - windData.speed >= 10
-                                                ? 'bold'
-                                                : 'normal',
+                                        'font-weight': shouldReadGust ? 'bold' : 'normal',
                                     }"
                                     >{{ windData.gust }}</span
                                 ></span
                             ></span
-                        </div>
+                        >
                     </div>
                     <div class="bottom-row">
                         <div class="wind-head">
@@ -405,17 +443,41 @@ const shouldReadVariable = computed(() => {
         // Always count clockwise from smaller to larger angle
         let from = windData.value.vrbFrom
         let to = windData.value.vrbTo
-        
+
         // If from is larger than to, we need to add 360 to to
         if (from > to) {
             to += 360
         }
-        
+
         // Now the difference will always be the clockwise distance
         const diff = to - from
         return diff >= 60 && diff < 180
     }
     return false
+})
+
+const shouldReadMin = computed(() => {
+    if (!windData.value) return false
+    if (windData.value.speed === undefined) return false
+    if (windData.value.minWind === undefined) return false
+    if (windData.value.minWind < 1) return false
+    return windData.value.speed - windData.value.minWind >= 10
+})
+
+const shouldReadMax = computed(() => {
+    if (!windData.value) return false
+    if (windData.value.speed === undefined) return false
+    if (windData.value.maxWind === undefined) return false
+    if (windData.value.maxWind < 1) return false
+    return windData.value.maxWind - windData.value.speed >= 10
+})
+
+const shouldReadGust = computed(() => {
+    if (!windData.value) return false
+    if (windData.value.speed === undefined) return false
+    if (windData.value.gust === undefined) return false
+    if (windData.value.gust < 1) return false
+    return windData.value.gust - windData.value.speed >= 10
 })
 
 const headingPoints = Array.from({ length: 12 }, (_, i) => i * 30)
@@ -566,16 +628,16 @@ const getVrbArcPath = computed(() => {
 
 const isLargeVrbRange = computed(() => {
     if (!windData.value?.vrbFrom || !windData.value?.vrbTo) return false
-    
+
     // Always count clockwise from smaller to larger angle
     let from = windData.value.vrbFrom
     let to = windData.value.vrbTo
-    
+
     // If from is larger than to, we need to add 360 to to
     if (from > to) {
         to += 360
     }
-    
+
     // Now the difference will always be the clockwise distance
     const diff = to - from
     return diff >= 180
