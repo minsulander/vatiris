@@ -480,7 +480,8 @@ onMounted(() => {
         }
         if (
             document.activeElement?.tagName != "INPUT" &&
-            document.activeElement?.tagName != "TEXTAREA"
+            document.activeElement?.tagName != "TEXTAREA" &&
+            !document.activeElement?.classList.contains("ql-editor")
         ) {
             if (e.shiftKey && e.key === "ArrowLeft" && windows.focusId) {
                 const winbox = windows.winbox[windows.focusId]
