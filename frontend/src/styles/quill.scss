@@ -1,0 +1,58 @@
+.ql-toolbar {
+    border: none !important;
+    background-color: #777;
+
+}
+
+.ql-toolbar button {
+    color: white !important;
+}
+
+.ql-editor ol,
+.ql-editor ul {
+    padding-left: 0.3em !important;
+    margin-left: 0 !important;
+}
+.ql-toolbar {
+    border: none !important;
+    background: #777 !important;
+}
+
+#notepad-toolbar,
+#notepad-toolbar .ql-picker,
+#notepad-toolbar .ql-picker-label,
+#notepad-toolbar .ql-picker-options,
+#notepad-toolbar .ql-stroke,
+#notepad-toolbar .ql-fill,
+#notepad-toolbar .ql-picker-item,
+#notepad-toolbar .ql-picker-label {
+    color: #ffffff !important;
+    fill: #777 !important;
+    stroke: #ffffff !important;
+}
+
+#notepad-toolbar .ql-toolbar button,
+#notepad-toolbar .ql-toolbar .ql-picker-label,
+#notepad-toolbar .ql-toolbar .ql-picker-item {
+    color: #ffffff !important;
+}
+
+#notepad-toolbar .ql-toolbar button .ql-stroke,
+#notepad-toolbar .ql-toolbar button .ql-fill {
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+.ql-toolbar button:hover,
+.ql-toolbar button:focus {
+    background-color: #555 !important;
+    color: #ffffff !important;
+}
+.ql-active{
+    background-color: #444 !important;
+    color: #ffffff !important;
+}
+.ql-active:hover, .ql-active:focus {
+    background-color: #444 !important;
+    color: #ffffff !important;
+}
