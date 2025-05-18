@@ -5,13 +5,13 @@ import { defineStore } from "pinia"
 import { computed, reactive, ref } from "vue"
 
 interface Notam {
-    minus: boolean,
-    permanent: boolean,
-    content: string,
-    id?: string,
-    from?: Date,
-    to?: Date,
-    toEstimated?: boolean,
+    minus: boolean
+    permanent: boolean
+    content: string
+    id?: string
+    from?: Date
+    to?: Date
+    toEstimated?: boolean
     reported?: Date
 }
 
@@ -29,19 +29,27 @@ export const useNotamStore = defineStore("notam", () => {
     const footer = ref("")
 
     const allText = computed(() => {
-        if (typeof(lastFetch.value) === "undefined") fetch()
-        return originalText.value.replace(/\s+CONTINUES ON NEXT PAGE/g, "").replace(/ISSUED:.*PAGE:.*/g, "").replace(/PAGE: 1.*\n/g, "")
+        if (typeof lastFetch.value === "undefined") fetch()
+        return originalText.value
+            .replace(/\s+CONTINUES ON NEXT PAGE/g, "")
+            .replace(/ISSUED:.*PAGE:.*/g, "")
+            .replace(/PAGE: 1.*\n/g, "")
     })
 
-    function fetch() {
+    async function fetch() {
         lastFetch.value = new Date()
-        axios.get(`https://api.vatiris.se/notam`).then((response) => {
+        try {
+            const response = await axios.get(`https://api.vatiris.se/notam`)
             const el = document.createElement("div")
             el.innerHTML = response.data
             originalText.value = el.getElementsByTagName("pre")[0].innerText
             lastFetch.value = new Date()
             parse()
-        })
+        } catch (error) {
+            console.error("Failed to fetch NOTAMs", error)
+            originalText.value = `Error fetching NOTAMs: ${error}`
+            lastFetch.value = new Date()
+        }
     }
 
     function parse() {
@@ -71,7 +79,6 @@ export const useNotamStore = defineStore("notam", () => {
             } else {
                 notam.content += `\n${line}`
             }
-
         }
 
         for (let line of allText.value.split("\n")) {
@@ -86,11 +93,16 @@ export const useNotamStore = defineStore("notam", () => {
                     icao = line.substring(4, 8)
                     ad[icao] = []
                     adTitle[icao] = line.substring(9).trim()
-                    if (adTitle[icao].endsWith(" <<<")) adTitle[icao] = adTitle[icao].substring(0, adTitle[icao].length - 4)
+                    if (adTitle[icao].endsWith(" <<<"))
+                        adTitle[icao] = adTitle[icao].substring(0, adTitle[icao].length - 4)
                     currentNotam = undefined
                 } else if (icao) {
                     if (line.startsWith("- ") || line.startsWith("+ ")) {
-                        currentNotam = { minus: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
+                        currentNotam = {
+                            minus: line.startsWith("- "),
+                            permanent: false,
+                            content: line.substring(1).trimStart(),
+                        }
                         ad[icao].push(currentNotam)
                     } else if (line == "NIL") {
                         currentNotam = undefined
@@ -106,7 +118,11 @@ export const useNotamStore = defineStore("notam", () => {
                 }
             } else if (section == "enroute") {
                 if (line.startsWith("- ") || line.startsWith("+ ")) {
-                    currentNotam = { minus: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
+                    currentNotam = {
+                        minus: line.startsWith("- "),
+                        permanent: false,
+                        content: line.substring(1).trimStart(),
+                    }
                     enroute.push(currentNotam)
                 } else if (currentNotam) {
                     parseNotamLine(currentNotam, line)
@@ -116,7 +132,11 @@ export const useNotamStore = defineStore("notam", () => {
                 }
             } else if (section == "nav") {
                 if (line.startsWith("- ") || line.startsWith("+ ")) {
-                    currentNotam = { minus: line.startsWith("- "), permanent: false, content: line.substring(1).trimStart() }
+                    currentNotam = {
+                        minus: line.startsWith("- "),
+                        permanent: false,
+                        content: line.substring(1).trimStart(),
+                    }
                     nav.push(currentNotam)
                     if (currentNotam.content.includes(" IN SECTION ")) currentNotam = undefined // one-line reference
                 } else if (currentNotam) {
@@ -135,7 +155,8 @@ export const useNotamStore = defineStore("notam", () => {
                 console.warn("wat dis?", line)
             }
         }
-        if (!footer.value.trimEnd().endsWith("END OF PIB")) console.warn("notam footer doesn't end with END OF PIB")
+        if (!footer.value.trimEnd().endsWith("END OF PIB"))
+            console.warn("notam footer doesn't end with END OF PIB")
     }
 
     bus.on("refresh", refresh)
@@ -156,6 +177,6 @@ export const useNotamStore = defineStore("notam", () => {
         nav,
         footer,
         fetch,
-        refresh
+        refresh,
     }
 })

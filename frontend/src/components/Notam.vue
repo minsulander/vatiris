@@ -115,11 +115,12 @@
         v-else
         style="font-size: 14px; line-height: 16px; height: calc(100% - 20px); overflow-y: auto"
     >
+        <div class="bg-error pa-3 font-weight-bold" v-if="notam.originalText.startsWith('Error')">The NOTAM view is currently broken due to changes in LFV source information.</div>
         <pre
             class="pa-1"
             style="width: 580px; margin-left: auto; margin-right: auto"
             v-html="notam.allText"
-            v-if="raw"
+            v-if="raw || notam.originalText.startsWith('Error')"
         ></pre>
         <div style="width: 580px; margin-left: auto; margin-right: auto" v-else>
             <pre class="pa-1 text-grey-darken-2" v-html="notam.header" v-if="header"></pre>
