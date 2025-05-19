@@ -85,10 +85,10 @@ watch(
     savedTimers,
     (newTimers) => {
         submenuItems.value = {
-            "Timer Creator": "timerCreator",
+            "TIMER CREATOR": "timerCreator",
             ...Object.fromEntries(
                 newTimers.map((timer, index) => [
-                    timer.name + (timer.duration && ` (${timer.duration} min)`),
+                    timer.name + (timer.duration ? ` (${timer.duration} min)` : ""),
                     "timer:" + String(index),
                 ]),
             ),

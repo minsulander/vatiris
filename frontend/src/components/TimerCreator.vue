@@ -65,7 +65,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>TYPE</th>
+                        <th>TITLE</th>
                         <th>TYPE</th>
                         <th>DURATION</th>
                     </tr>

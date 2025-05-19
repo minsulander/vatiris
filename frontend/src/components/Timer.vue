@@ -1,115 +1,184 @@
 <template>
-    <div class="timer-container">
-        <button
-            class="side-btn pause-btn"
-            @click="togglePause"
-            :title="isPaused ? 'Resume' : 'Pause'"
-        >
-            <span v-if="isPaused">&#9654;</span>
-            <span v-else>&#10073;&#10073;</span>
-        </button>
-        <span class="timer-time">{{ formattedTime }}</span>
-        <button
-            class="side-btn"
-            @click="resetTimer"
-            title="Reset"
-        >
-            &#8635;
-        </button>
-    </div>
+  <div class="timer-container">
+    <!-- For both modes: primary button -->
+    <button
+      class="side-btn"
+      @click="handleButton"
+      :title="buttonTitle"
+    >
+      <span v-if="isRunning">&#10073;&#10073;</span>
+      <span v-else>&#9654;</span>
+    </button>
+
+    <!-- Time display -->
+    <span class="timer-time">{{ formattedTime }}</span>
+
+    <!-- Reset button for stopwatch mode only -->
+    <button
+      v-if="duration === null"
+      class="side-btn"
+      @click="resetStopwatch"
+      title="Reset"
+    >
+      &#8635;
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, computed } from "vue"
+import { onUnmounted, ref, computed, watch } from 'vue'
 
 const props = defineProps<{
-    duration: number | null
+  duration: number | null // in minutes
 }>()
+const { duration } = props
 
-const time = ref(0)
-const isPaused = ref(false)
+// Convert duration (minutes) to seconds
+const initialSeconds = computed(() => (duration !== null ? duration * 60 : 0))
+
+// Timer state
+const time = ref(initialSeconds.value)
+const started = ref(false)
+const isRunning = ref(false)
 let interval: ReturnType<typeof setInterval> | undefined
 
-function startTimer() {
-    interval = setInterval(() => {
-        if (!isPaused.value) {
-            time.value++
-        }
-    }, 1000)
+// If duration prop changes before start, reset time
+watch(initialSeconds, (newVal) => {
+  if (!started.value && duration !== null) {
+    time.value = newVal
+  }
+})
+
+function startStopwatch() {
+  clearInterval(interval)
+  isRunning.value = true
+  interval = setInterval(() => {
+    time.value++
+  }, 1000)
 }
 
-function togglePause() {
-    isPaused.value = !isPaused.value
+function startCountdown() {
+  clearInterval(interval)
+  isRunning.value = true
+  interval = setInterval(() => {
+    if (time.value > 0) {
+      time.value--
+    } else {
+      clearInterval(interval)
+      interval = undefined
+      isRunning.value = false
+    }
+  }, 1000)
 }
 
-function resetTimer() {
-    time.value = 0
-    isPaused.value = false
+function resetStopwatch() {
+  time.value = 0
+}
+
+function resetCountdown(pause = true) {
+  time.value = initialSeconds.value
+  isRunning.value = !pause
+  started.value = true
+  clearInterval(interval)
+  interval = undefined
+}
+
+function handleButton() {
+  if (duration === null) {
+    // Stopwatch: start, pause, resume
+    if (!started.value) {
+      started.value = true
+      startStopwatch()
+    } else if (isRunning.value) {
+      isRunning.value = false
+      clearInterval(interval)
+      interval = undefined
+    } else {
+      isRunning.value = true
+      startStopwatch()
+    }
+  } else {
+    // Countdown: single button logic
+    if (!started.value) {
+      started.value = true
+      time.value = initialSeconds.value
+      startCountdown()
+    } else if (time.value <= 0) {
+      resetCountdown(false)
+      startCountdown()
+    } else if (isRunning.value) {
+      resetCountdown(true)
+    } else {
+      isRunning.value = true
+      startCountdown()
+    }
+  }
 }
 
 const formattedTime = computed(() => {
-    const minutes = Math.floor(time.value / 60)
-        .toString()
-        .padStart(2, "0")
-    const seconds = (time.value % 60).toString().padStart(2, "0")
-    return `${minutes}:${seconds}`
+  const mins = Math.floor(time.value / 60)
+    .toString()
+    .padStart(2, '0')
+  const secs = (time.value % 60).toString().padStart(2, '0')
+  return `${mins}:${secs}`
 })
 
-startTimer()
+const buttonTitle = computed(() => {
+  if (duration === null) {
+    return isRunning.value ? 'Pause' : (started.value ? 'Resume' : 'Start')
+  }
+  if (!started.value) return 'Start'
+  if (time.value <= 0) return 'Restart'
+  return isRunning.value ? 'Reset & Pause' : 'Resume'
+})
 
 onUnmounted(() => {
-    clearInterval(interval)
+  clearInterval(interval)
 })
 </script>
 
 <style scoped>
 .timer-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 220px;
-    margin: 0 auto;
-    padding: 0;
-    gap: 0;
-    height: 100%;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+  padding: 0;
+  gap: 4px;
+  height: 100%;
 }
 .side-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    font-size: 1.5em;
-    background: #ddd;
-    border: none;
-    color: #777;
-    cursor: pointer;
-    transition: color 0.2s, background 0.2s;
-    padding: 0;
-    height: 100%;
-    min-width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  font-size: 1.5em;
+  background: #ddd;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  padding: 0;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 4px;
 }
 .side-btn:hover {
-    color: #333;
-    background: #ccc;
+  color: #333;
+  background: #ccc;
 }
-
-.pause-btn {
-    margin-top: 0;
-}
-
 .timer-time {
-    color: #777;
-    font-size: 1.2em;
-    background: #ddd;
-    text-align: center;
-    width: 70px;
-    box-sizing: border-box;
-    padding: 0 6px;
-    border-radius: 4px;
-    margin: 0 4px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  color: #777;
+  font-size: 1.2em;
+  background: #ddd;
+  text-align: center;
+  width: 70px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
