@@ -243,5 +243,10 @@
         "title": "Fly and see Santa 2024",
         "book": "event-procedures",
         "page": "fly-and-see-santa-2024"
+    },
+    "vatiris-manual": {
+        "title": "VatIRIS Manual",
+        "book": "general",
+        "page": "vatiris"
     }
 }

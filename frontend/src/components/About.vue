@@ -7,10 +7,6 @@
             controllers in Sweden.
         </p>
         <p class="mb-3">
-            For usage instructions, see the
-            <a href="https://wiki.vatsim-scandinavia.org/books/gen-k9C/page/vatiris" target="_blank">VatIRIS manual on VATSCA wiki</a>.
-        </p>
-        <p class="mb-3">
             Welcome to file bug reports or feature requests as
             <a href="https://github.com/minsulander/vatiris/issues" target="_blank">issues</a>.
         </p>

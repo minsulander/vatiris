@@ -103,6 +103,7 @@ const menuItems = reactive({
         ECFMP: "ECFMP",
     },
     Documents: {
+        MANUAL: "wiki-vatiris",
         CHECKLIST: {
             "Open position": "checklist-open-position",
             "Close position": "checklist-close-position",
