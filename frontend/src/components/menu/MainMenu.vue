@@ -67,7 +67,6 @@ const authorizedMenuItems = computed(() => {
         delete items.Traffic
         delete items.ATS
         delete items.SECTORS
-        delete items.DCT
     }
     return items
 })
