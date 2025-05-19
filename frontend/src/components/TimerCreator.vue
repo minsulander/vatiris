@@ -1,31 +1,65 @@
 <template>
-    <div class="timer-creator" :class="`${timerType}`" >
+    <div class="timer-creator" :class="`${timerType}`">
         <div class="timer-creator-form">
             <div class="timer-value-inputs">
-                <input type="text" class="titleInputField" placeholder="TITLE" v-model="timerName" />
-                <div class="duration-and-type-inputs">
+                <div class="titleInputField">
+                    <label for="titleInputField">
+                        <span>TITLE</span>
+                    </label>
                     <input
-                        v-if="timerType !== ''"
-                        type="number"
-                        id="durationInputField"
-                        placeholder="DURATION"
-                        default="0"
-                        v-model.number="timerDuration"
-                        min="1"
-                        required
+                        type="text"
+                        id="titleInputField"
+                        placeholder="REQUIRED"
+                        v-model="timerName"
                     />
-                    <button
-                        id="typeToggleButton"
-                        type="button"
-                        @click="toggleTimerType"
-                        :class="{ active: timerType === 'STOPWATCH' }"
-                    >
-                        {{ timerType }}
-                    </button>
+                </div>
+
+                <div class="duration-and-type-inputs">
+                    <div v-if="timerType !== 'STOPWATCH'">
+                        <label for="durationInputField">
+                            <span v-if="timerType === 'COUNTDOWN'">DURATION</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="durationInputField"
+                            placeholder="DURATION"
+                            v-model.number="timerDuration"
+                            min="1"
+                            step="1"
+                            required
+                            @input="onDurationInput"
+                        />
+                    </div>
+                    <div class="timer-type-toggle">
+                        <label for="typeToggleButton">
+                            <span>TOGGLE TYPE</span>
+                        </label>
+                        <button
+                            id="typeToggleButton"
+                            type="button"
+                            @click="toggleTimerType"
+                            :class="{ active: timerType === 'STOPWATCH' }"
+                        >
+                            {{ timerType }}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <button @click="createTimer">CREATE</button>
+            <div>
+                <label for="createButton">
+                    <span v-if="!timerName">TITLE REQUIRED</span>
+                    <span v-else-if="timerType === 'COUNTDOWN' && !timerDuration">
+                        DURATION REQUIRED
+                    </span>
+                    <span v-else>
+                        CREATE TIMER
+                    </span>
+                </label>
+                <button id="createButton" @click="createTimer" :disabled="!timerName">
+                    CREATE
+                </button>
+            </div>
         </div>
         <div class="timers-list">
             <table>
@@ -37,23 +71,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(timer, index) in timerData.timers" :key="index">
+                    <tr v-for="(timer, index) in timerData.timers" :key="index" :class="timer.duration ? 'COUNTDOWN' : 'STOPWATCH'">
                         <td>{{ timer.name }}</td>
-                        <td>{{ timer.duration ? "COUNTDOWN" : "STOPWATCH" }}</td>
+                        <td class="type">{{ timer.duration ? "COUNTDOWN" : "STOPWATCH" }}</td>
                         <td>{{ timer.duration }}</td>
+                        <td>
+                            <button @click="deleteTimer(index)" class="delete-button">
+                                DELETE
+                            </button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
-        </div>
-        <div class="debug">
-            <span>{{ timerData }}</span>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue"
+import { ref, watch, onMounted, reactive } from "vue"
 import { useAuthStore } from "@/stores/auth"
+import useEventBus from "@/eventbus"
 
 interface Timer {
     name: string
@@ -63,10 +100,10 @@ interface Timer {
 const timerType = ref("COUNTDOWN")
 const auth = useAuthStore()
 const timerName = ref("")
-let timerData = {
+const timerData = reactive({
     timers: [] as Timer[],
-}
-const timerDuration = ref<number | null>(null)
+})
+const timerDuration = ref<number | null>(1)
 
 function toggleTimerType() {
     if (timerType.value === "COUNTDOWN") {
@@ -74,6 +111,7 @@ function toggleTimerType() {
         timerDuration.value = null
     } else {
         timerType.value = "COUNTDOWN"
+        timerDuration.value = 1
     }
 }
 
@@ -84,7 +122,19 @@ watch(
     },
 )
 
+function deleteTimer(index: number) {
+    timerData.timers.splice(index, 1)
+    auth.postUserData("timerData", timerData).then(() => {
+        fetchContent()
+    })
+}
+
 onMounted(() => {
+    if (auth.user) fetchContent()
+})
+
+const bus = useEventBus()
+bus.on("refresh", () => {
     if (auth.user) fetchContent()
 })
 
@@ -94,19 +144,18 @@ function fetchContent() {
             auth.postUserData("timerData", { timers: [] })
             return
         }
-        timerData = data
+        timerData.timers = data.timers
     })
 }
 function createTimer() {
     if (
-        typeof timerName.value !== "string" ||
-        (typeof timerDuration.value !== "number" && timerDuration.value)
+        typeof timerName.value !== "string"
     ) {
         return
     }
     const timer: Timer = {
         name: timerName.value,
-        duration: timerDuration.value,
+        duration: timerType.value === "STOPWATCH" ? null : timerDuration.value,
     }
     timerName.value = ""
     timerDuration.value = null
@@ -115,9 +164,21 @@ function createTimer() {
         fetchContent()
     })
 }
+function onDurationInput(event: Event) {
+    const input = event.target as HTMLInputElement
+    input.value = input.value.replace(/\D/g, "")
+    timerDuration.value = input.value ? Number(input.value) : null
+}
 </script>
 
 <style scoped>
+label {
+    display: block;
+    margin-bottom: 4px;
+}
+.timer-creator {
+    font-size: small;
+}
 option,
 select {
     color: black !important;
@@ -130,14 +191,34 @@ input {
     outline: none;
     color: black !important;
 }
-
+#createButton {
+    width: 100%;
+}
 .duration-and-type-inputs {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    justify-content: center;
+}
+.STOPWATCH .duration-and-type-inputs {
     display: grid;
     gap: 5px;
     grid-template-columns: 1fr;
     align-items: center;
     justify-content: center;
 }
+#titleInputField {
+    width: 100%;
+}
+
+tr.STOPWATCH td.type{
+    color: green !important;
+} 
+
+tr.COUNTDOWN td.type{
+    color: red !important;
+} 
 
 .timer-creator-form {
     display: grid;
@@ -157,6 +238,18 @@ input {
     align-items: center;
     justify-content: center;
 }
+.delete-button {
+    background: red;
+    color: white;
+    border: 1px solid gray;
+    padding-left: 5px;
+    padding-right: 5px;
+    cursor: pointer;
+}
+.delete-button:hover {
+    background: rgb(200, 0, 0);
+}
+
 .COUNTDOWN .timer-value-inputs {
     grid-column: span 4;
     display: grid;
@@ -168,6 +261,10 @@ input {
 .timer-creator {
     margin: 3px;
 }
+
+#typeToggleButton {
+    width: 100%;
+}
 span {
     color: gray;
 }
@@ -177,6 +274,7 @@ button {
 }
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0 5px;
 }
 </style>
