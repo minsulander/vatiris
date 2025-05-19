@@ -22,6 +22,10 @@
 <script setup lang="ts">
 import { onUnmounted, ref, computed } from "vue"
 
+const props = defineProps<{
+    duration: number | null
+}>()
+
 const time = ref(0)
 const isPaused = ref(false)
 let interval: ReturnType<typeof setInterval> | undefined

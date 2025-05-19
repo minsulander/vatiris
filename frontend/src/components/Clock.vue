@@ -1,45 +1,37 @@
 <template>
-    <div style="display: inline-block; position: relative;">
-        <span ref="timeRef" @click="showMenu = true" style="cursor: pointer">{{ time }}</span>
-        <Submenu
-            v-if="showMenu"
-            :items="menuItems"
-            @click.stop
-            @mouseleave="showMenu = false"
-            style="position: absolute; z-index: 1000;"
-        />
-        <span v-if="timer" @click="clickTimer" class="ml-2" style="cursor: pointer">
-            {{ moment(timerElapsed).utc().format("mm:ss") }}
-        </span>
+    <div>
+        <span @click="clickTime" style="cursor: pointer">{{ time }}</span>
+        <span v-if="timer" @click="clickTimer" class="ml-2" style="cursor: pointer">{{
+            moment(timerElapsed).utc().format("mm:ss")
+        }}</span>
+        <submenu :items="submenuItems" />
     </div>
 </template>
 
 <script setup lang="ts">
-import moment from "moment"
-import { onMounted, onUnmounted, ref, reactive, watch } from "vue"
+import moment, { duration } from "moment"
+import { onMounted, onUnmounted, ref, watch } from "vue"
 import useEventBus from "@/eventbus"
-import { useAuthStore } from "@/stores/auth"
 import Submenu from "@/components/menu/Submenu.vue"
+import { useAuthStore } from "@/stores/auth"
 
-const bus = useEventBus()
 const auth = useAuthStore()
+const bus = useEventBus()
+
+let timers = ref([] as any[])
 
 const time = ref("99:99:99")
 const timer = ref(false)
 const timerElapsed = ref(0)
-const showMenu = ref(false)
-const timeRef = ref<HTMLElement | null>(null)
 
 let interval: any = undefined
 
-const timers = ref<{ name: string; duration: number | null }[]>([])
+bus.on("refresh", () => {
+    fetchTimers()
+})
 
-function fetchTimers() {
-    auth.fetchUserData("timerData").then((data) => {
-        timers.value = data?.timers || []
-    })
-}
 onMounted(() => {
+    fetchTimers()
     let lastTime = Date.now()
     interval = setInterval(() => {
         time.value = moment().utc().format("HH:mm:ss")
@@ -47,24 +39,61 @@ onMounted(() => {
         lastTime = Date.now()
         if (timer.value) timerElapsed.value += timeSinceLast
     }, 250)
-    if (auth.user) fetchTimers()
-    bus.on("refresh", fetchTimers)
 })
+
 onUnmounted(() => {
     clearInterval(interval)
 })
 
-const menuItems = reactive<{ [key: string]: string }>({})
-function updateMenuItems() {
-    menuItems["TIMER CREATOR"] = "timerCreator"
-    timers.value.forEach((t, i) => {
-        menuItems[`${t.name}${t.duration ? ` (${t.duration} min)` : ""}`] = `timer:${i}`
-    })
+function clickTime() {
+    fetchTimers()
 }
-watch(timers, updateMenuItems, { immediate: true })
 
 function clickTimer() {
     timer.value = false
     timerElapsed.value = 0
 }
+
+function fetchTimers() {
+    if (!auth.user) {
+        return "not logged in"
+    }
+
+    auth.fetchUserData("timerData").then((data) => {
+        if (data) {
+            savedTimers.value = data.timers
+        }
+    })
+}
+
+let savedTimers = ref([
+    { name: "snigel", duration: 1 },
+    { name: "snigel2", duration: 2 },
+    { name: "snigel3", duration: 3 },
+    { name: "snigel4", duration: 4 },
+    { name: "snigel5", duration: 5 },
+    { name: "snigel6", duration: 6 },
+    { name: "snigel7", duration: 7 },
+    { name: "snigel8", duration: 8 },
+    { name: "snigel9", duration: 9 },
+    { name: "snigel10", duration: 10 },
+])
+
+const submenuItems = ref({})
+
+watch(
+    savedTimers,
+    (newTimers) => {
+        submenuItems.value = {
+            "Timer Creator": "timerCreator",
+            ...Object.fromEntries(
+                newTimers.map((timer, index) => [
+                    timer.name + (timer.duration && ` (${timer.duration} min)`),
+                    "timer:" + String(index),
+                ]),
+            ),
+        }
+    },
+    { immediate: true },
+)
 </script>
