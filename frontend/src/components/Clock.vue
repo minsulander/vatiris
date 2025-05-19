@@ -33,7 +33,7 @@ onUnmounted(() => {
 })
 
 function clickTime() {
-    bus.emit("select", "timer")
+    bus.emit("select", "timerCreator")
 }
 
 function clickTimer() {

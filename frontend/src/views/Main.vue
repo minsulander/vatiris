@@ -56,7 +56,6 @@ import ECFMP from "@/components/ECFMP.vue"
 import SApush from "@/components/SApush.vue"
 import DCT from "@/components/DCT.vue"
 import Notepad from "@/components/Notepad.vue"
-import Timer from "@/components/Timer.vue"
 import Alias from "@/components/Alias.vue"
 import Checklist from "@/components/Checklist.vue"
 import MetarTaf from "@/components/met/MetarTaf.vue"
@@ -82,6 +81,8 @@ import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
+import Timer from "@/components/Timer.vue"
+import TimerCreator from "@/components/TimerCreator.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -169,6 +170,12 @@ const availableWindows = shallowReactive({
         component: Timer,
         width: 300,
         height: 200,
+    },
+    timerCreator: {
+        title: "Timer Creator",
+        component: TimerCreator,
+        width: 700,
+        height: 400,
     },
     notepad: {
         title: "NOTEPAD",
@@ -436,23 +443,6 @@ for (const direct of directsData) {
     }
 }
 
-let timerCount = 0
-
-for (const id in windows.layout) {
-    if (id.startsWith("timer-")) {
-        const n = parseInt(id.split("-")[1])
-        if (!isNaN(n) && n > timerCount) timerCount = n
-        const title = windows.layout[id]?.title || "TIMER" + ` ${n}`
-        availableWindows[id] = {
-            title,
-            component: Timer,
-            width: 155,
-            height: 65,
-            class: "no-resize no-max",
-        }
-    }
-}
-
 function select(id: string | object) {
     let ctrl = false
     if (typeof id == "string" && id.startsWith("ctrl+")) {
@@ -461,21 +451,9 @@ function select(id: string | object) {
     }
     if (typeof id == "object") {
         // submenu
-    } else if (id === "timer") {
-        timerCount++
-        const timerName = prompt("TIMER NAME", "TIMER")
-        const newId = "timer" + `-${timerCount}`
-        availableWindows[newId] = {
-            title: timerName,
-            component: Timer,
-            width: 155,
-            height: 65,
-            class: "no-resize, no-max",
-        }
-        windows.layout[newId] = { enabled: true, title: timerName }
-        windows.focusId = newId
     } else if (id in availableWindows) {
         if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
+            // ctrl-click on image/iframe opens in new tab
             window.open(availableWindows[id].props.src, "_blank")
         } else if (id in windows.winbox) {
             if (windows.winbox[id].min) windows.winbox[id].restore()
