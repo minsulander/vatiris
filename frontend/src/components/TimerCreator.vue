@@ -52,9 +52,7 @@
                     <span v-else-if="timerType === 'COUNTDOWN' && !timerDuration">
                         DURATION REQUIRED
                     </span>
-                    <span v-else>
-                        CREATE TIMER
-                    </span>
+                    <span v-else> CREATE TIMER </span>
                 </label>
                 <button id="createButton" @click="createTimer" :disabled="!timerName">
                     CREATE
@@ -71,10 +69,34 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(timer, index) in timerData.timers" :key="index" :class="timer.duration ? 'COUNTDOWN' : 'STOPWATCH'">
-                        <td>{{ timer.name }}</td>
-                        <td class="type">{{ timer.duration ? "COUNTDOWN" : "STOPWATCH" }}</td>
-                        <td>{{ timer.duration }}</td>
+                    <tr
+                        v-for="(timer, index) in timerData.timers"
+                        :key="index"
+                        :class="timer.duration ? 'COUNTDOWN' : 'STOPWATCH'"
+                    >
+                        <td>
+                            <input
+                                class="table-input"
+                                type="text"
+                                v-model="timer.name"
+                                @change="changeTimerName(timer.name, index)"
+                            />
+                        </td>
+                        <td class="type">
+                            <button @click="toggleTimerTypeForTimerByIndex(index)">{{ timer.duration ? "COUNTDOWN" : "STOPWATCH" }}</button>
+                        </td>
+                        <td>
+                            <input
+                            class="duration-input table-input"
+                                v-if="timer.duration !== null"
+                                type="number"
+                                min="1"
+                                step="1"
+                                v-model.number="timer.duration"
+                                @input="onDurationInput"
+                                @change="changeTimerDuration(timer.duration, index)"
+                            />
+                        </td>
                         <td>
                             <button @click="deleteTimer(index)" class="delete-button">
                                 DELETE
@@ -128,10 +150,33 @@ function deleteTimer(index: number) {
         fetchContent()
     })
 }
-
+function changeTimerName(name: string, index: number) {
+    timerData.timers[index].name = name
+    auth.postUserData("timerData", timerData).then(() => {
+        fetchContent()
+    })
+}
+function changeTimerDuration(duration: number | null, index: number) {
+    timerData.timers[index].duration = duration
+    auth.postUserData("timerData", timerData).then(() => {
+        fetchContent()
+    })
+}
 onMounted(() => {
     if (auth.user) fetchContent()
 })
+
+function toggleTimerTypeForTimerByIndex(index: number) {
+    const timer = timerData.timers[index]
+    if (timer.duration !== null) {
+        timer.duration = null
+    } else {
+        timer.duration = 1
+    }
+    auth.postUserData("timerData", timerData).then(() => {
+        fetchContent()
+    })
+}
 
 const bus = useEventBus()
 bus.on("refresh", () => {
@@ -148,9 +193,7 @@ function fetchContent() {
     })
 }
 function createTimer() {
-    if (
-        typeof timerName.value !== "string"
-    ) {
+    if (typeof timerName.value !== "string") {
         return
     }
     const timer: Timer = {
@@ -167,7 +210,25 @@ function createTimer() {
 function onDurationInput(event: Event) {
     const input = event.target as HTMLInputElement
     input.value = input.value.replace(/\D/g, "")
-    timerDuration.value = input.value ? Number(input.value) : null
+    let value = input.value ? Number(input.value) : 1
+
+    if (value < 1) {
+        value = 1
+        input.value = "1"
+    }
+
+    if (input.id === "durationInputField") {
+        timerDuration.value = value
+    } else {
+        const tr = input.closest("tr")
+        if (tr) {
+            const rows = Array.from(tr.parentElement?.children || [])
+            const index = rows.indexOf(tr)
+            if (index !== -1 && timerData.timers[index]) {
+                timerData.timers[index].duration = value
+            }
+        }
+    }
 }
 </script>
 
@@ -184,6 +245,9 @@ select {
     color: black !important;
     outline: none;
     border: 1px solid black;
+}
+.duration-input.table-input {
+   padding-left : 5px;
 }
 input {
     border: 1px solid black;
@@ -212,13 +276,13 @@ input {
     width: 100%;
 }
 
-tr.STOPWATCH td.type{
+tr.STOPWATCH td.type {
     color: green !important;
-} 
+}
 
-tr.COUNTDOWN td.type{
+tr.COUNTDOWN td.type {
     color: red !important;
-} 
+}
 
 .timer-creator-form {
     display: grid;
@@ -248,6 +312,15 @@ tr.COUNTDOWN td.type{
 }
 .delete-button:hover {
     background: rgb(200, 0, 0);
+}
+td.type button {
+    width: 90%;
+    border: 0.5px solid black;
+}
+.table-input {
+    border: 0.5px solid black;
+
+    width: 95%;
 }
 
 .COUNTDOWN .timer-value-inputs {
