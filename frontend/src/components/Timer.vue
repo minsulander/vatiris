@@ -1,6 +1,5 @@
 <template>
   <div class="timer-container">
-    <!-- For both modes: primary button -->
     <button
       class="side-btn"
       @click="handleButton"
@@ -9,11 +8,7 @@
       <span v-if="isRunning">&#10073;&#10073;</span>
       <span v-else>&#9654;</span>
     </button>
-
-    <!-- Time display -->
     <span class="timer-time">{{ formattedTime }}</span>
-
-    <!-- Reset button for stopwatch mode only -->
     <button
       v-if="duration === null"
       class="side-btn"
@@ -29,20 +24,17 @@
 import { onUnmounted, ref, computed, watch } from 'vue'
 
 const props = defineProps<{
-  duration: number | null // in minutes
+  duration: number | null
 }>()
 const { duration } = props
 
-// Convert duration (minutes) to seconds
 const initialSeconds = computed(() => (duration !== null ? duration * 60 : 0))
 
-// Timer state
 const time = ref(initialSeconds.value)
 const started = ref(false)
 const isRunning = ref(false)
 let interval: ReturnType<typeof setInterval> | undefined
 
-// If duration prop changes before start, reset time
 watch(initialSeconds, (newVal) => {
   if (!started.value && duration !== null) {
     time.value = newVal
@@ -85,7 +77,6 @@ function resetCountdown(pause = true) {
 
 function handleButton() {
   if (duration === null) {
-    // Stopwatch: start, pause, resume
     if (!started.value) {
       started.value = true
       startStopwatch()
@@ -98,7 +89,6 @@ function handleButton() {
       startStopwatch()
     }
   } else {
-    // Countdown: single button logic
     if (!started.value) {
       started.value = true
       time.value = initialSeconds.value
