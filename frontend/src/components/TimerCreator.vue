@@ -17,7 +17,7 @@
                 <div class="duration-and-type-inputs">
                     <div v-if="timerType !== 'STOPWATCH'">
                         <label for="durationInputField">
-                            <span v-if="timerType === 'COUNTDOWN'">DURATION</span>
+                            <span v-if="timerType === 'COUNTDOWN'">DURATION (MINUTES)</span>
                         </label>
                         <input
                             type="number"
@@ -155,7 +155,7 @@ function createTimer() {
     }
     const timer: Timer = {
         name: timerName.value,
-        duration: timerType.value === "STOPWATCH" ? null : timerDuration.value,
+        duration: timerType.value === "STOPWATCH" ? null : timerDuration.value || 1,
     }
     timerName.value = ""
     timerDuration.value = null

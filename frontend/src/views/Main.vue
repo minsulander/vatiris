@@ -65,6 +65,7 @@ import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
 import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
+import { useAuthStore } from "@/stores/auth"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
 import GGpush from "@/components/GGpush.vue"
@@ -89,6 +90,7 @@ const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
 
 const wakelock = useWakeLock()
 const bus = useEventBus()
+const auth = useAuthStore()
 
 export interface WindowSpec {
     title: string
@@ -168,8 +170,9 @@ const availableWindows = shallowReactive({
     timer: {
         title: "Timer",
         component: Timer,
-        width: 300,
-        height: 200,
+        width: 155,
+        height: 65,
+        class: "no-resize, no-max",
     },
     timerCreator: {
         title: "Timer Creator",
@@ -449,11 +452,59 @@ function select(id: string | object) {
         ctrl = true
         id = id.substr(5)
     }
+    if (typeof id === "string" && id.startsWith("timer:")) {
+        const idx = Number(id.split(":")[1])
+        const timerWinId = `timer-${idx}` 
+        auth.fetchUserData("timerData").then((data) => {
+            const timers = data?.timers || []
+            const timer = timers[idx]
+            let title = `Timer`
+            let duration = null
+            if (timer) {
+                title = timer.name
+                if (timer.duration) {
+                    title += ` (${timer.duration} min)`
+                    duration = timer.duration
+                }
+            } else {
+                title = `Timer ${idx}`
+            }
+            if (!(timerWinId in availableWindows)) {
+                availableWindows[timerWinId] = {
+                    title,
+                    component: Timer,
+                    width: 155,
+                    height: 65,
+                    class: "no-resize, no-max",
+                    props: { timerIndex: idx, duration }
+                }
+            } else {
+                availableWindows[timerWinId].title = title
+                availableWindows[timerWinId].props = { timerIndex: idx, duration }
+            }
+            if (!(timerWinId in windows.layout)) {
+                windows.layout[timerWinId] = { enabled: true }
+            } else {
+                windows.layout[timerWinId].enabled = true
+            }
+            windows.focusId = timerWinId
+        })
+        return
+    }
+    if (id === "timerCreator") {
+        const timerCreatorId = "timerCreator"
+        if (!(timerCreatorId in windows.layout)) {
+            windows.layout[timerCreatorId] = { enabled: true }
+        } else {
+            windows.layout[timerCreatorId].enabled = true
+        }
+        windows.focusId = timerCreatorId
+        return
+    }
     if (typeof id == "object") {
         // submenu
     } else if (id in availableWindows) {
         if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
-            // ctrl-click on image/iframe opens in new tab
             window.open(availableWindows[id].props.src, "_blank")
         } else if (id in windows.winbox) {
             if (windows.winbox[id].min) windows.winbox[id].restore()
