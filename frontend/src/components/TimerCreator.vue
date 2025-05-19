@@ -9,7 +9,7 @@
                     <input
                         type="text"
                         id="titleInputField"
-                        placeholder="REQUIRED"
+                        :placeholder="defaultTimerName"
                         v-model="timerName"
                     />
                 </div>
@@ -48,13 +48,11 @@
 
             <div>
                 <label for="createButton">
-                    <span v-if="!timerName">TITLE REQUIRED</span>
-                    <span v-else-if="timerType === 'COUNTDOWN' && !timerDuration">
-                        DURATION REQUIRED
+                    <span>
+                        DEFAULTS TO {{ defaultTimerName }}
                     </span>
-                    <span v-else> CREATE TIMER </span>
                 </label>
-                <button id="createButton" @click="createTimer" :disabled="!timerName">
+                <button id="createButton" @click="createTimer">
                     CREATE
                 </button>
             </div>
@@ -110,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, reactive } from "vue"
+import { ref, watch, onMounted, reactive, computed } from "vue"
 import { useAuthStore } from "@/stores/auth"
 import useEventBus from "@/eventbus"
 
@@ -192,12 +190,23 @@ function fetchContent() {
         timerData.timers = data.timers
     })
 }
-function createTimer() {
-    if (typeof timerName.value !== "string") {
-        return
+
+const defaultTimerName = computed(() => {
+    let nextNumber = 1
+    const existingNames = timerData.timers.map(t => t.name.toLowerCase())
+    while (existingNames.includes(`TIMER ${nextNumber}`)) {
+        nextNumber++
     }
+    return `TIMER ${nextNumber}`
+})
+
+function createTimer() {
+    const nameToUse = timerName.value && timerName.value.trim() !== ""
+        ? timerName.value
+        : defaultTimerName.value
+
     const timer: Timer = {
-        name: timerName.value,
+        name: nameToUse,
         duration: timerType.value === "STOPWATCH" ? null : timerDuration.value || 1,
     }
     timerName.value = ""
@@ -207,6 +216,7 @@ function createTimer() {
         fetchContent()
     })
 }
+
 function onDurationInput(event: Event) {
     const input = event.target as HTMLInputElement
     input.value = input.value.replace(/\D/g, "")
@@ -283,7 +293,9 @@ tr.STOPWATCH td.type {
 tr.COUNTDOWN td.type {
     color: red !important;
 }
-
+span {
+    font-size:12px;
+}
 .timer-creator-form {
     display: grid;
     gap: 5px;
