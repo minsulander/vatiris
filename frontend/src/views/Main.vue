@@ -468,90 +468,155 @@ function removeOpenTimer(idx: number) {
     setOpenTimersToStorage(open)
 }
 
+function getTimerLayoutsFromStorage() {
+    try {
+        return JSON.parse(localStorage.getItem("timerLayouts") || "{}")
+    } catch {
+        return {}
+    }
+}
+function setTimerLayoutsToStorage(layouts: Record<string, any>) {
+    localStorage.setItem("timerLayouts", JSON.stringify(layouts))
+}
+function saveTimerLayout(winId: string, layout: any) {
+    const layouts = getTimerLayoutsFromStorage()
+    layouts[winId] = layout
+    setTimerLayoutsToStorage(layouts)
+}
+function loadTimerLayout(winId: string) {
+    const layouts = getTimerLayoutsFromStorage()
+    return layouts[winId] || null
+}
+function patchWinboxEventsForTimer(winId: string) {
+    setTimeout(() => {
+        const winbox = windows.winbox[winId]
+        if (!winbox || winbox._timerLayoutPatched) return
+        winbox._timerLayoutPatched = true
+        const save = () => {
+            saveTimerLayout(winId, {
+                x: winbox.x,
+                y: winbox.y,
+                width: winbox.width,
+                height: winbox.height,
+            })
+        }
+        winbox.on('move', save)
+        winbox.on('resize', save)
+    }, 0)
+}
+
 function select(id: string | object) {
-    let ctrl = false
-    if (typeof id == "string" && id.startsWith("ctrl+")) {
-        ctrl = true
-        id = id.substr(5)
+    const { normalizedId, ctrl } = extractCtrl(id)
+
+    if (isTimerSelector(normalizedId)) {
+        return handleTimer(+normalizedId.split(":")[1])
     }
-    if (typeof id === "string" && id.startsWith("timer:")) {
-        const idx = Number(id.split(":")[1])
-        addOpenTimer(idx)
-        const timerWinId = `timer-${idx}` 
-        auth.fetchUserData("timerData").then((data) => {
-            const timers = data?.timers || []
-            const timer = timers[idx]
-            let title = `Timer`
-            let duration = null
-            let isStopwatch = true
-            if (timer) {
-                title = timer.name
-                if (timer.duration) {
-                    title += ` (${timer.duration} min)`
-                    duration = timer.duration
-                }
-                if (timer.isStopwatch) {
-                    isStopwatch = timer.isStopwatch
-                }
-            } else {
-                title = `Timer ${idx}`
-            }
-            if (!(timerWinId in availableWindows)) {
-                availableWindows[timerWinId] = {
-                    title,
-                    component: Timer,
-                    width: 155,
-                    height: 65,
-                    class: "no-resize, no-max",
-                    props: { timerIndex: idx, duration, isStopwatch: isStopwatch },
-                }
-            } else {
-                availableWindows[timerWinId].title = title
-                availableWindows[timerWinId].props = { timerIndex: idx, duration }
-            }
-            if (!(timerWinId in windows.layout)) {
-                windows.layout[timerWinId] = { enabled: true }
-            } else {
-                windows.layout[timerWinId].enabled = true
-            }
-            windows.focusId = timerWinId
-        })
-        return
+
+    if (typeof normalizedId === "string" && normalizedId === "timerCreator") {
+        return openWindow("timerCreator", { enabled: true })
     }
-    if (id === "timerCreator") {
-        const timerCreatorId = "timerCreator"
-        if (!(timerCreatorId in windows.layout)) {
-            windows.layout[timerCreatorId] = { enabled: true }
-        } else {
-            windows.layout[timerCreatorId].enabled = true
-        }
-        windows.focusId = timerCreatorId
-        return
+
+    if (typeof normalizedId === "object") {
+        return handleSubmenu(normalizedId)
     }
-    if (typeof id == "object") {
-        // submenu
-    } else if (id in availableWindows) {
-        if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
-            window.open(availableWindows[id].props.src, "_blank")
-        } else if (id in windows.winbox) {
-            if (windows.winbox[id].min) windows.winbox[id].restore()
-            windows.winbox[id].focus()
-        } else {
-            if (id in windows.layout) {
-                windows.layout[id].enabled = true
-            } else {
-                windows.layout[id] = { enabled: true }
-            }
-        }
-        windows.focusId = id
-    } else if (id.startsWith && id.startsWith("https://")) {
-        const [url, target] = id.split("|")
-        window.open(url, target || "_blank")
-    } else if (id == "about") {
+
+    if (normalizedId in availableWindows) {
+        return handleAppWindow(normalizedId, ctrl)
+    }
+
+    if (isExternalLink(normalizedId)) {
+        return openExternal(normalizedId)
+    }
+
+    if (typeof normalizedId === "string" && normalizedId === "about") {
         showAboutDialog.value = true
-    } else {
-        console.error(`Unknown menu selection: ${id}`)
+        return
     }
+
+    console.error(`Unknown menu selection: ${normalizedId}`)
+}
+
+
+
+function extractCtrl(raw: string | object): { normalizedId: string | object; ctrl: boolean } {
+    if (typeof raw === "string" && raw.startsWith("ctrl+")) {
+        return { normalizedId: raw.slice(5), ctrl: true }
+    }
+    return { normalizedId: raw, ctrl: false }
+}
+
+function isTimerSelector(id: any): id is string {
+    return typeof id === "string" && id.startsWith("timer:")
+}
+
+function handleTimer(idx: number) {
+    addOpenTimer(idx)
+    const winId = `timer-${idx}`
+    const savedLayout = loadTimerLayout(winId)
+    auth.fetchUserData("timerData").then((data) => {
+        const timers = data?.timers || []
+        const timer = timers[idx]
+        const title = timer
+            ? `${timer.name}${timer.duration ? ` (${timer.duration} min)` : ""}`
+            : `Timer ${idx}`
+        const duration = timer?.duration ?? null
+        const isStopwatch = timer?.isStopwatch ?? true
+        const winDef = {
+            title,
+            component: Timer,
+            width: savedLayout?.width || 155,
+            height: savedLayout?.height || 65,
+            class: "no-resize, no-max",
+            props: { timerIndex: idx, duration, isStopwatch },
+        }
+        availableWindows[winId] = availableWindows[winId]
+            ? { ...availableWindows[winId], title, props: winDef.props }
+            : winDef
+        if (windows.layout[winId]) {
+            windows.layout[winId].enabled = true
+            if (savedLayout) {
+                Object.assign(windows.layout[winId], savedLayout)
+            }
+        } else {
+            windows.layout[winId] = { enabled: true, ...(savedLayout || {}) }
+        }
+        windows.focusId = winId
+        patchWinboxEventsForTimer(winId)
+    })
+}
+
+function openWindow(id: string, layoutOpts: { enabled: boolean }) {
+    windows.layout[id] = layoutOpts
+    windows.focusId = id
+}
+
+function handleSubmenu(obj: object) {
+}
+
+function handleAppWindow(id: string, ctrl: boolean) {
+    const win = availableWindows[id]
+
+    if (ctrl && win.props?.src) {
+        return window.open(win.props.src, "_blank")
+    }
+
+    if (id in windows.winbox) {
+        const box = windows.winbox[id]
+        if (box.min) box.restore()
+        return box.focus()
+    }
+
+    windows.layout[id] = { enabled: true }
+    windows.focusId = id
+}
+
+function isExternalLink(id: any): id is string {
+    return typeof id === "string" && id.startsWith("https://")
+}
+
+function openExternal(raw: string) {
+    const [url, target] = raw.split("|")
+    window.open(url, target || "_blank")
 }
 
 function unselect(id: string) {
@@ -570,7 +635,6 @@ onMounted(() => {
     bus.on("select", select)
     bus.on("unselect", unselect)
 
-    // Restore open timer windows
     const openTimers = getOpenTimersFromStorage()
     if (Array.isArray(openTimers)) {
         for (const idx of openTimers) {
