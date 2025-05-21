@@ -194,7 +194,7 @@ function fetchContent() {
 const defaultTimerName = computed(() => {
     let nextNumber = 1
     const existingNames = timerData.timers.map(t => t.name.toLowerCase())
-    while (existingNames.includes(`TIMER ${nextNumber}`)) {
+    while (existingNames.includes(`timer ${nextNumber}`)) {
         nextNumber++
     }
     return `TIMER ${nextNumber}`
