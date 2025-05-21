@@ -446,27 +446,7 @@ for (const direct of directsData) {
     }
 }
 
-function getOpenTimersFromStorage() {
-    try {
-        return JSON.parse(localStorage.getItem("openTimers") || "[]")
-    } catch {
-        return []
-    }
-}
-function setOpenTimersToStorage(indices: number[]) {
-    localStorage.setItem("openTimers", JSON.stringify(indices))
-}
-function addOpenTimer(idx: number) {
-    const open = getOpenTimersFromStorage()
-    if (!open.includes(idx)) {
-        open.push(idx)
-        setOpenTimersToStorage(open)
-    }
-}
-function removeOpenTimer(idx: number) {
-    const open = getOpenTimersFromStorage().filter((i: number) => i !== idx)
-    setOpenTimersToStorage(open)
-}
+const timerRefs: { [key: string]: any } = {}
 
 function select(id: string | object) {
     let ctrl = false
@@ -476,7 +456,6 @@ function select(id: string | object) {
     }
     if (typeof id === "string" && id.startsWith("timer:")) {
         const idx = Number(id.split(":")[1])
-        addOpenTimer(idx)
         const timerWinId = `timer-${idx}` 
         auth.fetchUserData("timerData").then((data) => {
             const timers = data?.timers || []
@@ -490,12 +469,13 @@ function select(id: string | object) {
                     title += ` (${timer.duration} min)`
                     duration = timer.duration
                 }
-                if (timer.isStopwatch) {
-                    isStopwatch = timer.isStopwatch
-                }
+                isStopwatch = !!timer.isStopwatch
             } else {
                 title = `Timer ${idx}`
             }
+            if (!timerRefs[timerWinId]) timerRefs[timerWinId] = ref(timer)
+            else timerRefs[timerWinId].value = timer
+
             if (!(timerWinId in availableWindows)) {
                 availableWindows[timerWinId] = {
                     title,
@@ -503,11 +483,11 @@ function select(id: string | object) {
                     width: 155,
                     height: 65,
                     class: "no-resize, no-max",
-                    props: { timerIndex: idx, duration, isStopwatch: isStopwatch },
+                    props: { timer: timerRefs[timerWinId], timerIndex: idx, duration, isStopwatch },
                 }
             } else {
                 availableWindows[timerWinId].title = title
-                availableWindows[timerWinId].props = { timerIndex: idx, duration }
+                availableWindows[timerWinId].props = { timer: timerRefs[timerWinId], timerIndex: idx, duration, isStopwatch }
             }
             if (!(timerWinId in windows.layout)) {
                 windows.layout[timerWinId] = { enabled: true }
@@ -555,10 +535,6 @@ function select(id: string | object) {
 }
 
 function unselect(id: string) {
-    if (id.startsWith && id.startsWith("timer-")) {
-        const idx = Number(id.split("-")[1])
-        removeOpenTimer(idx)
-    }
     if (id in windows.winbox) {
         windows.winbox[id].close()
     }
@@ -570,12 +546,39 @@ onMounted(() => {
     bus.on("select", select)
     bus.on("unselect", unselect)
 
-    // Restore open timer windows
-    const openTimers = getOpenTimersFromStorage()
-    if (Array.isArray(openTimers)) {
-        for (const idx of openTimers) {
-            select(`timer:${idx}`)
-        }
+    const timerWinIds = Object.keys(windows.layout).filter((id) => id.startsWith("timer-") && windows.layout[id].enabled)
+    if (timerWinIds.length > 0) {
+        auth.fetchUserData("timerData").then((data) => {
+            const timers = data?.timers || []
+            for (const timerWinId of timerWinIds) {
+                const idx = Number(timerWinId.split("-")[1])
+                const timer = timers[idx]
+                let title = `Timer`
+                let duration = null
+                let isStopwatch = true
+                if (timer) {
+                    title = timer.name
+                    if (timer.duration) {
+                        title += ` (${timer.duration} min)`
+                        duration = timer.duration
+                    }
+                    isStopwatch = !!timer.isStopwatch
+                } else {
+                    title = `Timer ${idx}`
+                }
+                if (!timerRefs[timerWinId]) timerRefs[timerWinId] = ref(timer)
+                else timerRefs[timerWinId].value = timer
+
+                availableWindows[timerWinId] = {
+                    title,
+                    component: Timer,
+                    width: 155,
+                    height: 65,
+                    class: "no-resize, no-max",
+                    props: { timer: timerRefs[timerWinId], timerIndex: idx, duration, isStopwatch },
+                }
+            }
+        })
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {

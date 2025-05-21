@@ -9,16 +9,32 @@
 </template>
 
 <script setup lang="ts">
-import moment, { duration } from "moment"
-import { onMounted, onUnmounted, ref, watch } from "vue"
+import moment from "moment"
+import { onMounted, onUnmounted, ref, watch, toRefs, computed } from "vue"
 import useEventBus from "@/eventbus"
 import Submenu from "@/components/menu/Submenu.vue"
 import { useAuthStore } from "@/stores/auth"
 
+
+const props = defineProps<{
+    timers?: any[] | null
+}>()
+const { timers: propTimers } = toRefs(props)
+
 const auth = useAuthStore()
 const bus = useEventBus()
 
-let timers = ref([] as any[])
+const savedTimers = ref([
+    { name: "snigel", duration: 1, isStopwatch: true },
+])
+
+
+const effectiveTimers = computed({
+    get: () => propTimers.value ?? savedTimers.value,
+    set: (val) => {
+        if (!propTimers.value) savedTimers.value = val
+    }
+})
 
 const time = ref("99:99:99")
 const timer = ref(false)
@@ -72,28 +88,22 @@ function fetchTimers() {
     })
 }
 
-let savedTimers = ref([
-    { name: "snigel", duration: 1, isStopwatch: true },
-])
-
 const submenuItems = ref({})
 
 function formatTimerLabel(timer: any) {
-    console.log("formatTimerLabel", timer)
     if (timer.isStopwatch) return `${timer.name} (stopwatch)`
     if (timer.duration) return `${timer.name} (${timer.duration} min)`
     return timer.name
 }
 
+// Watch the value of the ref for reactivity
 watch(
-    savedTimers,
-    (timers) => {
-        console.log("watch timers", timers)
+    () => effectiveTimers.value,
+    (timersVal) => {
         const items: Record<string, string> = { "TIMER CREATOR": "timerCreator" }
-        timers.forEach((timer, idx) => {
+        timersVal.forEach((timer: any, idx: number) => {
             items[formatTimerLabel(timer)] = `timer:${idx}`
         })
-        console.log("submenuItems", items)
         submenuItems.value = items
     },
     { immediate: true },

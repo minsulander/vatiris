@@ -21,16 +21,21 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, computed, watch } from 'vue'
+import { onUnmounted, ref, computed, watch, toRefs } from 'vue'
 
 const props = defineProps<{
-  name: string
-  duration: number
-  isStopwatch: boolean
+  timer: any 
+  timerIndex?: number
+  duration?: number
+  isStopwatch?: boolean
 }>()
-const { duration, isStopwatch } = props
+const { timer } = toRefs(props)
 
-const initialSeconds = computed(() => (isStopwatch ? 0 : duration * 60))
+const name = computed(() => timer.value?.name ?? '')
+const isStopwatch = computed(() => timer.value?.isStopwatch ?? props.isStopwatch ?? false)
+const duration = computed(() => timer.value?.duration ?? props.duration ?? 1)
+
+const initialSeconds = computed(() => (isStopwatch.value ? 0 : duration.value * 60))
 
 const time = ref(initialSeconds.value)
 const started = ref(false)
@@ -38,10 +43,11 @@ const isRunning = ref(false)
 let interval: ReturnType<typeof setInterval> | undefined
 
 watch(initialSeconds, (newVal) => {
-  if (!started.value && !isStopwatch) {
+  if (!started.value && !isStopwatch.value) {
     time.value = newVal
   }
 })
+
 
 function startStopwatch() {
   clearInterval(interval)
@@ -68,7 +74,6 @@ function startCountdown() {
 function resetStopwatch() {
   time.value = 0
 }
-
 function resetCountdown(pause = true) {
   time.value = initialSeconds.value
   isRunning.value = !pause
@@ -78,7 +83,7 @@ function resetCountdown(pause = true) {
 }
 
 function handleButton() {
-  if (isStopwatch) {
+  if (isStopwatch.value) {
     if (!started.value) {
       started.value = true
       startStopwatch()
@@ -116,7 +121,7 @@ const formattedTime = computed(() => {
 })
 
 const buttonTitle = computed(() => {
-  if (isStopwatch) {
+  if (isStopwatch.value) {
     return isRunning.value ? 'Pause' : (started.value ? 'Resume' : 'Start')
   }
   if (!started.value) return 'Start'

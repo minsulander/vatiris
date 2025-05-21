@@ -148,6 +148,7 @@ function deleteTimer(index: number) {
     auth.postUserData("timerData", timerData).then(() => {
         fetchContent()
     })
+    bus.emit("unselect", "timer-"+index)
 }
 function changeTimerName(name: string, index: number) {
     timerData.timers[index].name = name
