@@ -446,6 +446,28 @@ for (const direct of directsData) {
     }
 }
 
+function getOpenTimersFromStorage() {
+    try {
+        return JSON.parse(localStorage.getItem("openTimers") || "[]")
+    } catch {
+        return []
+    }
+}
+function setOpenTimersToStorage(indices: number[]) {
+    localStorage.setItem("openTimers", JSON.stringify(indices))
+}
+function addOpenTimer(idx: number) {
+    const open = getOpenTimersFromStorage()
+    if (!open.includes(idx)) {
+        open.push(idx)
+        setOpenTimersToStorage(open)
+    }
+}
+function removeOpenTimer(idx: number) {
+    const open = getOpenTimersFromStorage().filter((i: number) => i !== idx)
+    setOpenTimersToStorage(open)
+}
+
 function select(id: string | object) {
     let ctrl = false
     if (typeof id == "string" && id.startsWith("ctrl+")) {
@@ -454,6 +476,7 @@ function select(id: string | object) {
     }
     if (typeof id === "string" && id.startsWith("timer:")) {
         const idx = Number(id.split(":")[1])
+        addOpenTimer(idx)
         const timerWinId = `timer-${idx}` 
         auth.fetchUserData("timerData").then((data) => {
             const timers = data?.timers || []
@@ -532,6 +555,10 @@ function select(id: string | object) {
 }
 
 function unselect(id: string) {
+    if (id.startsWith && id.startsWith("timer-")) {
+        const idx = Number(id.split("-")[1])
+        removeOpenTimer(idx)
+    }
     if (id in windows.winbox) {
         windows.winbox[id].close()
     }
@@ -542,6 +569,14 @@ onMounted(() => {
     document.addEventListener("visibilitychange", onVisibilityChange)
     bus.on("select", select)
     bus.on("unselect", unselect)
+
+    // Restore open timer windows
+    const openTimers = getOpenTimersFromStorage()
+    if (Array.isArray(openTimers)) {
+        for (const idx of openTimers) {
+            select(`timer:${idx}`)
+        }
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if ((e.shiftKey || e.ctrlKey) && e.key === "Escape" && windows.focusId) {
