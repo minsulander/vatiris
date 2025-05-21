@@ -70,7 +70,7 @@
                     <tr
                         v-for="(timer, index) in timerData.timers"
                         :key="index"
-                        :class="timer.duration ? 'COUNTDOWN' : 'STOPWATCH'"
+                        :class="timer.isStopwatch ? 'STOPWATCH' : 'COUNTDOWN'"
                     >
                         <td>
                             <input
@@ -81,12 +81,12 @@
                             />
                         </td>
                         <td class="type">
-                            <button @click="toggleTimerTypeForTimerByIndex(index)">{{ timer.duration ? "COUNTDOWN" : "STOPWATCH" }}</button>
+                            <button @click="toggleTimerTypeForTimerByIndex(index)">{{ timer.isStopwatch ? "STOPWATCH" : "COUNTDOWN" }}</button>
                         </td>
                         <td>
                             <input
                             class="duration-input table-input"
-                                v-if="timer.duration !== null"
+                                v-if="!timer.isStopwatch"
                                 type="number"
                                 min="1"
                                 step="1"
@@ -114,7 +114,8 @@ import useEventBus from "@/eventbus"
 
 interface Timer {
     name: string
-    duration: number | null
+    duration: number
+    isStopwatch: boolean
 }
 
 const timerType = ref("COUNTDOWN")
@@ -123,12 +124,12 @@ const timerName = ref("")
 const timerData = reactive({
     timers: [] as Timer[],
 })
-const timerDuration = ref<number | null>(1)
+const timerDuration = ref<number>(1)
 
 function toggleTimerType() {
     if (timerType.value === "COUNTDOWN") {
         timerType.value = "STOPWATCH"
-        timerDuration.value = null
+        timerDuration.value = 1
     } else {
         timerType.value = "COUNTDOWN"
         timerDuration.value = 1
@@ -154,7 +155,7 @@ function changeTimerName(name: string, index: number) {
         fetchContent()
     })
 }
-function changeTimerDuration(duration: number | null, index: number) {
+function changeTimerDuration(duration: number, index: number) {
     timerData.timers[index].duration = duration
     auth.postUserData("timerData", timerData).then(() => {
         fetchContent()
@@ -166,9 +167,8 @@ onMounted(() => {
 
 function toggleTimerTypeForTimerByIndex(index: number) {
     const timer = timerData.timers[index]
-    if (timer.duration !== null) {
-        timer.duration = null
-    } else {
+    timer.isStopwatch = !timer.isStopwatch
+    if (!timer.isStopwatch && (!timer.duration || timer.duration < 1)) {
         timer.duration = 1
     }
     auth.postUserData("timerData", timerData).then(() => {
@@ -187,7 +187,15 @@ function fetchContent() {
             auth.postUserData("timerData", { timers: [] })
             return
         }
-        timerData.timers = data.timers
+        
+        timerData.timers = (data.timers || []).map((t: any) => {
+            if (typeof t.isStopwatch === 'boolean') return t
+            return {
+                name: t.name,
+                duration: t.duration === null ? 1 : t.duration,
+                isStopwatch: t.duration === null,
+            }
+        })
     })
 }
 
@@ -207,10 +215,11 @@ function createTimer() {
 
     const timer: Timer = {
         name: nameToUse,
-        duration: timerType.value === "STOPWATCH" ? null : timerDuration.value || 1,
+        duration: timerType.value === "STOPWATCH" ? 1 : (timerDuration.value || 1),
+        isStopwatch: timerType.value === "STOPWATCH",
     }
     timerName.value = ""
-    timerDuration.value = null
+    timerDuration.value = 1
     timerData.timers = [...timerData.timers, timer]
     auth.postUserData("timerData", timerData).then(() => {
         fetchContent()

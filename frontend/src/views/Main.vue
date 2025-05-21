@@ -460,11 +460,15 @@ function select(id: string | object) {
             const timer = timers[idx]
             let title = `Timer`
             let duration = null
+            let isStopwatch = true
             if (timer) {
                 title = timer.name
                 if (timer.duration) {
                     title += ` (${timer.duration} min)`
                     duration = timer.duration
+                }
+                if (timer.isStopwatch) {
+                    isStopwatch = timer.isStopwatch
                 }
             } else {
                 title = `Timer ${idx}`
@@ -476,7 +480,7 @@ function select(id: string | object) {
                     width: 155,
                     height: 65,
                     class: "no-resize, no-max",
-                    props: { timerIndex: idx, duration }
+                    props: { timerIndex: idx, duration, isStopwatch: isStopwatch },
                 }
             } else {
                 availableWindows[timerWinId].title = title

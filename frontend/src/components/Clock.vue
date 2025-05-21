@@ -61,38 +61,40 @@ function fetchTimers() {
 
     auth.fetchUserData("timerData").then((data) => {
         if (data) {
-            savedTimers.value = data.timers
+            savedTimers.value = data.timers.map((t: any) => ({
+                ...t,
+                isStopwatch:
+                    t.isStopwatch === true ||
+                    t.isStopwatch === "true" ||
+                    t.isStopwatch === 1,
+            }))
         }
     })
 }
 
 let savedTimers = ref([
-    { name: "snigel", duration: 1 },
-    { name: "snigel2", duration: 2 },
-    { name: "snigel3", duration: 3 },
-    { name: "snigel4", duration: 4 },
-    { name: "snigel5", duration: 5 },
-    { name: "snigel6", duration: 6 },
-    { name: "snigel7", duration: 7 },
-    { name: "snigel8", duration: 8 },
-    { name: "snigel9", duration: 9 },
-    { name: "snigel10", duration: 10 },
+    { name: "snigel", duration: 1, isStopwatch: true },
 ])
 
 const submenuItems = ref({})
 
+function formatTimerLabel(timer: any) {
+    console.log("formatTimerLabel", timer)
+    if (timer.isStopwatch) return `${timer.name} (stopwatch)`
+    if (timer.duration) return `${timer.name} (${timer.duration} min)`
+    return timer.name
+}
+
 watch(
     savedTimers,
-    (newTimers) => {
-        submenuItems.value = {
-            "TIMER CREATOR": "timerCreator",
-            ...Object.fromEntries(
-                newTimers.map((timer, index) => [
-                    timer.name + (timer.duration ? ` (${timer.duration} min)` : ""),
-                    "timer:" + String(index),
-                ]),
-            ),
-        }
+    (timers) => {
+        console.log("watch timers", timers)
+        const items: Record<string, string> = { "TIMER CREATOR": "timerCreator" }
+        timers.forEach((timer, idx) => {
+            items[formatTimerLabel(timer)] = `timer:${idx}`
+        })
+        console.log("submenuItems", items)
+        submenuItems.value = items
     },
     { immediate: true },
 )

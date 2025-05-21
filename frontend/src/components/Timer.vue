@@ -10,7 +10,7 @@
     </button>
     <span class="timer-time">{{ formattedTime }}</span>
     <button
-      v-if="duration === null"
+      v-if="isStopwatch"
       class="side-btn"
       @click="resetStopwatch"
       title="Reset"
@@ -24,11 +24,13 @@
 import { onUnmounted, ref, computed, watch } from 'vue'
 
 const props = defineProps<{
-  duration: number | null
+  name: string
+  duration: number
+  isStopwatch: boolean
 }>()
-const { duration } = props
+const { duration, isStopwatch } = props
 
-const initialSeconds = computed(() => (duration !== null ? duration * 60 : 0))
+const initialSeconds = computed(() => (isStopwatch ? 0 : duration * 60))
 
 const time = ref(initialSeconds.value)
 const started = ref(false)
@@ -36,7 +38,7 @@ const isRunning = ref(false)
 let interval: ReturnType<typeof setInterval> | undefined
 
 watch(initialSeconds, (newVal) => {
-  if (!started.value && duration !== null) {
+  if (!started.value && !isStopwatch) {
     time.value = newVal
   }
 })
@@ -76,7 +78,7 @@ function resetCountdown(pause = true) {
 }
 
 function handleButton() {
-  if (duration === null) {
+  if (isStopwatch) {
     if (!started.value) {
       started.value = true
       startStopwatch()
@@ -114,7 +116,7 @@ const formattedTime = computed(() => {
 })
 
 const buttonTitle = computed(() => {
-  if (duration === null) {
+  if (isStopwatch) {
     return isRunning.value ? 'Pause' : (started.value ? 'Resume' : 'Start')
   }
   if (!started.value) return 'Start'
