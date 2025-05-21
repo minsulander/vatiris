@@ -179,6 +179,7 @@ const availableWindows = shallowReactive({
         component: TimerCreator,
         width: 700,
         height: 400,
+        minWidth: 555,
     },
     notepad: {
         title: "NOTEPAD",
@@ -466,7 +467,7 @@ function select(id: string | object) {
             if (timer) {
                 title = timer.name
                 if (timer.duration) {
-                    title += ` (${timer.duration} min)`
+                    title
                     duration = timer.duration
                 }
                 isStopwatch = !!timer.isStopwatch

@@ -26,16 +26,24 @@ import { onUnmounted, ref, computed, watch, toRefs } from 'vue'
 const props = defineProps<{
   timer: any 
   timerIndex?: number
-  duration?: number
+  duration?: [number, number] 
   isStopwatch?: boolean
 }>()
 const { timer } = toRefs(props)
 
 const name = computed(() => timer.value?.name ?? '')
 const isStopwatch = computed(() => timer.value?.isStopwatch ?? props.isStopwatch ?? false)
-const duration = computed(() => timer.value?.duration ?? props.duration ?? 1)
+const durationTuple = computed<[number, number]>(() => {
+  if (Array.isArray(timer.value?.duration)) return timer.value.duration
+  if (Array.isArray(props.duration)) return props.duration
+  return [1, 0]
+})
 
-const initialSeconds = computed(() => (isStopwatch.value ? 0 : duration.value * 60))
+const initialSeconds = computed(() => {
+  if (isStopwatch.value) return 0
+  const [min, sec] = durationTuple.value
+  return min * 60 + sec
+})
 
 const time = ref(initialSeconds.value)
 const started = ref(false)
@@ -47,7 +55,6 @@ watch(initialSeconds, (newVal) => {
     time.value = newVal
   }
 })
-
 
 function startStopwatch() {
   clearInterval(interval)

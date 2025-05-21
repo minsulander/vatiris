@@ -96,7 +96,6 @@ function formatTimerLabel(timer: any) {
     return timer.name
 }
 
-// Watch the value of the ref for reactivity
 watch(
     () => effectiveTimers.value,
     (timersVal) => {
