@@ -157,11 +157,13 @@ const extraRunway = computed(() => {
 })
 
 const extractWind = (text: string) => {
+
     const windPatterns = [
         /WIND (\d{3}\/\d{2,3}KT\s+VRB BTN \d{3}\/ AND \d{3}\/)/, // WIND {wind_dir}/{wind_spd}KT VRB BTN {wind_vmin}/ AND {wind_vmax}/
         /WIND (\d{3}\/\d{2,3}KT(?:\s+MAX \d+)?)/, // WIND {wind_dir}/{wind_spd}KT [MAX {wind_gust}]
         /WIND (VRB \d{2,3}KT(?:\s+MAX \d+)?)/, // WIND VRB {wind_spd}KT [MAX {wind_gust}]
         /WIND (CALM)/, // WIND CALM
+        /WIND (\d{3}\sDEG\s\d{2,3}\s?KT)/
     ]
 
     for (const pattern of windPatterns) {
@@ -310,7 +312,7 @@ const extractClouds = (text: string) => {
 }
 
 const extractTemperature = (text: string) => {
-    const match = text.match(/T(M?)(\d{2})\//)
+    const match = text.match(/T\s*(M?)(\d+)[\s/]/)
     if (match) {
         if (match[1] == "M") match[1] = "MS"
         return `T${match[1]}${match[2]}`
@@ -319,7 +321,7 @@ const extractTemperature = (text: string) => {
 }
 
 const extractDewpoint = (text: string) => {
-    const match = text.match(/\/DP(M?)(\d{2})/)
+    const match = text.match(/[\s/]DP\s*(M?)(\d+)/)
     if (match) {
         if (match[1] == "M") match[1] = "MS"
         return `DP${match[1]}${match[2]}`
@@ -372,7 +374,7 @@ const formatAtisText = (text: string) => {
         return processedOther
     })
 
-    const icao = extractInfo(/^(ES[A-Z]{2})/)
+    const icao = extractInfo(/^(ES[A-Z]{2})/) || props.id.toUpperCase()
     const atisLetter = extractInfo(/ATIS ([A-Z])/)
     let atisCode = atisLetters[atisLetter as keyof typeof atisLetters] || ""
     if (props.id === "ESSA" && !props.type) {
@@ -390,7 +392,7 @@ const formatAtisText = (text: string) => {
         if (match && match[1] != runway) runway += "/" + match[1]
     }
 
-    const time = extractInfo(/TIME (\d{4})Z/, "")
+    const time = extractInfo(/TIME (\d{4})[Z\s]/, "")
     const date = extractInfo(/(\d{6}Z)/)
     const wind = extractWind(text)
     const vis = extractVisibility(text)
@@ -398,7 +400,7 @@ const formatAtisText = (text: string) => {
     const clouds = extractClouds(text)
     const temperature = extractTemperature(text)
     const dewpoint = extractDewpoint(text)
-    const qnh = extractInfo(/QNH\s+(\d{3,4})\s+HPA/).padStart(4, "0")
+    const qnh = extractInfo(/QNH\s*(\d{3,4})\s*HPA/).padStart(4, "0")
     const qnhTrend = vatsim.qnhTrend(props.id)
     const trend =
         typeof qnhTrend == "undefined"
