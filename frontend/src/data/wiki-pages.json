@@ -29,6 +29,11 @@
         "book": "lop",
         "page": "esgg"
     },
+    "lop-esgg-app": {
+        "title": "LOP ESGG APP",
+        "book": "lop",
+        "page": "esgg-app"
+    },
     "lop-esgj": {
         "title": "LOP ESGJ",
         "book": "lop",
