@@ -68,6 +68,9 @@ import { useAirportStore } from "./stores/airport"
 import moment from "moment"
 import axios from "axios"
 import useEventBus from "./eventbus"
+import { registerSW } from "virtual:pwa-register"
+
+registerSW({ immediate: true })
 
 const global = window as any
 
