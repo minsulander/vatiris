@@ -9,11 +9,6 @@
         "book": "lop",
         "page": "esmm-acc-appendix-b"
     },
-    "vatiris": {
-        "title": "VatIRIS Manual",
-        "book": "gen-k9C",
-        "page": "vatiris"
-    },
     "gop-mil": {
         "title": "GOP MIL",
         "book": "gop",
@@ -249,7 +244,7 @@
         "book": "event-procedures",
         "page": "fly-and-see-santa-2024"
     },
-    "vatiris-manual": {
+    "vatiris": {
         "title": "VatIRIS Manual",
         "book": "general",
         "page": "vatiris"
