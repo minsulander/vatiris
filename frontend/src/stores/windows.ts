@@ -9,6 +9,7 @@ export interface WindowLayout {
     min?: boolean
     max?: boolean
     enabled?: boolean
+    title?: string
 }
 
 export const useWindowsStore = defineStore("windows", () => {
