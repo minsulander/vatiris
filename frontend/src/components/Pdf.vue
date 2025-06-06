@@ -26,6 +26,8 @@ const div = ref()
 
 const rewrittenSrc = computed(() => {
     let src = props.src
+    if (settings.customPdfBrowser && src.includes("aro.lfv.se/content/eaip"))
+        src = src.replace("aro.lfv.se/content/eaip", "backend.vatiris.se/eaip")
     if (!src.endsWith(".pdf")) src += ".pdf"
     return src
 })

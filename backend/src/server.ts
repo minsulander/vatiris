@@ -21,7 +21,11 @@ app.listen(port, async () => {
     console.log("  Using VATSIM Auth Base URI:", vatsimAuthBaseUri)
     console.log("  Using Client ID:", clientId)
     console.log("  Using Redirect URI:", redirectUri)
-    console.log("  DB Time:", await db.testQuery())
+    try {
+        console.log("  DB Time:", await db.testQuery())
+    } catch (e) {
+        console.error(e)
+    }
 })
 
 import axios from "axios"
@@ -63,6 +67,9 @@ app.use("/wiki", wikiRoutes)
 
 import esdataRoutes from "./routes/esdata"
 app.use("/esdata", esdataRoutes)
+
+import eaipRoutes from "./routes/eaip"
+app.use("/eaip", eaipRoutes)
 
 app.use(express.static("public"))
 app.get(/.*/, (req, res) => {

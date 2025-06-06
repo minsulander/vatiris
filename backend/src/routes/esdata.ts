@@ -6,7 +6,7 @@ import moment from "moment"
 const esdata = Router()
 
 // just storing in memory for now...
-const euroscopeData: {[key: string]: any} = {}
+const euroscopeData: { [key: string]: any } = {}
 
 esdata.get("/", async (req: Request, res: Response) => {
     // const cid = await auth.requireCid(req, res)
