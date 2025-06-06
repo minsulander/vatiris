@@ -348,25 +348,29 @@ for (const icao of wxAirports) {
 
 import("@/data/aip.json").then((module) => {
     const aip = module.default as any
-    for (const document of aip.enroute) {
-        const id = `aip${document.prefix.replaceAll(" ", "")}`
-        availableWindows[id] = {
-            title: `AIP ${document.prefix} ${document.name}`,
-            component: Pdf,
-            props: { id, src: document.url, externalLink: true },
-            width: 800,
-            height: 600,
-        }
-    }
-    for (const airport of aip.airports) {
-        for (const document of airport.documents) {
-            const id = `aip${document.prefix}`
+    if ("enroute" in aip) {
+        for (const document of aip.enroute) {
+            const id = `aip${document.prefix.replaceAll(" ", "")}`
             availableWindows[id] = {
-                title: `AIP ${document.prefix} ${document.name}`,
+                title: `AIP ${document.name}`,
                 component: Pdf,
                 props: { id, src: document.url, externalLink: true },
                 width: 800,
                 height: 600,
+            }
+        }
+    }
+    if ("airports" in aip) {
+        for (const airport of aip.airports) {
+            for (const document of airport.documents) {
+                const id = `aip${document.prefix}`
+                availableWindows[id] = {
+                    title: `AIP ${airport.icao} ${document.name}`,
+                    component: Pdf,
+                    props: { id, src: document.url, externalLink: true },
+                    width: 800,
+                    height: 600,
+                }
             }
         }
     }

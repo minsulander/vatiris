@@ -60,15 +60,15 @@ const bus = useEventBus()
 
 const authorizedMenuItems = computed(() => {
     const items = { ...menuItems }
-    if (!auth.user) {
-        delete items.Flight
-        delete items.ATFM
-        delete items.Documents
-        delete items.Traffic
-        delete items.ATS
-        delete items.SECTORS
-        delete items.DCT
-    }
+    // if (!auth.user) {
+    //     delete items.Flight
+    //     delete items.ATFM
+    //     delete items.Documents
+    //     delete items.Traffic
+    //     delete items.ATS
+    //     delete items.SECTORS
+    //     delete items.DCT
+    // }
     return items
 })
 
@@ -258,15 +258,19 @@ for (const [id, groups] of Object.entries(dct.menuItems)) {
 
 import("@/data/aip.json").then((module) => {
     const aip = module.default as any
-    menuItems.Documents.AIP["En-route kartor"] = {}
-    for (const document of aip.enroute) {
-        menuItems.Documents.AIP["En-route kartor"][document.name] =
-            `aip${document.prefix.replaceAll(" ", "")}`
+    if ("enroute" in aip) {
+        menuItems.Documents.AIP["En-route kartor"] = {}
+        for (const document of aip.enroute) {
+            menuItems.Documents.AIP["En-route kartor"][document.name] =
+                `aip${document.prefix.replaceAll(" ", "")}`
+        }
     }
-    for (const airport of aip.airports) {
-        menuItems.Documents.AIP[airport.icao] = {}
-        for (const document of airport.documents) {
-            menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+    if ("airports" in aip) {
+        for (const airport of aip.airports) {
+            menuItems.Documents.AIP[airport.icao] = {}
+            for (const document of airport.documents) {
+                menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+            }
         }
     }
 })

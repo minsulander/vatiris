@@ -1,8 +1,25 @@
 <template>
-    <div ref="div" style="overflow: hidden" @wheel="handleScrollEvent" @touchmove="handleScrollEvent">
+    <div
+        ref="div"
+        style="overflow: hidden"
+        @wheel="handleScrollEvent"
+        @touchmove="handleScrollEvent"
+    >
         <div style="position: relative">
-            <div ref="overlay" class="focus-overlay" style="position: absolute; top: 0; left: 0; text-align: center; padding-top: 15px; color: white">
-                CLICK TO FOCUS<br/>
+            <div
+                ref="overlay"
+                class="focus-overlay"
+                style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    text-align: center;
+                    padding-top: 15px;
+                    color: white;
+                    opacity: 0.01;
+                "
+            >
+                CLICK TO FOCUS<br />
                 BEFORE SCROLLING
             </div>
         </div>
@@ -65,5 +82,4 @@ function handleScrollEvent(e: Event) {
         overlayTimeout = undefined
     }, 100)
 }
-
 </script>
