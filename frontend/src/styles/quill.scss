@@ -22,6 +22,11 @@
     padding-left: 0.3em !important;
     margin-left: 0 !important;
 }
+.ql-editor strong em,
+.ql-editor strong u,
+.ql-editor strong em u {
+    font-weight: 700 !important;
+}
 .ql-toolbar {
     border: none !important;
     background: #777 !important;
