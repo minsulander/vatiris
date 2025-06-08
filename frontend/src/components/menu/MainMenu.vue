@@ -310,7 +310,7 @@ function clickSearch() {
 
 function blurSearch() {
     setTimeout(() => {
-        if (document.activeElement?.tagName == "BODY") clearSearch()
+        if (!document.activeElement?.classList.contains("v-list-item")) clearSearch()
     }, 100)
 }
 
@@ -341,10 +341,12 @@ function changeSearch() {
 onMounted(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (
-            document.activeElement?.tagName != "INPUT" &&
-            document.activeElement?.tagName != "TEXTAREA" &&
-            (e.shiftKey || e.ctrlKey) &&
-            (e.key === "/" || e.key == "7" || e.key === " " || e.key === "Enter")
+            ((document.activeElement?.tagName != "INPUT" &&
+                document.activeElement?.tagName != "TEXTAREA" &&
+                !document.activeElement?.classList.contains("ql-editor") &&
+                e.shiftKey) ||
+                e.ctrlKey) &&
+            (e.key === " " || e.key === "Enter")
         ) {
             e.preventDefault()
             clickSearch()
