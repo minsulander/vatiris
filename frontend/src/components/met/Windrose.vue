@@ -323,6 +323,7 @@ import moment from "moment"
 
 interface Props {
     id?: string
+    dep?: boolean
     modelValue?: string
     size?: number
     colors?: {
@@ -336,6 +337,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     id: "",
+    dep: false,
     modelValue: "",
     size: 400,
     colors: () => ({
@@ -360,18 +362,7 @@ const selectedRunway = ref("")
 
 const currentRunway = computed(() => {
     if (selectedRunway.value) return selectedRunway.value
-    const data = windStore.windData[props.id]
-    let currentRunway = selectedRunway.value
-    if (!currentRunway && data.runways.length > 0) {
-        let maxHeadWind = -Infinity
-        for (const runway of data.runways) {
-            if (typeof runway.headWind != "undefined" && runway.headWind > maxHeadWind) {
-                maxHeadWind = runway.headWind
-                currentRunway = runway.name
-            }
-        }
-    }
-    return currentRunway
+    return windStore.getRunwayInUse(props.id, props.dep) || ""
 })
 
 // Get wind data from wind store

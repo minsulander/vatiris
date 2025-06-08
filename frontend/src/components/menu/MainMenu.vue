@@ -245,6 +245,7 @@ for (const icao of metarAirports) {
     }
     menuItems.MET.SUN[icao] = `sun${icao}`
     menuItems.MET.WINDROSE[icao] = `windrose${icao}`
+    if (icao == "ESSA") menuItems.MET.WINDROSE[icao + " DEP"] = `windrose${icao}DEP`
 }
 
 for (const [id, groups] of Object.entries(dct.menuItems)) {

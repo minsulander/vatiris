@@ -39,6 +39,7 @@ import runwaysRaw from "@/data/runways.csv?raw"
 
 import geomagnetism from "geomagnetism"
 import { timestamp } from "@vueuse/core"
+import { useVatsimStore } from "./vatsim"
 const geomag = geomagnetism.model()
 
 // First clean up the CSV data to remove problematic double quotes
@@ -81,6 +82,7 @@ const runwayData = Papa.parse(cleanedCsv, {
 export const useWindStore = defineStore("wind", () => {
     const wxStore = useWxStore()
     const metarStore = useMetarStore()
+    const vatsimStore = useVatsimStore()
 
     const subscriptions = reactive({} as { [key: string]: string })
     const windData = reactive({} as { [key: string]: WindData })
@@ -293,6 +295,46 @@ export const useWindStore = defineStore("wind", () => {
         return undefined
     }
 
+    function getRunwayInUse(icao: string, dep: boolean = false) {
+        if (vatsimStore.data && vatsimStore.data.atis) {
+            const atis = vatsimStore.data.atis.find(
+                (a) =>
+                    a.callsign == `${icao}_ATIS` ||
+                    a.callsign == (dep ? `${icao}_D_ATIS` : `${icao}_A_ATIS`),
+            )
+            if (atis && atis.text_atis && atis.text_atis.length > 0) {
+                const rwyMatch = atis.text_atis.join(" ").match(/RWY (\d{2}[LRC]?) IN USE/)
+                if (rwyMatch && rwyMatch[1]) return rwyMatch[1]
+            }
+        }
+        if (wxAirports.includes(icao)) {
+            let rwy = wxStore.rwy(icao)
+            if (rwy) {
+                const rwyEl = document.createElement("div")
+                rwyEl.innerHTML = rwy
+                rwy = rwyEl.innerText.replace("RUNWAY IN USE: ", "").trim()
+                if (rwy.match(/^\d{2}[LRC]?$/)) return rwy
+                if (!dep && rwy.match(/^ARR: \d{2}[LRC]?/)) {
+                    const m = rwy.match(/^ARR: (\d{2}[LRC]?)/)
+                    if (m && m[1]) return m[1]
+                } else if (dep && rwy.match(/DEP: \d{2}[LRC]?/)) {
+                    const m = rwy.match(/DEP: (\d{2}[LRC]?)/)
+                    if (m && m[1]) return m[1]
+                }
+            }
+        }
+        // Fall back to max headwind runway
+        let maxHeadWind = -Infinity
+        let currentRunway = ""
+        for (const runway of windData[icao].runways) {
+            if (typeof runway.headWind != "undefined" && runway.headWind > maxHeadWind) {
+                maxHeadWind = runway.headWind
+                currentRunway = runway.name
+            }
+        }
+        return currentRunway
+    }
+
     function subscribe(icao: string) {
         const subscriptionId = uuid()
         subscriptions[subscriptionId] = icao
@@ -323,5 +365,6 @@ export const useWindStore = defineStore("wind", () => {
         subscribe,
         unsubscribe,
         getRunwaysForAirport,
+        getRunwayInUse,
     }
 })

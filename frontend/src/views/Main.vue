@@ -303,6 +303,16 @@ for (const icao of metarAirports) {
         height: 500,
         class: "no-max",
     }
+    if (icao == "ESSA") {
+        availableWindows[`windrose${icao}DEP`] = {
+            title: `WINDROSE ${icao} DEP`,
+            component: Windrose,
+            props: { id: icao, dep: true },
+            width: 400,
+            height: 500,
+            class: "no-max",
+        }
+    }
 }
 for (const icao of wxAirports) {
     availableWindows[`metsen${icao}`] = {

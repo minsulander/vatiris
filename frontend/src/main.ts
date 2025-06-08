@@ -69,6 +69,7 @@ import moment from "moment"
 import axios from "axios"
 import useEventBus from "./eventbus"
 import { registerSW } from "virtual:pwa-register"
+import { useWindStore } from "./stores/wind"
 
 registerSW({ immediate: true })
 
@@ -92,3 +93,4 @@ global.occupancy = useOccupancyStore()
 global.esdata = useEsdataStore()
 global.bus = useEventBus()
 global.airport = useAirportStore()
+global.wind = useWindStore()
