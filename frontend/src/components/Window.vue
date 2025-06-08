@@ -78,7 +78,7 @@ function move(move: any) {
         if (moveTimeout) clearTimeout(moveTimeout)
         moveTimeout = setTimeout(() => {
             moveTimeout = undefined
-            if (move.id in windows.winbox &&windows.winbox[move.id].min) {
+            if (move.id in windows.winbox && windows.winbox[move.id].min) {
                 showContent.value = false
                 windows.layout[move.id].min = true
                 windows.layout[move.id].max = false

@@ -442,7 +442,15 @@ function select(id: string | object) {
             // ctrl-click on image/iframe opens in new tab
             window.open(availableWindows[id].props.src, "_blank")
         } else if (id in windows.winbox) {
-            if (windows.winbox[id].min) windows.winbox[id].restore()
+            if (windows.winbox[id].min) {
+                windows.winbox[id].restore()
+                setTimeout(() => {
+                    // Workaround for WinBox not updating position when restoring from minimized state
+                    for (const wb of Object.values(windows.winbox)) {
+                        if (wb.min) wb.restore().minimize()
+                    }
+                }, 250)
+            }
             windows.winbox[id].focus()
         } else {
             if (id in windows.layout) {
