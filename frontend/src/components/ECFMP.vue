@@ -169,9 +169,12 @@
       </tbody>
     </table>
 
-    <div v-if="loading">Loading...</div>
-    <div v-else-if="sortedMeasures.length === 0 && !error" style="padding: 10px;">No records found</div>
-    <div v-else-if="error">{{ error }}</div>
+    <div v-if="loading">
+      <v-progress-linear indeterminate />
+      <div class="pa-2">Loading...</div>
+    </div>
+    <div v-else-if="sortedMeasures.length === 0 && !error" class="pa-2">No records found</div>
+    <div v-else-if="error" class="pa-2">{{ error }}</div>
   </div>
 </template>
 <script>
@@ -235,6 +238,7 @@ export default {
     setInterval(this.checkStates, 1000); // Check state every second
     const bus = useEventBus();
     bus.on("refresh", () => {
+      this.loading = true;
       this.flowMeasures = [];
       this.fetchFlowMeasures();
     });
