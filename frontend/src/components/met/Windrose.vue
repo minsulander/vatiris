@@ -362,7 +362,7 @@ const selectedRunway = ref("")
 
 const currentRunway = computed(() => {
     if (selectedRunway.value) return selectedRunway.value
-    return windStore.getRunwayInUse(props.id, props.dep) || ""
+    return windStore.getRunwayInUse(props.id, props.dep) || availableRunways.value[0] || ""
 })
 
 // Get wind data from wind store
@@ -526,11 +526,6 @@ onMounted(() => {
     if (props.id) {
         subscription.value = windStore.subscribe(props.id)
 
-        // Set initial runway if none selected
-        if (!selectedRunway.value && availableRunways.value.length > 0) {
-            selectedRunway.value = availableRunways.value[0]
-        }
-
         // Add outdated check interval
         checkOutdatedInterval = setInterval(() => {
             outdated.value =
@@ -562,10 +557,6 @@ watch(
         }
         if (newId) {
             subscription.value = windStore.subscribe(newId)
-            // Reset runway selection when airport changes
-            if (availableRunways.value.length > 0) {
-                selectedRunway.value = availableRunways.value[0]
-            }
         }
     },
 )

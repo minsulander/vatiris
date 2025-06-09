@@ -304,6 +304,7 @@ for (const icao of metarAirports) {
         class: "no-max",
     }
     if (icao == "ESSA") {
+        availableWindows[`windrose${icao}`].title += " ARR"
         availableWindows[`windrose${icao}DEP`] = {
             title: `WINDROSE ${icao} DEP`,
             component: Windrose,
