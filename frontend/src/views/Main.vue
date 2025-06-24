@@ -65,6 +65,7 @@ import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
 import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive } from "vue"
 import { useWindowsStore } from "@/stores/windows"
+import { useAuthStore } from "@/stores/auth"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
 import GGpush from "@/components/GGpush.vue"
@@ -81,12 +82,15 @@ import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
+import Timer from "@/components/Timer.vue"
+import TimerCreator from "@/components/TimerCreator.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
 
 const wakelock = useWakeLock()
 const bus = useEventBus()
+const auth = useAuthStore()
 
 export interface WindowSpec {
     title: string
@@ -162,6 +166,20 @@ const availableWindows = shallowReactive({
         component: Aerodromes,
         width: 800,
         height: 400,
+    },
+    timer: {
+        title: "Timer",
+        component: Timer,
+        width: 155,
+        height: 65,
+        class: "no-resize, no-max",
+    },
+    timerCreator: {
+        title: "Timer Creator",
+        component: TimerCreator,
+        width: 700,
+        height: 400,
+        minWidth: 555,
     },
     notepad: {
         title: "NOTEPAD",
@@ -440,17 +458,72 @@ for (const direct of directsData) {
     }
 }
 
+const timerRefs: { [key: string]: any } = {}
+
 function select(id: string | object) {
     let ctrl = false
     if (typeof id == "string" && id.startsWith("ctrl+")) {
         ctrl = true
         id = id.substr(5)
     }
+    if (typeof id === "string" && id.startsWith("timer:")) {
+        const idx = Number(id.split(":")[1])
+        const timerWinId = `timer-${idx}` 
+        auth.fetchUserData("timerData").then((data) => {
+            const timers = data?.timers || []
+            const timer = timers[idx]
+            let title = `Timer`
+            let duration = null
+            let isStopwatch = true
+            if (timer) {
+                title = timer.name
+                if (timer.duration) {
+                    title
+                    duration = timer.duration
+                }
+                isStopwatch = !!timer.isStopwatch
+            } else {
+                title = `Timer ${idx}`
+            }
+            if (!timerRefs[timerWinId]) timerRefs[timerWinId] = ref(timer)
+            else timerRefs[timerWinId].value = timer
+
+            if (!(timerWinId in availableWindows)) {
+                availableWindows[timerWinId] = {
+                    title,
+                    component: Timer,
+                    width: 155,
+                    height: 65,
+                    class: "no-resize, no-max",
+                    props: { timer: timerRefs[timerWinId], timerIndex: idx, duration, isStopwatch },
+                }
+            } else {
+                availableWindows[timerWinId].title = title
+                availableWindows[timerWinId].props = { timer: timerRefs[timerWinId], timerIndex: idx, duration, isStopwatch }
+            }
+            if (!(timerWinId in windows.layout)) {
+                windows.layout[timerWinId] = { enabled: true }
+            } else {
+                windows.layout[timerWinId].enabled = true
+            }
+            windows.focusId = timerWinId
+        })
+        return
+    }
+    if (id === "timerCreator") {
+        const timerCreatorId = "timerCreator"
+        if (!(timerCreatorId in windows.layout)) {
+            windows.layout[timerCreatorId] = { enabled: true }
+        } else {
+            windows.layout[timerCreatorId].enabled = true
+        }
+        windows.focusId = timerCreatorId
+        return
+    }
     if (typeof id == "object") {
         // submenu
     } else if (id in availableWindows) {
         if (ctrl && availableWindows[id].props && availableWindows[id].props.src) {
-            // ctrl-click on image/iframe opens in new tab
             window.open(availableWindows[id].props.src, "_blank")
         } else if (id in windows.winbox) {
             if (windows.winbox[id].min) {
@@ -492,6 +565,41 @@ onMounted(() => {
     document.addEventListener("visibilitychange", onVisibilityChange)
     bus.on("select", select)
     bus.on("unselect", unselect)
+
+    const timerWinIds = Object.keys(windows.layout).filter((id) => id.startsWith("timer-") && windows.layout[id].enabled)
+    if (timerWinIds.length > 0) {
+        auth.fetchUserData("timerData").then((data) => {
+            const timers = data?.timers || []
+            for (const timerWinId of timerWinIds) {
+                const idx = Number(timerWinId.split("-")[1])
+                const timer = timers[idx]
+                let title = `Timer`
+                let duration = null
+                let isStopwatch = true
+                if (timer) {
+                    title = timer.name
+                    if (timer.duration) {
+                        title += ` (${timer.duration} min)`
+                        duration = timer.duration
+                    }
+                    isStopwatch = !!timer.isStopwatch
+                } else {
+                    title = `Timer ${idx}`
+                }
+                if (!timerRefs[timerWinId]) timerRefs[timerWinId] = ref(timer)
+                else timerRefs[timerWinId].value = timer
+
+                availableWindows[timerWinId] = {
+                    title,
+                    component: Timer,
+                    width: 155,
+                    height: 65,
+                    class: "no-resize, no-max",
+                    props: { timer: timerRefs[timerWinId], timerIndex: idx, duration, isStopwatch },
+                }
+            }
+        })
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if ((e.shiftKey || e.ctrlKey) && e.key === "Escape" && windows.focusId) {
