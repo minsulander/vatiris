@@ -312,19 +312,45 @@ const extractClouds = (text: string) => {
 }
 
 const extractTemperature = (text: string) => {
-    const match = text.match(/T\s*(M?)(\d+)[\s/]/)
-    if (match) {
-        if (match[1] == "M") match[1] = "MS"
-        return `T${match[1]}${match[2]}`
+    // Look for temperature pattern: T followed by optional M (minus), then 1-3 digits, followed by space, slash, or end of string
+    // Also handle cases where T and DP are separated by space or slash
+    const patterns = [
+        /T\s*(M?)(\d{1,3})\s*\/\s*DP/, // T15/DP13 format
+        /T\s*(M?)(\d{1,3})\s+DP/, // T15 DP13 format  
+        /T\s*(M?)(\d{1,3})(?:\s|$)/, // T15 or T15 followed by space/end
+    ]
+    
+    for (const pattern of patterns) {
+        const match = text.match(pattern)
+        if (match) {
+            const minusSign = match[1] === "M" ? "MS" : ""
+            const tempValue = parseInt(match[2])
+            // Ensure two-digit format for display
+            const formattedTemp = tempValue.toString().padStart(2, '0')
+            return `T${minusSign}${formattedTemp}`
+        }
     }
     return ""
 }
 
 const extractDewpoint = (text: string) => {
-    const match = text.match(/[\s/]DP\s*(M?)(\d+)/)
-    if (match) {
-        if (match[1] == "M") match[1] = "MS"
-        return `DP${match[1]}${match[2]}`
+    // Look for dewpoint pattern: DP followed by optional M (minus), then 1-3 digits
+    // Handle both space and slash separators from temperature
+    const patterns = [
+        /T\s*(?:M?)(?:\d{1,3})\s*\/\s*DP\s*(M?)(\d{1,3})/, // T15/DP13 format
+        /T\s*(?:M?)(?:\d{1,3})\s+DP\s*(M?)(\d{1,3})/, // T15 DP13 format
+        /DP\s*(M?)(\d{1,3})(?:\s|$)/, // DP13 or DP13 followed by space/end
+    ]
+    
+    for (const pattern of patterns) {
+        const match = text.match(pattern)
+        if (match) {
+            const minusSign = match[1] === "M" ? "MS" : ""
+            const dpValue = parseInt(match[2])
+            // Ensure two-digit format for display
+            const formattedDp = dpValue.toString().padStart(2, '0')
+            return `DP${minusSign}${formattedDp}`
+        }
     }
     return ""
 }
