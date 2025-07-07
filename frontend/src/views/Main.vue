@@ -63,7 +63,7 @@ import Sun from "@/components/met/Sun.vue"
 import Airport from "@/components/met/Airport.vue"
 import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
-import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive } from "vue"
+import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive, watch } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
@@ -81,12 +81,14 @@ import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
+import { useEaipStore } from "@/stores/eaip"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
 
 const wakelock = useWakeLock()
 const bus = useEventBus()
+const eaip = useEaipStore()
 
 export interface WindowSpec {
     title: string
@@ -346,8 +348,8 @@ for (const icao of wxAirports) {
     }
 }
 
-import("@/data/aip.json").then((module) => {
-    const aip = module.default as any
+watch(eaip.aipIndex, () => {
+    const aip = eaip.aipIndex
     if ("enroute" in aip) {
         for (const document of aip.enroute) {
             const id = `aip${document.prefix.replaceAll(" ", "")}`

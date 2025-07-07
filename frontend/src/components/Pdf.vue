@@ -18,6 +18,9 @@ import Iframe from "./Iframe.vue"
 import { useSettingsStore } from "@/stores/settings"
 import PDF, { type PDFDocumentProxy } from "pdf-vue3"
 import { computed, onMounted, ref } from "vue"
+
+const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
+
 const props = defineProps<{ id: string; src: string; externalLink?: boolean | string }>()
 
 const settings = useSettingsStore()
@@ -26,8 +29,8 @@ const div = ref()
 
 const rewrittenSrc = computed(() => {
     let src = props.src
-    if (settings.customPdfBrowser && src.includes("aro.lfv.se/content/eaip"))
-        src = src.replace("aro.lfv.se/content/eaip", "backend.vatiris.se/eaip")
+    if (settings.customPdfBrowser && src.includes("https://aro.lfv.se/content/eaip"))
+        src = src.replace("https://aro.lfv.se/content/eaip", `${backendBaseUrl}/eaip/content`)
     if (!src.endsWith(".pdf")) src += ".pdf"
     return src
 })

@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import Submenu from "@/components/menu/Submenu.vue"
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue"
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
 import { useAuthStore } from "@/stores/auth"
@@ -231,6 +231,9 @@ const menuItems = reactive({
 
 import { metarAirports, wxAirports } from "@/metcommon"
 import useEventBus from "@/eventbus"
+import { useEaipStore } from "@/stores/eaip"
+
+const eaip = useEaipStore()
 
 for (const icao of wxAirports) {
     menuItems.MET.AIRPORT[icao] = `airport${icao}`
@@ -256,8 +259,8 @@ for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups
 }
 
-import("@/data/aip.json").then((module) => {
-    const aip = module.default as any
+watch(eaip.aipIndex, () => {
+    const aip = eaip.aipIndex
     if ("enroute" in aip) {
         menuItems.Documents.AIP["En-route kartor"] = {}
         for (const document of aip.enroute) {

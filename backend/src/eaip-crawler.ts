@@ -4,11 +4,10 @@ import path from "path"
 import URL from "url"
 
 const eaipBaseUrl = `https://aro.lfv.se/content/eaip`
-// const eaipBaseUrl = `https://backend.vatiris.se/eaip`
 
 const aipData = { airports: [] } as any
 
-async function main() {
+export async function crawlAIP() {
     const aipUrl = await getAIP()
     console.log("AIP", aipUrl)
     const dataSourceUrl = await getDataSource(aipUrl)
@@ -65,9 +64,7 @@ async function main() {
         }
         aipData.airports.push(adData)
     }
-    const fileName = path.join(__dirname, "..", "..", "frontend", "src", "data", "aip.json")
-    fs.writeFileSync(fileName, JSON.stringify(aipData, null, 2))
-    return fileName
+    return aipData
 }
 
 async function getAIP() {
@@ -89,7 +86,3 @@ async function loadData(url: string) {
     const text = await response.text()
     return text
 }
-
-main().then((stuff) => {
-    console.log(stuff)
-})

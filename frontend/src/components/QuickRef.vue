@@ -87,13 +87,13 @@ import moment from "moment"
 import { useWxStore } from "@/stores/wx"
 import { useVatsimStore } from "@/stores/vatsim"
 import Submenu from "./menu/Submenu.vue"
-import useEventBus from "@/eventbus"
+import { useEaipStore } from "@/stores/eaip"
 
 const props = defineProps<{ ad: string; type: string; src?: string }>()
 
 const wx = useWxStore()
 const vatsim = useVatsimStore()
-const bus = useEventBus()
+const eaip = useEaipStore()
 
 const storageKey = `quickref_${props.ad}_${props.type}`
 
@@ -247,8 +247,8 @@ const image = computed(() => {
 
 const aipItems = reactive({} as any)
 
-import("@/data/aip.json").then((module) => {
-    const aip = module.default as any
+watch(eaip.aipIndex, () => {
+    const aip = eaip.aipIndex
     for (const document of aip.airports.find((a: any) => a.icao == props.ad).documents) {
         aipItems[document.name] = `aip${document.prefix}`
     }
