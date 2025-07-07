@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import Submenu from "@/components/menu/Submenu.vue"
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue"
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
 import { useAuthStore } from "@/stores/auth"
@@ -60,15 +60,15 @@ const bus = useEventBus()
 
 const authorizedMenuItems = computed(() => {
     const items = { ...menuItems }
-    if (!auth.user) {
-        delete items.Flight
-        delete items.ATFM
-        delete items.Documents
-        delete items.Traffic
-        delete items.ATS
-        delete items.SECTORS
-        delete items.DCT
-    }
+    // if (!auth.user) {
+    //     delete items.Flight
+    //     delete items.ATFM
+    //     delete items.Documents
+    //     delete items.Traffic
+    //     delete items.ATS
+    //     delete items.SECTORS
+    //     delete items.DCT
+    // }
     return items
 })
 
@@ -231,6 +231,9 @@ const menuItems = reactive({
 
 import { metarAirports, wxAirports } from "@/metcommon"
 import useEventBus from "@/eventbus"
+import { useEaipStore } from "@/stores/eaip"
+
+const eaip = useEaipStore()
 
 for (const icao of wxAirports) {
     menuItems.MET.AIRPORT[icao] = `airport${icao}`
@@ -256,17 +259,21 @@ for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups
 }
 
-import("@/data/aip.json").then((module) => {
-    const aip = module.default as any
-    menuItems.Documents.AIP["En-route kartor"] = {}
-    for (const document of aip.enroute) {
-        menuItems.Documents.AIP["En-route kartor"][document.name] =
-            `aip${document.prefix.replaceAll(" ", "")}`
+watch(eaip.aipIndex, () => {
+    const aip = eaip.aipIndex
+    if ("enroute" in aip) {
+        menuItems.Documents.AIP["En-route kartor"] = {}
+        for (const document of aip.enroute) {
+            menuItems.Documents.AIP["En-route kartor"][document.name] =
+                `aip${document.prefix.replaceAll(" ", "")}`
+        }
     }
-    for (const airport of aip.airports) {
-        menuItems.Documents.AIP[airport.icao] = {}
-        for (const document of airport.documents) {
-            menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+    if ("airports" in aip) {
+        for (const airport of aip.airports) {
+            menuItems.Documents.AIP[airport.icao] = {}
+            for (const document of airport.documents) {
+                menuItems.Documents.AIP[airport.icao][document.name] = `aip${document.prefix}`
+            }
         }
     }
 })

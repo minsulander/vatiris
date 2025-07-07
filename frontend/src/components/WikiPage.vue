@@ -77,6 +77,9 @@ import { backendBaseUrl, useAuthStore } from "@/stores/auth"
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import axios from "axios"
 import moment from "moment"
+import { useEaipStore } from "@/stores/eaip"
+
+const eaip = useEaipStore()
 
 const props = defineProps<{ book: string; page: string; src?: string }>()
 const auth = useAuthStore()
@@ -96,9 +99,8 @@ bus.on("refresh", () => {
 const aipItems = reactive({} as any)
 
 if (props.book == "lop") {
-    const ad = props.page.toUpperCase()
-    import("@/data/aip.json").then((module) => {
-        const aip = module.default as any
+    watch(eaip.aipIndex, () => {
+        const aip = eaip.aipIndex
         for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
             aipItems[document.name] = `aip${document.prefix}`
         }
