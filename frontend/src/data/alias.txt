@@ -12,7 +12,7 @@
 ;                                                                                                                         ;
 ;=========================================================================================================================;
 ;                                                                                                                         ;
-;  ALL RIGHTS RESERVED Â© AeroNav Association. NAV-DATA Â© AEROSOFT. FILES MUST NOT BE DISTRIBUTED TO NON-VATSIM MEMBERS!   ;
+;  ALL RIGHTS RESERVED © AeroNav Association. NAV-DATA © AEROSOFT. FILES MUST NOT BE DISTRIBUTED TO NON-VATSIM MEMBERS!   ;
 ;                                                                                                                         ;
 ;=========================================================================================================================;
 ;  The Global Nav Generator (GNG) and all it sub-modules where created by the AeroNav Association.                        ;
@@ -74,7 +74,7 @@
 ;*** Sweden ***
 ;General
 .id Identified 
-.mu Air Traffic Service Terminated, Monitor UNICOM 122.800 
+.fc Air Traffic Service Terminated, Frequency Change Approved.
 .call Contact $atccallsign($1) $freq($1) MHZ 
 .mon Monitor $atccallsign($1) $freq($1) MHZ 
 .sq Squawk $squawk 
