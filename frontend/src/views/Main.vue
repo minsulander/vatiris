@@ -63,7 +63,7 @@ import Sun from "@/components/met/Sun.vue"
 import Airport from "@/components/met/Airport.vue"
 import WikiPage from "@/components/WikiPage.vue"
 import WikiPdf from "@/components/WikiPdf.vue"
-import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive } from "vue"
+import { onBeforeUnmount, onMounted, onUnmounted, ref, shallowReactive, watch } from "vue"
 import { useWindowsStore } from "@/stores/windows"
 import directsData from "@/data/dct/directs.json"
 import { metarAirports, wxAirports } from "@/metcommon"
@@ -81,12 +81,14 @@ import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
+import { useEaipStore } from "@/stores/eaip"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
 
 const wakelock = useWakeLock()
 const bus = useEventBus()
+const eaip = useEaipStore()
 
 export interface WindowSpec {
     title: string
@@ -346,27 +348,31 @@ for (const icao of wxAirports) {
     }
 }
 
-import("@/data/aip.json").then((module) => {
-    const aip = module.default as any
-    for (const document of aip.enroute) {
-        const id = `aip${document.prefix.replaceAll(" ", "")}`
-        availableWindows[id] = {
-            title: `AIP ${document.prefix} ${document.name}`,
-            component: Pdf,
-            props: { id, src: document.url, externalLink: true },
-            width: 800,
-            height: 600,
-        }
-    }
-    for (const airport of aip.airports) {
-        for (const document of airport.documents) {
-            const id = `aip${document.prefix}`
+watch(eaip.aipIndex, () => {
+    const aip = eaip.aipIndex
+    if ("enroute" in aip) {
+        for (const document of aip.enroute) {
+            const id = `aip${document.prefix.replaceAll(" ", "")}`
             availableWindows[id] = {
-                title: `AIP ${document.prefix} ${document.name}`,
+                title: `AIP ${document.name}`,
                 component: Pdf,
                 props: { id, src: document.url, externalLink: true },
                 width: 800,
                 height: 600,
+            }
+        }
+    }
+    if ("airports" in aip) {
+        for (const airport of aip.airports) {
+            for (const document of airport.documents) {
+                const id = `aip${document.prefix}`
+                availableWindows[id] = {
+                    title: `AIP ${airport.icao} ${document.name}`,
+                    component: Pdf,
+                    props: { id, src: document.url, externalLink: true },
+                    width: 800,
+                    height: 600,
+                }
             }
         }
     }

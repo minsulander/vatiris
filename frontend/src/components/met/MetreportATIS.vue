@@ -210,104 +210,13 @@ const extractVisibility = (text: string) => {
 }
 
 const extractWeatherConditions = (text: string) => {
-    const visToCloudRegex = /VIS.*?(?=CLD)/s
-    const match = text.match(visToCloudRegex)
-
-    if (!match) return ""
-
-    const conditionText = match[0]
-    const conditionRegex =
-        /(RE)?(\+|-|VC)?(MI|BC|PR|DR|BL|SH|TS|FZ)?(DZ|RA|SN|SG|IC|PL|GR|GS|UP|BR|FG|FU|VA|DU|SA|HZ|PY|PO|SQ|FC|SS|DS){1,3}/g
-    const conditions = []
-
-    let conditionMatch
-    while ((conditionMatch = conditionRegex.exec(conditionText)) !== null) {
-        let condition = ""
-
-        // Recent
-        if (conditionMatch[1]) {
-            condition += conditionMatch[1]
-        }
-
-        // Intensity or proximity
-        if (conditionMatch[2]) {
-            condition += conditionMatch[2]
-        }
-
-        // Descriptor
-        if (conditionMatch[3]) {
-            condition += conditionMatch[3]
-        }
-
-        // Precipitation, Obscuration, or Other (up to 3)
-        if (conditionMatch[4]) {
-            condition += conditionMatch[4]
-        }
-
-        conditions.push(condition)
-    }
-
-    if (conditionText.includes("NSW")) {
-        conditions.push("NSW")
-    }
-
-    return conditions.join(" ")
+    const match = text.match(/VIS \S+\s+(.*?) (CLD|NOCLD|NCLD)/)
+    if (match) return match[1]
+    return ""
 }
 const extractClouds = (text: string) => {
-    const cloudRegex = /(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?/g
-    const vvRegex = /VV(\d{3}|\/{3})/
-    const specialCloudRegex = /\b(NSC|NCD|CLR|SKC)\b/
-    const cldRegex = /CLD/
-
-    let clouds = []
-    let match
-    let vertVisibility = ""
-    let specialCloud = ""
-
-    // Extract cloud layers
-    while ((match = cloudRegex.exec(text)) !== null) {
-        const cloudType = match[1]
-        const heightInHundreds = parseInt(match[2])
-        const heightInFeet = heightInHundreds * 100
-        const convectiveCloud = match[3] ? `${match[3]} ` : ""
-        clouds.push(`${cloudType} ${convectiveCloud}${heightInFeet}FT`)
-    }
-
-    // Extract vertical visibility
-    const vvMatch = text.match(vvRegex)
-    if (vvMatch) {
-        if (vvMatch[1] === "///") {
-            vertVisibility = "VER VIS ///"
-        } else {
-            const vvHeight = parseInt(vvMatch[1]) * 100
-            vertVisibility = `VER VIS ${vvHeight}FT`
-        }
-    }
-
-    // Extract special cloud conditions
-    const specialCloudMatch = text.match(specialCloudRegex)
-    if (specialCloudMatch) {
-        specialCloud = specialCloudMatch[1]
-    }
-
-    // Combine cloud information
-    if (clouds.length > 0) {
-        return `CLD ${clouds.join(" ")}${vertVisibility ? " " + vertVisibility : ""}`
-    }
-
-    if (vertVisibility) {
-        return `CLD ${vertVisibility}`
-    }
-
-    if (specialCloud) {
-        return `CLD ${specialCloud}`
-    }
-
-    // Check for lone "CLD" without other data
-    if (text.match(cldRegex) && !clouds.length && !vertVisibility && !specialCloud) {
-        return ""
-    }
-
+    const match = text.match(/(CLD .*?|NOCLD|NCLD) T[\w\\?]+/)
+    if (match) return match[1]
     return ""
 }
 
