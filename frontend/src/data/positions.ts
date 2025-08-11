@@ -128,7 +128,8 @@ export const positionNames: PositionMapping = {
     ESSL_TWR: "ESSL TWR",
     ESSP_APP: "ÖKC APP (TC)",
     ESSP_TWR: "ESSP TWR",
-    ESSR_CTR: "RTC",
+    ESSR_MM_APP: "RTC MM"
+    ESSR_CTR: "RTC OS",
     ESST_I_TWR: "ESST AFIS",
     ESSU_I_TWR: "ESSU AFIS",
     ESSV_APP: "ESSV APP",
