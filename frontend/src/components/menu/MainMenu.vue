@@ -60,15 +60,15 @@ const bus = useEventBus()
 
 const authorizedMenuItems = computed(() => {
     const items = { ...menuItems }
-    // if (!auth.user) {
-    //     delete items.Flight
-    //     delete items.ATFM
-    //     delete items.Documents
-    //     delete items.Traffic
-    //     delete items.ATS
-    //     delete items.SECTORS
-    //     delete items.DCT
-    // }
+    if (!auth.user) {
+        delete items.Flight
+        delete items.ATFM
+        delete items.Documents
+        delete items.Traffic
+        delete items.ATS
+        delete items.SECTORS
+        delete items.DCT
+    }
     return items
 })
 
@@ -94,7 +94,7 @@ const menuItems = reactive({
             // This will be filled in with ICAO codes
         } as { [key: string]: string },
     },
-    NOTAM: "notam",
+    // NOTAM: "notam", // disabled because broken
     eCharts: "echarts",
     Flight: {
         "ARR DEP": "arrdep",
