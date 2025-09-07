@@ -159,16 +159,18 @@ export const useMetarStore = defineStore("metar", () => {
         const icaos = airports.join(",")
         console.log(`Fetch metar`, icaos)
         axios.get(`https://api.vatiris.se/metar?ids=${icaos}&hours=3&sep=true`).then((response) => {
+            const gotfirst: { [key: string]: boolean } = {}
             for (const section of (response.data as string).split("\n\n")) {
-                let first = true
-                for (const line of section.trim().split("\n")) {
-                    const icao = line.split(" ")[0]
-                    if (first) {
-                        metar[icao] = line
+                const text = section.trim()
+                const m = text.match(/^METAR (\w{4})/)
+                if (m && m[1]) {
+                    const icao = m[1]
+                    if (!(icao in gotfirst)) {
+                        metar[icao] = text
                         history[icao] = []
-                        first = false
+                        gotfirst[icao] = true
                     } else {
-                        history[icao].push(line)
+                        history[icao].push(text)
                     }
                 }
             }
