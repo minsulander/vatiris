@@ -45,15 +45,24 @@ export const useTafStore = defineStore("taf", () => {
         const airports = [...new Set(Object.values(subscriptions))]
         const icaos = airports.join(",")
         console.log(`Fetch taf`, icaos)
-        axios.get(`https://api.vatiris.se/taf?ids=${icaos}&sep=true`).then((response) => {
-            for (const section of (response.data as string).split("\n\n")) {
-                const text = section.trim()
-                const m = text.match(/^TAF (\w{4})/)
-                if (m && m[1]) {
-                    const icao = m[1]
+        axios.get(`https://api.vatiris.se/taf?ids=${icaos}`).then((response) => {
+            let text = ""
+
+            function processTextSoFar() {
+                const m = text.match(/^TAF( AMD| COR| CORR)? (\w{4})/)
+                if (m && m[2]) {
+                    const icao = m[2]
                     taf[icao] = text
+                    text = ""
                 }
             }
+
+            for (const line of (response.data as string).split(/\n+/)) {
+                if (line.startsWith("TAF") && text.length > 0) processTextSoFar()
+                text += line + "\n"
+            }
+            if (text.length > 0) processTextSoFar()
+
             for (const icao of airports) {
                 if (taf[icao] && taf[icao].includes("Loading")) taf[icao] = ""
             }

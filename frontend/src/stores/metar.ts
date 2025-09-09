@@ -158,9 +158,9 @@ export const useMetarStore = defineStore("metar", () => {
         const airports = [...new Set(Object.values(subscriptions))]
         const icaos = airports.join(",")
         console.log(`Fetch metar`, icaos)
-        axios.get(`https://api.vatiris.se/metar?ids=${icaos}&hours=3&sep=true`).then((response) => {
+        axios.get(`https://api.vatiris.se/metar?ids=${icaos}&hours=3`).then((response) => {
             const gotfirst: { [key: string]: boolean } = {}
-            for (const section of (response.data as string).split("\n\n")) {
+            for (const section of (response.data as string).split(/\n+/)) {
                 const text = section.trim()
                 const m = text.match(/^METAR (\w{4})/)
                 if (m && m[1]) {
