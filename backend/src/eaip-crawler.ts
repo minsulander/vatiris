@@ -64,14 +64,15 @@ export async function crawlAIP() {
         }
         aipData.airports.push(adData)
     }
+    console.log("AIP crawl done")
     return aipData
 }
 
 async function getAIP() {
     const $ = await cheerio.fromURL(`${eaipBaseUrl}/default_offline.html`)
     const links = $("a")
-    const aipLink = links.toArray().find((link) => $(link).attr("href")?.includes("AIRAC"))
-    return `${eaipBaseUrl}/${$(aipLink).attr("href")}`
+    const aipLink = links.toArray().find((link) => $(link).attr("href")?.includes("AIP"))
+    return `${eaipBaseUrl}/${$(aipLink).attr("href")}`.replaceAll(" ", "%20")
 }
 
 async function getDataSource(url: string) {
