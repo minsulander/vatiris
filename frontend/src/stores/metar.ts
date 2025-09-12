@@ -39,17 +39,17 @@ export const useMetarStore = defineStore("metar", () => {
         try {
             const parsed = parseMetar(metar)
             if (!parsed) return "PARSE FAIL"
-            const header = `${parsed.station}                       ${time.value ? moment(time.value).format("YYMMDD") : "------"}`
+            const header = `${parsed.station}                       ${time.value ? moment(time.value).format("YYMMDD") : "------"}${parsed.auto ? '    AUTO' : ''}${parsed.corrected ? '    COR' : ''}`
             const rwy = "--"
             const header2 = `RWY ${rwy.padEnd(11)}MET REPORT  <b>${String(parsed.day).padStart(2, "0")}${String(parsed.hour).padStart(2, "0")}${String(parsed.minute).padStart(2, "0")}Z</b>`
             let wind = `WIND `
             if (parsed.wind) {
                 wind += parsed.wind.degrees ? String(parsed.wind.degrees).padStart(3, "0") : parsed.wind.direction
-                wind += `/${parsed.wind.speed}${parsed.wind.unit}`
+                wind += `/${parsed.wind.speed}${parsed.wind.unit || "KT"}`
+                if (parsed.wind.gust) wind += ` G${parsed.wind.gust}${parsed.wind.unit || "KT"}`
                 if (parsed.wind.minVariation && parsed.wind.maxVariation) {
-                    wind += ` VAR BTN ${parsed.wind.minVariation}/ AND ${parsed.wind.maxVariation}/`
+                    wind += ` VRB BTN ${String(parsed.wind.minVariation).padStart(3, "0")}/ AND ${String(parsed.wind.maxVariation).padStart(3, "0")}/`
                 }
-                // TODO gust, min, max
             } else {
                 wind += "???"
             }
