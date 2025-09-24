@@ -38,7 +38,8 @@ export const useMetarStore = defineStore("metar", () => {
     const metreportFromMetar = (metar: string) => {
         try {
             const parsed = parseMetar(metar)
-            if (!parsed) return "PARSE FAIL"
+            if (!parsed) return "PARSE FAIL" + (metar ? `: ${metar}` : "")
+            if (!parsed.type) return metar || "NOT A METAR"
             const header = `${parsed.station}                       ${time.value ? moment(time.value).format("YYMMDD") : "------"}${parsed.auto ? '    AUTO' : ''}${parsed.corrected ? '    COR' : ''}`
             const rwy = "--"
             const header2 = `RWY ${rwy.padEnd(11)}MET REPORT  <b>${String(parsed.day).padStart(2, "0")}${String(parsed.hour).padStart(2, "0")}${String(parsed.minute).padStart(2, "0")}Z</b>`
