@@ -1,5 +1,14 @@
 <template>
-    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777; white-space: nowrap">
+    <div
+        ref="div"
+        style="
+            height: 25px;
+            margin-top: -5px;
+            margin-left: -5px;
+            background: #777;
+            white-space: nowrap;
+        "
+    >
         <v-btn
             variant="text"
             rounded="0"
@@ -87,7 +96,13 @@
         <div
             v-if="arr"
             class="flex-1-0"
-            style="min-height: 0; max-height: 100%; overflow-y: auto; overflow-x: hidden; border-right: 1px solid #ccc"
+            style="
+                min-height: 0;
+                max-height: 100%;
+                overflow-y: auto;
+                overflow-x: hidden;
+                border-right: 1px solid #ccc;
+            "
             :style="{ 'max-width': dep ? '51%' : '100%' }"
         >
             <!--
@@ -103,7 +118,13 @@
         <div
             v-if="dep"
             class="flex-1-0"
-            style="min-height: 0; max-height: 100%; overflow-y: auto; overflow-x: hidden; border-left: 1px solid #ccc"
+            style="
+                min-height: 0;
+                max-height: 100%;
+                overflow-y: auto;
+                overflow-x: hidden;
+                border-left: 1px solid #ccc;
+            "
         >
             <!--
             <div
@@ -128,6 +149,7 @@ import { useEsdataStore } from "@/stores/esdata"
 const airportStore = useAirportStore()
 const esdata = useEsdataStore()
 
+const div = ref()
 const arr = ref(true)
 const dep = ref(true)
 const ad = reactive([] as string[])
@@ -195,6 +217,7 @@ onMounted(() => {
 
 watch([arr, dep, ad, excludeStatus], () => {
     saveOptions()
+    updateWindowTitle()
 })
 
 function loadOptions() {
@@ -220,5 +243,21 @@ function saveOptions() {
         ad,
         excludeStatus,
     })
+}
+
+function updateWindowTitle() {
+    if (div.value) {
+        const winbox = div.value.closest(".winbox")
+        if (winbox) {
+            const title = winbox.querySelector(".wb-title")
+            if (ad.length < 5 && ad.length > 0) {
+                title.innerText = `ARR DEP - ${ad.join(" ")}`
+            } else if (ad.length > 0) {
+                title.innerText = `ARR DEP (${ad.length})`
+            } else {
+                title.innerText = `ARR DEP`
+            }
+        }
+    }
 }
 </script>
