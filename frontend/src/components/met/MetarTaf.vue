@@ -1,5 +1,5 @@
 <template>
-    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777">
+    <div style="height: 25px; margin-top: -5px; margin-left: -5px; background: #777; white-space: nowrap">
         <v-btn
             variant="text"
             rounded="0"
@@ -62,16 +62,27 @@
         <div class="ma-1" v-if="ad.length == 0">Select aerodromes in the menu above.</div>
         <div class="ma-1" v-if="!metar && !taf">Both METAR and TAF unselected...</div>
         <div class="ma-1" v-for="icao in ad" :key="icao">
-            <pre v-if="metar && metarStore.metar[icao].length == 0" class="text-grey"
+            <pre
+                v-if="metar && metarStore.metar[icao].length == 0"
+                class="text-grey"
+                style="white-space: pre-wrap"
+            >
                 >{{ icao }} N/A</pre
             >
-            <pre v-else-if="metar">{{ metarStore.metar[icao] }}</pre>
-            <pre v-else-if="taf && !metar && tafStore.taf[icao].length == 0" class="text-grey">
+            <pre v-else-if="metar" style="white-space: pre-wrap">{{ metarStore.metar[icao] }}</pre>
+            <pre
+                v-else-if="taf && !metar && tafStore.taf[icao].length == 0"
+                class="text-grey"
+                style="white-space: pre-wrap"
+            >
 TAF {{ icao }} N/A</pre
             >
-            <pre v-if="taf" :class="metar ? 'mb-2 text-grey-darken-2' : ''">{{
-                tafStore.taf[icao]
-            }}</pre>
+            <pre
+                v-if="taf"
+                :class="metar ? 'mb-2 text-grey-darken-2' : ''"
+                style="white-space: pre-wrap"
+                >{{ tafStore.taf[icao] }}</pre
+            >
         </div>
     </div>
 </template>
@@ -79,7 +90,7 @@ TAF {{ icao }} N/A</pre
 <script setup lang="ts">
 import { useMetarStore } from "@/stores/metar"
 import { useTafStore } from "@/stores/taf"
-import { metarAirports } from "@/metcommon";
+import { metarAirports } from "@/metcommon"
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
 
 const metarStore = useMetarStore()
