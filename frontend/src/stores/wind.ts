@@ -5,6 +5,7 @@ import { useWxStore } from "./wx"
 import { useMetarStore } from "./metar"
 import { wxAirports, metarAirports } from "@/metcommon"
 import Papa from "papaparse"
+import * as turf from "@turf/turf"
 
 export interface RunwayWindData {
     name: string
@@ -38,7 +39,6 @@ export interface WindData {
 import runwaysRaw from "@/data/runways.csv?raw"
 
 import geomagnetism from "geomagnetism"
-import { timestamp } from "@vueuse/core"
 import { useVatsimStore } from "./vatsim"
 const geomag = geomagnetism.model()
 
@@ -62,6 +62,38 @@ const runwayData = Papa.parse(cleanedCsv, {
             parseFloat(row.he_latitude_deg),
             parseFloat(row.he_longitude_deg),
         ])
+        if (!row.le_heading_degT) {
+            if (
+                row.le_longitude_deg &&
+                row.le_latitude_deg &&
+                row.he_longitude_deg &&
+                row.he_latitude_deg
+            ) {
+                row.le_heading_degT = turf.bearing(
+                    turf.point([row.le_longitude_deg, row.le_latitude_deg]),
+                    turf.point([row.he_longitude_deg, row.he_latitude_deg]),
+                )
+                if (row.le_heading_degT < 0) row.le_heading_degT += 360
+            } else {
+                row.le_heading_degT = parseInt(row.le_ident) * 10
+            }
+        }
+        if (!row.he_heading_degT) {
+            if (
+                row.he_longitude_deg &&
+                row.he_latitude_deg &&
+                row.le_longitude_deg &&
+                row.le_latitude_deg
+            ) {
+                row.he_heading_degT = turf.bearing(
+                    turf.point([row.he_longitude_deg, row.he_latitude_deg]),
+                    turf.point([row.le_longitude_deg, row.le_latitude_deg]),
+                )
+                if (row.he_heading_degT < 0) row.he_heading_degT += 360
+            } else {
+                row.he_heading_degT = parseInt(row.he_ident) * 10
+            }
+        }
         return {
             airport_ident: row.airport_ident?.trim(),
             le_ident: row.le_ident?.trim(),
