@@ -156,7 +156,7 @@
                     font-weight="bold"
                     v-if="windData.speed !== undefined"
                 >
-                    <tspan>{{ windData.speed.toString() }}</tspan>
+                    {{ windData.speed.toString() }}
                     <tspan
                         v-if="!shouldReadMin && !shouldReadMax && !shouldReadGust"
                         :font-size="size / 20"
@@ -186,7 +186,7 @@
                     font-weight="bold"
                 >
                     <tspan :font-size="size / 32" font-weight="normal">MIN&nbsp;</tspan>
-                    <tspan>{{ windData.minWind }}</tspan>
+                    {{ windData.minWind }}
                 </text>
                 <text
                     v-if="shouldReadMax"
@@ -205,7 +205,7 @@
                     font-weight="bold"
                 >
                     <tspan :font-size="size / 32" font-weight="normal">MAX&nbsp;</tspan>
-                    <tspan>{{ windData.maxWind }}</tspan>
+                    {{ windData.maxWind }}
                 </text>
                 <text
                     :x="center"
