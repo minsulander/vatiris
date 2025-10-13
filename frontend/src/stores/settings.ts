@@ -15,6 +15,8 @@ export const useSettingsStore = defineStore("settings", () => {
     const cid2 = ref("")
     const position1 = ref("")
     const position2 = ref("")
+    const fspUrl = ref("")
+    const fspEnabled = ref(false)
 
     // settings stored in localStorage (device specific)
     const customPdfBrowser = ref(localStorage.customPdfBrowser == "true" || !browserHasPDFViewer())
@@ -46,6 +48,8 @@ export const useSettingsStore = defineStore("settings", () => {
             cid2,
             position1,
             position2,
+            fspUrl,
+            fspEnabled,
         ],
         () => {
             // PLS logic validation
@@ -83,6 +87,8 @@ export const useSettingsStore = defineStore("settings", () => {
                 cid2: cid2.value,
                 position1: position1.value,
                 position2: position2.value,
+                fspUrl: fspUrl.value,
+                fspEnabled: fspEnabled.value,
             }
             localStorage.settings = JSON.stringify(settings)
             if (Date.now() - lastLoadTime > 3000 && auth.user) {
@@ -133,6 +139,11 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("cid2" in settings) cid2.value = settings.cid2
         if ("position1" in settings) position1.value = settings.position1
         if ("position2" in settings) position2.value = settings.position2
+        if ("fspUrl" in settings) fspUrl.value = settings.fspUrl
+        if ("fspEnabled" in settings) fspEnabled.value = settings.fspEnabled
+        // Legacy support for old setting names
+        if ("vatfspUrl" in settings && !("fspUrl" in settings)) fspUrl.value = settings.vatfspUrl
+        if ("vatfspEnabled" in settings && !("fspEnabled" in settings)) fspEnabled.value = settings.vatfspEnabled
     }
 
     function browserHasPDFViewer() {
@@ -165,6 +176,8 @@ export const useSettingsStore = defineStore("settings", () => {
         cid2,
         position1,
         position2,
+        fspUrl,
+        fspEnabled,
         customPdfBrowser,
     }
 })

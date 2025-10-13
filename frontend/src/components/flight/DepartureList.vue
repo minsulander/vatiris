@@ -6,6 +6,7 @@
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
+                <th v-if="settings.fspEnabled" style="width: 28px"></th>
                 <th @click="clickHeader('callsign')">
                     Flight <v-icon>{{ sortIcon("callsign") }}</v-icon>
                 </th>
@@ -30,6 +31,21 @@
             </tr>
         </thead>
         <tr v-for="dep in departures" :key="dep.callsign">
+            <td v-if="settings.fspEnabled" style="padding: 2px; width: 28px">
+                <v-btn
+                    icon
+                    size="small"
+                    variant="flat"
+                    density="compact"
+                    :disabled="vatfsp.printing"
+                    @click="shouldAllowSingleClick(dep) ? printFlight(dep) : null"
+                    @dblclick="!shouldAllowSingleClick(dep) ? printFlight(dep) : null"
+                    :title="getDepartureButtonTitle(dep)"
+                    :color="getDepartureButtonColor(dep)"
+                    style="border-radius: 50%; min-width: 24px; width: 24px; height: 24px; cursor: pointer;"
+                >
+                </v-btn>
+            </td>
             <td class="font-weight-medium">{{ dep.callsign }}</td>
             <td>{{ dep.type }}</td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
@@ -74,6 +90,8 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
+import { useVatfspStore } from "@/stores/vatfsp"
+import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
 import { flightplanDepartureTime, distanceToAirport } from "@/flightcalc"
 import moment from "moment"
@@ -94,6 +112,8 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+const vatfsp = useVatfspStore()
+const settings = useSettingsStore()
 
 const sortBy = ref("status")
 const sortDescending = ref(false)
@@ -115,6 +135,10 @@ interface Departure {
     status: string
     ades: string
     sortTime: number
+    squawk?: string
+    route?: string
+    rfl?: string
+    flightRules?: string
 }
 
 const storedStand = {} as { [key: string]: string }
@@ -151,6 +175,10 @@ const departures = computed(() => {
                               pilot.latitude,
                           ])
                         : "",
+                squawk: pilot.flight_plan?.assigned_transponder,
+                route: pilot.flight_plan?.route,
+                rfl: pilot.flight_plan?.altitude,
+                flightRules: pilot.flight_plan?.flight_rules,
             } as Departure
             if (dep.stand) storedStand[dep.callsign] = dep.stand
             else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
@@ -326,5 +354,93 @@ function saveOptions() {
         sortBy: sortBy.value,
         sortDescending: sortDescending.value,
     })
+}
+
+function printFlight(dep: Departure) {
+    vatfsp.printFlightStrip(
+        {
+            callsign: dep.callsign,
+            type: dep.type,
+            adep: dep.adep,
+            ades: dep.ades,
+            stand: dep.stand,
+            std: dep.std,
+            status: dep.status,
+            flightRules: dep.flightRules,
+        },
+        false, // isArrival
+        dep.squawk,
+        dep.route,
+        dep.rfl,
+        undefined, // sid - not available in dep object yet
+        undefined, // wtc - not available in dep object yet
+    )
+}
+
+function shouldHighlightDeparture(dep: Departure): boolean {
+    // Highlight if flight plan changed after printing
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+        return true
+    }
+
+    // Highlight if has assigned squawk (not 2000 or 0000) and not printed
+    const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+    if (hasAssignedSquawk && !vatfsp.isPrinted(dep.callsign)) {
+        return true
+    }
+
+    return false
+}
+
+function getDepartureButtonColor(dep: Departure): string {
+    // Flight plan changed after printing - URGENT
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+        return "red" // Urgent - needs reprint
+    }
+
+    // Already printed and no changes
+    if (vatfsp.isPrinted(dep.callsign)) {
+        return "grey-darken-1" // Already printed
+    }
+
+    // Not printed - check squawk assignment
+    const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+    if (!hasAssignedSquawk) {
+        return "blue-grey-lighten-2" // Not ready (no squawk)
+    }
+
+    // Not printed with assigned squawk - ready to print
+    return "orange" // Ready to print
+}
+
+function shouldAllowSingleClick(dep: Departure): boolean {
+    // Single click allowed for: red (urgent flight plan changed) or orange (ready to print)
+    // Double click required for: grey (already printed) or blue-grey (no squawk)
+    
+    // Allow single click only if flight plan changed (red) or ready with squawk (orange)
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+        return true // Red - urgent
+    }
+    
+    if (!vatfsp.isPrinted(dep.callsign)) {
+        const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+        return hasAssignedSquawk // Orange (true) or Blue-grey (false)
+    }
+    
+    return false // Grey - already printed
+}
+
+function getDepartureButtonTitle(dep: Departure): string {
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+        return "Click to reprint flight strip (flight plan changed - urgent!)"
+    }
+    if (vatfsp.isPrinted(dep.callsign)) {
+        return "Double-click to reprint flight strip"
+    }
+    const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+    if (!hasAssignedSquawk) {
+        return "Double-click to print flight strip (no squawk assigned yet)"
+    }
+    return "Click to print flight strip"
 }
 </script>
