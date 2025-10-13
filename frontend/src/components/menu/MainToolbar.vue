@@ -1,6 +1,7 @@
 <template>
     <v-btn v-if="!auth.pending && !auth.user" class="text-grey" @click="bus.emit('select', 'about')">About</v-btn>
     <PLS v-if="!auth.pending && auth.user"/>
+    <FSP v-if="settings.fspEnabled" />
     <v-btn
         v-if="!fullscreen"
         type="icon"
@@ -21,11 +22,14 @@
 <script setup lang="ts">
 import Clock from "@/components/Clock.vue"
 import PLS from "@/components/PLS.vue"
+import FSP from "@/components/FSP.vue"
 import useEventBus from "@/eventbus"
 import { useAuthStore } from "@/stores/auth"
+import { useSettingsStore } from "@/stores/settings"
 import { ref, onMounted } from "vue"
 
 const auth = useAuthStore()
+const settings = useSettingsStore()
 const bus = useEventBus()
 const fullscreen = ref(window.innerHeight == screen.height)
 

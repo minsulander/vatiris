@@ -71,6 +71,9 @@ app.use("/esdata", esdataRoutes)
 import eaipRoutes from "./routes/eaip"
 app.use("/eaip", eaipRoutes)
 
+import fspRoutes from "./routes/fsp"
+app.use("/fsp", fspRoutes)
+
 app.use(express.static("public"))
 app.get(/.*/, (req, res) => {
     res.status(404).send()
