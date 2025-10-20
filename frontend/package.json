@@ -14,7 +14,7 @@
         "format": "prettier --write src/"
     },
     "dependencies": {
-        "@mdi/font": "7.0.96",
+        "@mdi/font": "^7.4.47",
         "@tabler/icons-vue": "^3.31.0",
         "@turf/turf": "^7.2.0",
         "@vueup/vue-quill": "^1.2.0",
