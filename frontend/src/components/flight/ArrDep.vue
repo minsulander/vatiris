@@ -42,6 +42,9 @@
                     >
                         <v-list-item-title>NONE</v-list-item-title>
                     </v-list-item>
+                    <v-list-item v-if="canSyncAd" @click="syncAd">
+                        <v-list-item-title>SYNC</v-list-item-title>
+                    </v-list-item>
                     <v-list-item>
                         <v-text-field
                             v-model="adFilter"
@@ -75,14 +78,14 @@
             >
                 <v-list density="compact">
                     <v-list-item
-                        v-for="status in Object.keys(esdata.statusLabel)"
+                        v-for="status in Object.keys(esdataStore.statusLabel)"
                         :key="status"
                         :class="!excludeStatus.includes(status) ? '' : 'text-grey'"
                         @click="clickStatus(status)"
                     >
                         <v-list-item-title
-                            >{{ esdata.statusLabel[status] }} -
-                            {{ esdata.statusDescription[status] }}</v-list-item-title
+                            >{{ esdataStore.statusLabel[status] }} -
+                            {{ esdataStore.statusDescription[status] }}</v-list-item-title
                         >
                     </v-list-item>
                 </v-list>
@@ -145,9 +148,13 @@ import DepartureList from "./DepartureList.vue"
 import { reactive, ref, computed, onMounted, watch } from "vue"
 import { useAirportStore } from "@/stores/airport"
 import { useEsdataStore } from "@/stores/esdata"
+import { useVatsimStore } from "@/stores/vatsim"
+import { useAuthStore } from "@/stores/auth"
 
 const airportStore = useAirportStore()
-const esdata = useEsdataStore()
+const esdataStore = useEsdataStore()
+const vatsimStore = useVatsimStore()
+const auth = useAuthStore()
 
 const div = ref()
 const arr = ref(true)
@@ -155,6 +162,18 @@ const dep = ref(true)
 const ad = reactive([] as string[])
 const adFilter = ref("")
 const excludeStatus = reactive([] as string[])
+
+const canSyncAd = computed(() => {
+    return myEsData.value && "rwyconfig" in myEsData.value
+})
+
+const myEsData = computed(() => {
+    const cid = auth.user?.cid
+    if (!cid) return undefined
+    const controller = vatsimStore.data?.controllers.find((c) => c.cid == cid)
+    if (!controller) return undefined
+    return esdataStore.data[controller.callsign] || undefined
+})
 
 const filteredAd = computed(() => {
     if (adFilter.value) {
@@ -165,6 +184,22 @@ const filteredAd = computed(() => {
     }
     return Object.keys(airportStore.airports).sort()
 })
+
+function syncAd() {
+    ad.splice(0)
+    ad.push("NONE")
+    esdataStore.fetch()
+    setTimeout(() => {
+        if (myEsData.value && "rwyconfig" in myEsData.value) {
+            ad.splice(0)
+            for (const icao of Object.keys(myEsData.value.rwyconfig)) {
+                if (myEsData.value.rwyconfig[icao].arr || myEsData.value.rwyconfig[icao].dep) {
+                    ad.push(icao)
+                }
+            }
+        }
+    }, 500)
+}
 
 function clickAd(icao: string) {
     if (ad.includes(icao)) {
