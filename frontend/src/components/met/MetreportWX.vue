@@ -278,6 +278,16 @@ const formatMetreport = (report: string) => {
         }
     }
 
+    // Tweak AUTO NCD/10KM to read CAVOK
+    if (
+        report.match(/\s+AUTO\s+/) &&
+        report.match(/\s+(CLD NCD|NCD|NCLD)\s+/) &&
+        report.match(/\s+VIS 10KM\s+/)
+    ) {
+        report = report.replace(/(\s+)(CLD NCD|NCD|NCLD)(\s+)/, "$1$3")
+        report = report.replace(/(\s+)VIS 10KM(\s+)/, "$1CAVOK$2")
+    }
+
     // QNH styling
     let formattedReport = report.replace(/(QNH\s+)(\d+\s\d+\s\d+\s\d+)/g, (match, p1, p2) => {
         const trend =

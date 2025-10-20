@@ -40,16 +40,22 @@ export const useMetarStore = defineStore("metar", () => {
             const parsed = parseMetar(metar)
             if (!parsed) return "PARSE FAIL" + (metar ? `: ${metar}` : "")
             if (!parsed.type) return metar || "NOT A METAR"
-            const header = `${parsed.station}                       ${time.value ? moment(time.value).format("YYMMDD") : "------"}${parsed.auto ? '    AUTO' : ''}${parsed.corrected ? '    COR' : ''}`
+            const header = `${parsed.station}                       ${time.value ? moment(time.value).format("YYMMDD") : "------"}${parsed.auto ? "    AUTO" : ""}${parsed.corrected ? "    COR" : ""}`
             const rwy = "--"
             const header2 = `RWY ${rwy.padEnd(11)}MET REPORT  <b>${String(parsed.day).padStart(2, "0")}${String(parsed.hour).padStart(2, "0")}${String(parsed.minute).padStart(2, "0")}Z</b>`
             let wind = `WIND `
             if (parsed.wind) {
-                wind += parsed.wind.degrees ? String(parsed.wind.degrees).padStart(3, "0") : parsed.wind.direction
-                wind += `/${parsed.wind.speed}${parsed.wind.unit || "KT"}`
-                if (parsed.wind.gust) wind += ` G${parsed.wind.gust}${parsed.wind.unit || "KT"}`
-                if (parsed.wind.minVariation && parsed.wind.maxVariation) {
-                    wind += ` VRB BTN ${String(parsed.wind.minVariation).padStart(3, "0")}/ AND ${String(parsed.wind.maxVariation).padStart(3, "0")}/`
+                if (!parsed.wind.speed && !parsed.wind.gust && !parsed.wind.degrees) {
+                    wind += "CALM"
+                } else {
+                    wind += parsed.wind.degrees
+                        ? String(parsed.wind.degrees).padStart(3, "0")
+                        : parsed.wind.direction
+                    wind += `/${parsed.wind.speed}${parsed.wind.unit || "KT"}`
+                    if (parsed.wind.gust) wind += ` G${parsed.wind.gust}${parsed.wind.unit || "KT"}`
+                    if (parsed.wind.minVariation && parsed.wind.maxVariation) {
+                        wind += ` VRB BTN ${String(parsed.wind.minVariation).padStart(3, "0")}/ AND ${String(parsed.wind.maxVariation).padStart(3, "0")}/`
+                    }
                 }
             } else {
                 wind += "???"
@@ -58,8 +64,12 @@ export const useMetarStore = defineStore("metar", () => {
             if (parsed.cavok) {
                 visibility = "CAVOK"
             } else if (parsed.visibility) {
-                if ((parsed.visibility.value >= 5000 && parsed.visibility.value != 9999 && parsed.visibility.unit == "m") ||
-                    (parsed.visibility.value == 9999 && parsed.visibility.unit == "m")) {
+                if (
+                    (parsed.visibility.value >= 5000 &&
+                        parsed.visibility.value != 9999 &&
+                        parsed.visibility.unit == "m") ||
+                    (parsed.visibility.value == 9999 && parsed.visibility.unit == "m")
+                ) {
                     visibility += `${Math.ceil(parsed.visibility.value / 1000)}KM`
                 } else {
                     visibility += `${parsed.visibility.value}`
@@ -118,8 +128,20 @@ export const useMetarStore = defineStore("metar", () => {
                 qnh += " ???"
             }
             const info = ""
+
+            // Tweak AUTO NCD/10KM to read CAVOK
+            if (
+                parsed.auto &&
+                (clouds == "NCD" || clouds == "CLD NCD" || clouds == "NCLD") &&
+                (visibility == "VIS 10KM" || visibility == "VIS 9999")
+            ) {
+                visibility = "CAVOK"
+                clouds = ""
+            }
+
             // TODO NOSIG = parsed.nosig, parsed.trends, parsed.remarks
             // TODO RVR = parsed.runwaysInfo
+
             const text = `${header}\n${header2}\n${wind}\n\n${visibility}\n\n${conditions}\n\n${clouds}\n${temp}\n${qnh}\n${info}`
             return text
         } catch (e) {
