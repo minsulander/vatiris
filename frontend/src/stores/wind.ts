@@ -100,16 +100,20 @@ const runwayData = Papa.parse(cleanedCsv, {
             le_heading_deg: parseFloat(row.le_heading_degT) - (leGeo ? leGeo.decl : 0),
             he_ident: row.he_ident?.trim(),
             he_heading_deg: parseFloat(row.he_heading_degT) - (heGeo ? heGeo.decl : 0),
+            closed: row.closed === "1",
         }
     })
     .filter(
         (row) =>
+            !row.closed &&
             row.airport_ident &&
             row.le_ident &&
             row.he_ident &&
             !isNaN(row.le_heading_deg) &&
             !isNaN(row.he_heading_deg),
     )
+
+import runwaysPreferred from "@/data/runways_preferred.json"
 
 export const useWindStore = defineStore("wind", () => {
     const wxStore = useWxStore()
@@ -327,6 +331,13 @@ export const useWindStore = defineStore("wind", () => {
         return undefined
     }
 
+    function getRunwaysInUse(icao: string) {
+        const arrRwy = getRunwayInUse(icao, false)
+        const depRwy = getRunwayInUse(icao, true)
+        if (arrRwy != depRwy) return `${arrRwy}/${depRwy}`
+        return arrRwy
+    }
+
     function getRunwayInUse(icao: string, dep: boolean = false) {
         if (vatsimStore.data && vatsimStore.data.atis) {
             const atis = vatsimStore.data.atis.find(
@@ -355,13 +366,25 @@ export const useWindStore = defineStore("wind", () => {
                 }
             }
         }
+        if (!(icao in windData)) return undefined
+
         // Fall back to max headwind runway
+        const preferred = (runwaysPreferred as any)[icao]
         let maxHeadWind = -Infinity
         let currentRunway = ""
         for (const runway of windData[icao].runways) {
-            if (typeof runway.headWind != "undefined" && runway.headWind > maxHeadWind) {
+            if (typeof runway.headWind != "undefined" && runway.headWind > maxHeadWind && (!preferred || !preferred.never || !preferred.never.includes(runway.name))) {
                 maxHeadWind = runway.headWind
                 currentRunway = runway.name
+            }
+        }
+        if (maxHeadWind > -1 && preferred) {
+            const limit = preferred.limit || 5
+            if (maxHeadWind < limit) {
+                const preferredRunway = dep ? preferred.dep : preferred.arr
+                if (preferredRunway && windData[icao].runways.find(r => r.name == preferredRunway)) {
+                    currentRunway = preferredRunway
+                }
             }
         }
         return currentRunway
@@ -397,6 +420,7 @@ export const useWindStore = defineStore("wind", () => {
         subscribe,
         unsubscribe,
         getRunwaysForAirport,
+        getRunwaysInUse,
         getRunwayInUse,
     }
 })
