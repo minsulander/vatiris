@@ -46,8 +46,51 @@
                         density="compact"
                         class="mb-4"
                         :disabled="!settings.fspUrl || vatfsp.printing"
-                        @keydown.enter="printManualStrip"
+                        @keydown.enter="handleEnterKey"
+                        @input="handleCallsignInput"
                     />
+
+                    <div v-if="vatsimFlightPlanFound && foundPilot" class="mb-4">
+                        <v-alert type="success" variant="tonal" density="compact" class="mb-2">
+                            Flight plan found for {{ foundPilot.callsign }}
+                        </v-alert>
+                        <div style="display: flex; gap: 8px;">
+                            <v-btn
+                                variant="flat"
+                                :style="{
+                                    backgroundColor: '#fe8',
+                                    color: '#000',
+                                    flex: 1,
+                                    border: selectedStripType === 'arr' ? '3px solid #000' : '3px solid transparent',
+                                    fontWeight: selectedStripType === 'arr' ? 'bold' : 'normal'
+                                }"
+                                :disabled="vatfsp.printing"
+                                @click="selectedStripType = 'arr'"
+                                prepend-icon="mdi-airplane-landing"
+                            >
+                                ARR
+                            </v-btn>
+                            <v-btn
+                                variant="flat"
+                                :style="{
+                                    backgroundColor: '#6ce',
+                                    color: '#000',
+                                    flex: 1,
+                                    border: selectedStripType === 'dep' ? '3px solid #000' : '3px solid transparent',
+                                    fontWeight: selectedStripType === 'dep' ? 'bold' : 'normal'
+                                }"
+                                :disabled="vatfsp.printing"
+                                @click="selectedStripType = 'dep'"
+                                prepend-icon="mdi-airplane-takeoff"
+                            >
+                                DEP
+                            </v-btn>
+                        </div>
+                    </div>
+
+                    <v-alert v-else-if="vatsimFlightPlanFound === false" type="warning" variant="tonal" density="compact" class="mb-4">
+                        No flight plan found on VATSIM
+                    </v-alert>
 
                     <v-divider class="my-4" />
 
@@ -100,13 +143,22 @@
                         Retry Connection
                     </v-btn>
                     <v-btn
-                        v-else
+                        v-else-if="vatsimFlightPlanFound && selectedStripType"
                         color="primary"
                         variant="text"
-                        :disabled="!manualCallsign || vatfsp.printing"
-                        @click="printManualStrip"
+                        :disabled="vatfsp.printing"
+                        @click="executePrint"
                     >
-                        Print Strip
+                        Print {{ selectedStripType === 'arr' ? 'ARR' : 'DEP' }} Strip
+                    </v-btn>
+                    <v-btn
+                        v-else-if="vatsimFlightPlanFound === false && manualCallsign"
+                        color="primary"
+                        variant="text"
+                        :disabled="vatfsp.printing"
+                        @click="printManualStrip()"
+                    >
+                        Print Anyway
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -122,7 +174,8 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
-import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime } from "@/flightcalc"
+import { useWxStore } from "@/stores/wx"
+import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, getSIDName, getCleanedRoute } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 import useEventBus from "@/eventbus"
@@ -133,11 +186,15 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+const wx = useWxStore()
 const bus = useEventBus()
 const isConnected = ref<boolean | null>(null)
 const isChecking = ref(false)
 const showPrintDialog = ref(false)
 const manualCallsign = ref("")
+const vatsimFlightPlanFound = ref<boolean | null>(null)
+const foundPilot = ref<any>(null)
+const selectedStripType = ref<'arr' | 'dep' | null>(null)
 
 const statusIcon = computed(() => {
     if (!settings.fspEnabled) {
@@ -164,9 +221,88 @@ function openPrintDialog() {
     
     showPrintDialog.value = true
     manualCallsign.value = ""
+    vatsimFlightPlanFound.value = null
+    foundPilot.value = null
+    selectedStripType.value = null
     if (settings.fspUrl && isConnected.value === null) {
         checkConnection()
     }
+}
+
+function resetFlightPlanState() {
+    vatsimFlightPlanFound.value = null
+    foundPilot.value = null
+    selectedStripType.value = null
+}
+
+function handleCallsignInput(event: any) {
+    // Auto-capitalize the callsign
+    const input = event.target as HTMLInputElement
+    const cursorPosition = input.selectionStart
+    const uppercased = manualCallsign.value.toUpperCase()
+    
+    if (manualCallsign.value !== uppercased) {
+        manualCallsign.value = uppercased
+        // Restore cursor position after Vue updates the value
+        setTimeout(() => {
+            if (cursorPosition !== null) {
+                input.setSelectionRange(cursorPosition, cursorPosition)
+            }
+        }, 0)
+    }
+    
+    // Search for flight plan while typing
+    checkCallsignAndPrepare()
+}
+
+function handleEnterKey() {
+    // If flight plan found and strip type selected, execute print
+    if (vatsimFlightPlanFound.value === true && selectedStripType.value) {
+        executePrint()
+    }
+    // If no flight plan found, trigger print anyway
+    else if (vatsimFlightPlanFound.value === false) {
+        printManualStrip()
+    }
+    // Otherwise do nothing (user needs to select ARR/DEP first)
+}
+
+function executePrint() {
+    if (!selectedStripType.value) return
+    printManualStrip(selectedStripType.value === 'arr')
+}
+
+function checkCallsignAndPrepare() {
+    if (!manualCallsign.value) {
+        resetFlightPlanState()
+        return
+    }
+
+    const callsign = manualCallsign.value.toUpperCase().trim()
+    
+    // Need at least 3 characters to search
+    if (callsign.length < 3) {
+        resetFlightPlanState()
+        return
+    }
+
+    // Try to find the pilot in VATSIM data
+    if (!vatsim.data || !vatsim.data.pilots) {
+        vatsimFlightPlanFound.value = false
+        foundPilot.value = null
+        return
+    }
+
+    const pilot = vatsim.data.pilots.find((p) => p.callsign === callsign)
+    if (!pilot || !pilot.flight_plan) {
+        vatsimFlightPlanFound.value = false
+        foundPilot.value = null
+        return
+    }
+
+    // Flight plan found!
+    vatsimFlightPlanFound.value = true
+    foundPilot.value = pilot
 }
 
 function goToSettings() {
@@ -243,7 +379,7 @@ async function clearAllPrinted() {
     }
 }
 
-async function printManualStrip() {
+async function printManualStrip(isArrival?: boolean) {
     if (!manualCallsign.value) return
 
     const callsign = manualCallsign.value.toUpperCase().trim()
@@ -255,7 +391,17 @@ async function printManualStrip() {
     }
 
     const pilot = vatsim.data.pilots.find((p) => p.callsign === callsign)
+    
+    // If no flight plan found, show confirmation dialog
     if (!pilot || !pilot.flight_plan) {
+        const confirmed = confirm(
+            `No flight plan found on VATSIM for ${callsign}.\n\nDo you want to print an empty strip with just the callsign?`
+        )
+        
+        if (!confirmed) {
+            return
+        }
+        
         console.warn(`Flight ${callsign} not found in VATSIM data`)
         // Print with just the callsign
         await vatfsp.printFlightStrip(
@@ -278,13 +424,18 @@ async function printManualStrip() {
             undefined, // wtc
         )
         manualCallsign.value = ""
+        vatsimFlightPlanFound.value = null
+        foundPilot.value = null
+        selectedStripType.value = null
         showPrintDialog.value = false
         return
     }
 
-    // Determine if this is an arrival or departure
-    const isInFlight = pilot.groundspeed >= constants.inflightGroundspeed
-    const isArrival = pilot.flight_plan.arrival.startsWith("ES")
+    // If isArrival not specified, try to determine automatically
+    if (isArrival === undefined) {
+        const isInFlight = pilot.groundspeed >= constants.inflightGroundspeed
+        isArrival = pilot.flight_plan.arrival.startsWith("ES") && isInFlight
+    }
     
     let flightData: any = {
         callsign: pilot.callsign,
@@ -296,7 +447,7 @@ async function printManualStrip() {
         sta: "",
         eta: "",
         status: "",
-        flightRules: pilot.flight_plan.flight_rules,
+        flightRules: pilot.flight_plan.flight_rules, // Pass original Y/Z values for printing
     }
 
     // Calculate stand if on ground
@@ -312,7 +463,7 @@ async function printManualStrip() {
     flightData.std = flightplanDepartureTime(pilot.flight_plan)?.format("HHmm") || ""
 
     // Calculate STA/ETA for arrivals
-    if (isArrival && isInFlight) {
+    if (isArrival) {
         flightData.sta = flightplanArrivalTime(pilot.flight_plan)?.format("HHmm") || ""
         
         // Try to get ETA from FDP data first
@@ -346,18 +497,55 @@ async function printManualStrip() {
         if (!flightData.stand && esd.stand) flightData.stand = esd.stand
     }
 
+    // Process SID information for departures
+    let sidName: string | undefined
+    let cleanedRoute = pilot.flight_plan.route
+    
+    if (!isArrival && pilot.flight_plan.departure) {
+        // Get metreport data for runway detection
+        const metreport = wx.metreport(pilot.flight_plan.departure)
+        
+        // Get effective flight rules
+        const effectiveFlightRules = getEffectiveFlightRules(
+            pilot.flight_plan.flight_rules,
+            pilot.flight_plan.route
+        )
+        
+        // Extract SID and clean route
+        sidName = getSIDName(
+            pilot.flight_plan.departure,
+            pilot.flight_plan.route,
+            undefined, // runway not available from pilot data
+            metreport,
+            effectiveFlightRules
+        )
+        
+        if (sidName) {
+            cleanedRoute = getCleanedRoute(
+                pilot.flight_plan.departure,
+                pilot.flight_plan.route,
+                undefined,
+                metreport,
+                effectiveFlightRules
+            )
+        }
+    }
+
     const success = await vatfsp.printFlightStrip(
         flightData,
-        isArrival && isInFlight, // isArrival
+        isArrival, // use the parameter or determined value
         pilot.flight_plan.assigned_transponder,
-        pilot.flight_plan.route,
-        pilot.flight_plan.altitude,
-        undefined, // sid - not available
+        cleanedRoute, // use cleaned route with SID removed
+        formatRFL(pilot.flight_plan.altitude),
+        sidName, // pass SID name if found
         undefined, // wtc - not available
     )
     
     if (success) {
         manualCallsign.value = ""
+        vatsimFlightPlanFound.value = null
+        foundPilot.value = null
+        selectedStripType.value = null
         showPrintDialog.value = false
     }
 }

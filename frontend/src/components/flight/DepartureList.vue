@@ -92,8 +92,9 @@ import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
+import { useWxStore } from "@/stores/wx"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { flightplanDepartureTime, distanceToAirport } from "@/flightcalc"
+import { flightplanDepartureTime, distanceToAirport, formatRFL, getSIDName, getCleanedRoute } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -114,6 +115,7 @@ const esdata = useEsdataStore()
 const airportStore = useAirportStore()
 const vatfsp = useVatfspStore()
 const settings = useSettingsStore()
+const wx = useWxStore()
 
 const sortBy = ref("status")
 const sortDescending = ref(false)
@@ -178,7 +180,7 @@ const departures = computed(() => {
                 squawk: pilot.flight_plan?.assigned_transponder,
                 route: pilot.flight_plan?.route,
                 rfl: pilot.flight_plan?.altitude,
-                flightRules: pilot.flight_plan?.flight_rules,
+                flightRules: pilot.flight_plan?.flight_rules, // Pass original Y/Z values for printing
             } as Departure
             if (dep.stand) storedStand[dep.callsign] = dep.stand
             else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
@@ -357,6 +359,80 @@ function saveOptions() {
 }
 
 function printFlight(dep: Departure) {
+    console.log('🖨️ [DepartureList] printFlight called for:', dep.callsign)
+    console.log('🖨️ [DepartureList] Departure object:', dep)
+    
+    // If route or other data is missing, try to get it from VATSIM data directly
+    if (vatsim.data) {
+        const pilot = vatsim.data.pilots.find(p => p.callsign === dep.callsign)
+        if (pilot && pilot.flight_plan) {
+            if (!dep.route && pilot.flight_plan.route) {
+                dep.route = pilot.flight_plan.route
+                console.log('🖨️ [DepartureList] Route retrieved from VATSIM pilot data:', dep.route)
+            }
+            if (!dep.rfl && pilot.flight_plan.altitude) {
+                dep.rfl = pilot.flight_plan.altitude
+                console.log('🖨️ [DepartureList] RFL retrieved from VATSIM pilot data:', dep.rfl)
+            }
+            if (!dep.squawk && pilot.flight_plan.assigned_transponder) {
+                dep.squawk = pilot.flight_plan.assigned_transponder
+                console.log('🖨️ [DepartureList] Squawk retrieved from VATSIM pilot data:', dep.squawk)
+            }
+        } else {
+            const prefile = vatsim.data.prefiles.find(p => p.callsign === dep.callsign)
+            if (prefile && prefile.flight_plan) {
+                if (!dep.route && prefile.flight_plan.route) {
+                    dep.route = prefile.flight_plan.route
+                    console.log('🖨️ [DepartureList] Route retrieved from VATSIM prefile data:', dep.route)
+                }
+                if (!dep.rfl && prefile.flight_plan.altitude) {
+                    dep.rfl = prefile.flight_plan.altitude
+                    console.log('🖨️ [DepartureList] RFL retrieved from VATSIM prefile data:', dep.rfl)
+                }
+                if (!dep.squawk && prefile.flight_plan.assigned_transponder) {
+                    dep.squawk = prefile.flight_plan.assigned_transponder
+                    console.log('🖨️ [DepartureList] Squawk retrieved from VATSIM prefile data:', dep.squawk)
+                }
+            }
+        }
+    }
+    
+    console.log('🖨️ [DepartureList] Final Route:', dep.route)
+    console.log('🖨️ [DepartureList] Airport:', dep.adep)
+    
+    // Process SID information for departures
+    let sidName: string | undefined
+    let cleanedRoute = dep.route
+    
+    if (dep.adep && dep.route) {
+        // Get metreport data for runway detection
+        const metreport = wx.metreport(dep.adep)
+        console.log('🖨️ [DepartureList] Metreport:', metreport ? `${metreport.substring(0, 100)}...` : 'null')
+        console.log('🖨️ [DepartureList] Flight Rules:', dep.flightRules)
+        
+        // Extract SID and clean route
+        sidName = getSIDName(
+            dep.adep,
+            dep.route,
+            undefined, // runway not available in dep object
+            metreport,
+            dep.flightRules
+        )
+        
+        console.log('🖨️ [DepartureList] SID detected:', sidName || 'none')
+        
+        if (sidName) {
+            cleanedRoute = getCleanedRoute(
+                dep.adep,
+                dep.route,
+                undefined,
+                metreport,
+                dep.flightRules
+            )
+            console.log('🖨️ [DepartureList] Cleaned route:', cleanedRoute)
+        }
+    }
+
     vatfsp.printFlightStrip(
         {
             callsign: dep.callsign,
@@ -370,16 +446,16 @@ function printFlight(dep: Departure) {
         },
         false, // isArrival
         dep.squawk,
-        dep.route,
-        dep.rfl,
-        undefined, // sid - not available in dep object yet
+        cleanedRoute, // use cleaned route with SID removed
+        formatRFL(dep.rfl),
+        sidName, // pass SID name if found
         undefined, // wtc - not available in dep object yet
     )
 }
 
 function shouldHighlightDeparture(dep: Departure): boolean {
     // Highlight if flight plan changed after printing
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
         return true
     }
 
@@ -394,7 +470,7 @@ function shouldHighlightDeparture(dep: Departure): boolean {
 
 function getDepartureButtonColor(dep: Departure): string {
     // Flight plan changed after printing - URGENT
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
         return "red" // Urgent - needs reprint
     }
 
@@ -418,12 +494,12 @@ function shouldAllowSingleClick(dep: Departure): boolean {
     // Double click required for: grey (already printed) or blue-grey (no squawk)
     
     // Allow single click only if flight plan changed (red) or ready with squawk (orange)
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
         return true // Red - urgent
     }
     
     if (!vatfsp.isPrinted(dep.callsign)) {
-        const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+        const hasAssignedSquawk = !!(dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000")
         return hasAssignedSquawk // Orange (true) or Blue-grey (false)
     }
     
@@ -431,11 +507,14 @@ function shouldAllowSingleClick(dep: Departure): boolean {
 }
 
 function getDepartureButtonTitle(dep: Departure): string {
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, dep.rfl, dep.type)) {
-        return "Click to reprint flight strip (flight plan changed - urgent!)"
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+        return "Click to reprint flight strip (flight plan changed)"
     }
     if (vatfsp.isPrinted(dep.callsign)) {
         return "Double-click to reprint flight strip"
+    }
+    if (dep.status === "PRE") {
+        return "Double-click to print flight strip (not connected yet)"
     }
     const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
     if (!hasAssignedSquawk) {
