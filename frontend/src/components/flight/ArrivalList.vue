@@ -115,7 +115,7 @@ import { useAirportStore } from "@/stores/airport"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime } from "@/flightcalc"
+import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -197,7 +197,7 @@ const arrivals = computed(() => {
                 squawk: pilot.flight_plan?.assigned_transponder,
                 route: pilot.flight_plan?.route,
                 rfl: pilot.flight_plan?.altitude,
-                flightRules: pilot.flight_plan?.flight_rules,
+                flightRules: pilot.flight_plan?.flight_rules, // Pass original Y/Z values for printing
             } as Arrival
         })
     for (const arr of arrivals) {
@@ -356,7 +356,7 @@ function printFlight(arr: Arrival) {
         true, // isArrival
         arr.squawk, // squawk
         arr.route, // route
-        arr.rfl, // rfl
+        formatRFL(arr.rfl), // rfl
         undefined, // sid - not relevant for arrivals
         undefined, // wtc
     )
@@ -394,7 +394,7 @@ function getArrivalButtonTitle(arr: Arrival): string {
         return "Double-click to reprint flight strip"
     }
     if (shouldFlashArrival(arr)) {
-        return "Click to print flight strip (ETA within 10 minutes!)"
+        return "Click to print flight strip (ETA within 10 minutes)"
     }
     return "Click to print flight strip"
 }
