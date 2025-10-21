@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import { ref, reactive } from "vue"
 import { useSettingsStore } from "./settings"
+import { formatTAS } from "@/flightcalc"
 
 const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
 
@@ -15,6 +16,7 @@ export interface FlightData {
     eta?: string
     status?: string
     flightRules?: string
+    tas?: string
 }
 
 interface PrintedFlightInfo {
@@ -49,7 +51,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             const stored = JSON.parse(localStorage.fspPrintedFlights)
             Object.assign(printedFlights, stored)
         } catch (e) {
-            console.error("Failed to load printed flights", e)
+            // Failed to load printed flights from localStorage
         }
     }
 
@@ -57,7 +59,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         localStorage.fspPrintedFlights = JSON.stringify(printedFlights)
     }
 
-    async function syncStateFromBackend(force = false) {
+    async function syncStateFromBackend() {
         // Sync printed flights and printing status from backend
         if (!backendUrl.value) return
 
@@ -86,13 +88,9 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                 })
                 
                 savePrintedFlights()
-                
-                if (force) {
-                    console.log("FSP: Force synced state from backend")
-                }
             }
         } catch (error) {
-            console.debug("Failed to sync FSP state from backend:", error)
+            // Failed to sync FSP state from backend
         }
     }
 
@@ -119,12 +117,9 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                 await syncStateFromBackend()
                 return true
             } else {
-                const error = await response.json()
-                console.warn("Failed to set printing status:", error)
                 return false
             }
         } catch (error) {
-            console.debug("Failed to set printing status:", error)
             printing.value = isPrinting
             return true
         }
@@ -167,7 +162,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                 // Immediately sync to get latest state to all clients
                 await syncStateFromBackend()
             } catch (error) {
-                console.debug("Failed to sync printed flight to backend:", error)
+                // Failed to sync printed flight to backend
             }
         }
     }
@@ -185,7 +180,6 @@ export const useVatfspStore = defineStore("vatfsp", () => {
 
         if (!settings.fspUrl) {
             lastError.value = "FSP URL not configured in settings"
-            console.error(lastError.value)
             return false
         }
 
@@ -193,7 +187,6 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         const lockSuccess = await setPrintingStatus(true)
         if (!lockSuccess) {
             lastError.value = "Another client is currently printing"
-            console.warn(lastError.value)
             return false
         }
 
@@ -218,6 +211,10 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             if (rfl) fspData.rfl = rfl
             if (flight.std) fspData.eobt = flight.std
             if (flight.eta) fspData.eta = flight.eta
+            if (flight.tas) {
+                const formattedTas = formatTAS(flight.tas)
+                if (formattedTas) fspData.tas = formattedTas
+            }
 
             const response = await fetch(`${settings.fspUrl}/api/print/external`, {
                 method: "POST",
@@ -230,7 +227,6 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
                 lastError.value = `Failed to print: ${errorData.error || response.statusText}`
-                console.error(lastError.value, errorData)
                 return false
             }
 
@@ -238,18 +234,15 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             
             if (!result.success) {
                 lastError.value = result.error || "Print failed"
-                console.error(lastError.value)
                 return false
             }
 
             // Mark flight as printed
             await markAsPrinted(flight.callsign, squawk, route, rfl, flight.type)
 
-            console.log(`Successfully sent print request for ${flight.callsign}`)
             return true
         } catch (error: any) {
             lastError.value = `Failed to connect to FSP: ${error.message}`
-            console.error(lastError.value)
             return false
         } finally {
             // Unlock printing status
@@ -293,7 +286,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                 // Immediately sync to get latest state to all clients
                 await syncStateFromBackend()
             } catch (error) {
-                console.debug("Failed to clear printed flight on backend:", error)
+                // Failed to clear printed flight on backend
             }
         }
     }
@@ -322,7 +315,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                 // Immediately sync to get latest state to all clients
                 await syncStateFromBackend()
             } catch (error) {
-                console.debug("Failed to clear all printed flights on backend:", error)
+                // Failed to clear all printed flights on backend
             }
         }
     }
@@ -340,8 +333,6 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         syncInterval.value = window.setInterval(() => {
             syncStateFromBackend()
         }, 500)
-
-        console.log("FSP: Started backend sync with", backendUrl.value)
     }
 
     function stopSync() {
@@ -350,7 +341,6 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             syncInterval.value = undefined
         }
         backendUrl.value = ""
-        console.log("FSP: Stopped backend sync")
     }
 
     // Clear old printed flights on startup

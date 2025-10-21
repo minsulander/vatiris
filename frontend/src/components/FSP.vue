@@ -175,7 +175,7 @@ import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
 import { useWxStore } from "@/stores/wx"
-import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, getSIDName, getCleanedRoute } from "@/flightcalc"
+import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, getEffectiveFlightRules, normalizeFlightRules, getSIDName, getCleanedRoute } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 import useEventBus from "@/eventbus"
@@ -293,7 +293,14 @@ function checkCallsignAndPrepare() {
         return
     }
 
-    const pilot = vatsim.data.pilots.find((p) => p.callsign === callsign)
+    // Check connected pilots first
+    let pilot: any = vatsim.data.pilots.find((p) => p.callsign === callsign)
+    
+    // If not found in pilots, check prefiles
+    if (!pilot && vatsim.data.prefiles) {
+        pilot = vatsim.data.prefiles.find((p) => p.callsign === callsign)
+    }
+    
     if (!pilot || !pilot.flight_plan) {
         vatsimFlightPlanFound.value = false
         foundPilot.value = null
@@ -337,11 +344,9 @@ async function checkConnection() {
             isConnected.value = true
         } else {
             isConnected.value = false
-            console.debug("FSP server responded but with error:", response.status)
         }
     } catch (error: any) {
         isConnected.value = false
-        console.debug("FSP connection check failed:", error.message || error)
     } finally {
         isChecking.value = false
     }
@@ -386,11 +391,16 @@ async function printManualStrip(isArrival?: boolean) {
 
     // Try to find the pilot in VATSIM data
     if (!vatsim.data || !vatsim.data.pilots) {
-        console.warn("No VATSIM data available")
         return
     }
 
-    const pilot = vatsim.data.pilots.find((p) => p.callsign === callsign)
+    // Check connected pilots first
+    let pilot: any = vatsim.data.pilots.find((p) => p.callsign === callsign)
+    
+    // If not found in pilots, check prefiles
+    if (!pilot && vatsim.data.prefiles) {
+        pilot = vatsim.data.prefiles.find((p) => p.callsign === callsign)
+    }
     
     // If no flight plan found, show confirmation dialog
     if (!pilot || !pilot.flight_plan) {
@@ -402,7 +412,6 @@ async function printManualStrip(isArrival?: boolean) {
             return
         }
         
-        console.warn(`Flight ${callsign} not found in VATSIM data`)
         // Print with just the callsign
         await vatfsp.printFlightStrip(
             {
@@ -433,7 +442,8 @@ async function printManualStrip(isArrival?: boolean) {
 
     // If isArrival not specified, try to determine automatically
     if (isArrival === undefined) {
-        const isInFlight = pilot.groundspeed >= constants.inflightGroundspeed
+        // For prefiles, groundspeed will be 0 or undefined, so treat as departure by default
+        const isInFlight = pilot.groundspeed ? pilot.groundspeed >= constants.inflightGroundspeed : false
         isArrival = pilot.flight_plan.arrival.startsWith("ES") && isInFlight
     }
     
@@ -447,11 +457,12 @@ async function printManualStrip(isArrival?: boolean) {
         sta: "",
         eta: "",
         status: "",
-        flightRules: pilot.flight_plan.flight_rules, // Pass original Y/Z values for printing
+        flightRules: normalizeFlightRules(pilot.flight_plan.flight_rules, pilot.flight_plan.route), // Auto-detect Y/Z from I/V
+        tas: pilot.flight_plan.cruise_tas || "",
     }
 
-    // Calculate stand if on ground
-    if (pilot.groundspeed < constants.motionGroundspeed) {
+    // Calculate stand if on ground (only for connected pilots, not prefiles)
+    if (pilot.groundspeed !== undefined && pilot.groundspeed < constants.motionGroundspeed && pilot.longitude && pilot.latitude) {
         const airport = isArrival ? pilot.flight_plan.arrival : pilot.flight_plan.departure
         flightData.stand = airportStore.getStandNameAtLocation(airport, [
             pilot.longitude,
@@ -479,8 +490,8 @@ async function printManualStrip(isArrival?: boolean) {
             }
         } 
         
-        // Fall back to distance-based calculation
-        if (!flightData.eta && pilot.flight_plan.arrival in airportStore.airports) {
+        // Fall back to distance-based calculation (only for connected pilots)
+        if (!flightData.eta && pilot.flight_plan.arrival in airportStore.airports && pilot.longitude && pilot.latitude && pilot.groundspeed) {
             const airport = airportStore.airports[pilot.flight_plan.arrival]
             const distance = distanceToAirport(pilot, airport)
             if (pilot.groundspeed >= constants.inflightGroundspeed) {
@@ -556,7 +567,7 @@ let esdataSubscription: any = undefined
 
 function handleRefresh() {
     // Sync FSP state when refresh is triggered
-    vatfsp.syncStateFromBackend(true)
+    vatfsp.syncStateFromBackend()
 }
 
 onMounted(() => {
