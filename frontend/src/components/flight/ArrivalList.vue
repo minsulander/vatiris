@@ -115,7 +115,7 @@ import { useAirportStore } from "@/stores/airport"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL } from "@/flightcalc"
+import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, normalizeFlightRules } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -163,6 +163,7 @@ interface Arrival {
     route?: string
     rfl?: string
     flightRules?: string
+    tas?: string
 }
 
 const arrivals = computed(() => {
@@ -197,7 +198,8 @@ const arrivals = computed(() => {
                 squawk: pilot.flight_plan?.assigned_transponder,
                 route: pilot.flight_plan?.route,
                 rfl: pilot.flight_plan?.altitude,
-                flightRules: pilot.flight_plan?.flight_rules, // Pass original Y/Z values for printing
+                flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
+                tas: pilot.flight_plan?.cruise_tas,
             } as Arrival
         })
     for (const arr of arrivals) {
@@ -352,6 +354,7 @@ function printFlight(arr: Arrival) {
             eta: arr.eta,
             status: arr.status,
             flightRules: arr.flightRules,
+            tas: arr.tas,
         },
         true, // isArrival
         arr.squawk, // squawk

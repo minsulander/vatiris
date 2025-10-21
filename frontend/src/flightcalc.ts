@@ -91,6 +91,35 @@ export function formatRFL(altitude: string | undefined): string | undefined {
 }
 
 /**
+ * Format TAS (True Airspeed) for FSP API
+ * @param tas - Raw TAS value (e.g., "450", "N0450", "120")
+ * @returns Formatted TAS string (e.g., "N0450", "N0120")
+ */
+export function formatTAS(tas: string | undefined): string | undefined {
+    if (!tas) return undefined
+    
+    // If already in correct format (N followed by 4 digits), return as is
+    if (/^N\d{4}$/.test(tas)) {
+        return tas
+    }
+    
+    // If it starts with M (Mach), return as is
+    if (tas.startsWith('M')) {
+        return tas
+    }
+    
+    // Remove leading N if present
+    const cleanTas = tas.replace(/^N/, '')
+    
+    // Try to parse as number
+    const speed = parseInt(cleanTas)
+    if (isNaN(speed)) return undefined
+    
+    // Format as N followed by 4 digits with leading zeros
+    return `N${speed.toString().padStart(4, '0')}`
+}
+
+/**
  * Determine the effective flight rules for a flight
  * Handles Y and Z flight rules (flights with planned rule changes)
  * 
@@ -101,15 +130,26 @@ export function formatRFL(altitude: string | undefined): string | undefined {
 export function getEffectiveFlightRules(flightRules: string | undefined, route: string | undefined): string | undefined {
     if (!flightRules) return undefined
     
-    // I and V are straightforward
+    const routeUpper = route?.toUpperCase() || ''
+    const hasIfrInRoute = routeUpper.includes('IFR') || routeUpper.includes(' IFR ') || routeUpper.startsWith('IFR ') || routeUpper.endsWith(' IFR')
+    const hasVfrInRoute = routeUpper.includes('VFR') || routeUpper.includes(' VFR ') || routeUpper.startsWith('VFR ') || routeUpper.endsWith(' VFR')
+    
+    // I and V might actually be Y or Z if route indicates rule changes
     if (flightRules === 'I' || flightRules === 'V') {
+        // If filed IFR but route contains VFR, it's actually a Y flight
+        if (flightRules === 'I' && hasVfrInRoute) {
+            return hasIfrInRoute ? 'I' : 'V' // Currently operating under which rules
+        }
+        // If filed VFR but route contains IFR, it's actually a Z flight  
+        if (flightRules === 'V' && hasIfrInRoute) {
+            return 'I' // Currently operating under IFR
+        }
         return flightRules
     }
     
-    // Y and Z require checking the route for "IFR" string
+    // Y and Z require checking the route for current operating rules
     if (flightRules === 'Y' || flightRules === 'Z') {
         // If route contains "IFR" string, the flight is currently or has transitioned to IFR
-        const hasIfrInRoute = route?.toUpperCase().includes('IFR') || false
         
         if (flightRules === 'Y') {
             // Y: Filed IFR with rule change
@@ -123,6 +163,40 @@ export function getEffectiveFlightRules(flightRules: string | undefined, route: 
     }
     
     // Return original if unrecognized format
+    return flightRules
+}
+
+/**
+ * Normalize flight rules - detect Y/Z from I/V based on route content
+ * Many pilots file as I/V when they should file Y/Z, this corrects it
+ * 
+ * @param flightRules - The filed flight rules (I, V, Y, or Z)
+ * @param route - The flight plan route string
+ * @returns Normalized flight rules (I, V, Y, or Z)
+ */
+export function normalizeFlightRules(flightRules: string | undefined, route: string | undefined): string | undefined {
+    if (!flightRules || !route) return flightRules
+    
+    const routeUpper = route.toUpperCase()
+    const hasIfrInRoute = routeUpper.includes('IFR') || routeUpper.includes(' IFR ') || routeUpper.startsWith('IFR ') || routeUpper.endsWith(' IFR')
+    const hasVfrInRoute = routeUpper.includes('VFR') || routeUpper.includes(' VFR ') || routeUpper.startsWith('VFR ') || routeUpper.endsWith(' VFR')
+    
+    // If already Y or Z, keep it
+    if (flightRules === 'Y' || flightRules === 'Z') {
+        return flightRules
+    }
+    
+    // Auto-detect Y: Filed as I (IFR) but route contains VFR
+    if (flightRules === 'I' && hasVfrInRoute) {
+        return 'Y'
+    }
+    
+    // Auto-detect Z: Filed as V (VFR) but route contains IFR
+    if (flightRules === 'V' && hasIfrInRoute) {
+        return 'Z'
+    }
+    
+    // Otherwise return as filed
     return flightRules
 }
 
@@ -141,59 +215,37 @@ export function processRouteWithSID(
     metreport?: string | undefined,
     flightRules?: string | undefined
 ): { sid: SIDMatch | null; cleanedRoute: string } {
-    console.log('[FLIGHTCALC] === processRouteWithSID ===')
-    console.log(`[FLIGHTCALC] Airport: ${airport}`)
-    console.log(`[FLIGHTCALC] Route: ${route}`)
-    console.log(`[FLIGHTCALC] Runway param: ${runway}`)
-    console.log(`[FLIGHTCALC] Metreport: ${metreport}`)
-    console.log(`[FLIGHTCALC] Flight Rules: ${flightRules}`)
-    
     if (!route || !airport) {
-        console.log('[FLIGHTCALC] ❌ No route or airport provided')
         return { sid: null, cleanedRoute: route || "" }
     }
 
     // If no runway provided, try to extract from metreport
     let detectedRunway = runway
     if (!detectedRunway && metreport) {
-        detectedRunway = sidManager.getRunwayFromMetreport(metreport)
-        console.log(`[FLIGHTCALC] Runway extracted from metreport: ${detectedRunway}`)
+        detectedRunway = sidManager.getRunwayFromMetreport(metreport) || undefined
     }
 
     // If still no runway, try to find SID without runway constraint
     if (!detectedRunway) {
-        console.log('[FLIGHTCALC] No runway detected, trying all runways...')
         const sids = sidManager.getSIDsForAirport(airport)
-        console.log(`[FLIGHTCALC] Checking ${sids.length} SIDs for all runways`)
         for (const sid of sids) {
             const match = sidManager.findSIDInRoute(airport, sid.runway, route, flightRules)
             if (match) {
-                console.log(`[FLIGHTCALC] ✅ Found SID match: ${match.sidName}`)
                 return { sid: match, cleanedRoute: match.remainingRoute }
             }
         }
-        console.log('[FLIGHTCALC] ❌ No SID found for any runway')
         return { sid: null, cleanedRoute: route }
     }
 
     // Extract runway number for SID lookup
     const runwayNumber = sidManager.extractRunwayNumber(detectedRunway)
-    console.log(`[FLIGHTCALC] Runway number extracted: ${runwayNumber} (from ${detectedRunway})`)
     
     if (!runwayNumber) {
-        console.log('[FLIGHTCALC] ❌ Invalid runway number')
         return { sid: null, cleanedRoute: route }
     }
 
     // Find SID match
     const sidMatch = sidManager.findSIDInRoute(airport, runwayNumber, route, flightRules)
-    
-    if (sidMatch) {
-        console.log(`[FLIGHTCALC] ✅ SID Match: ${sidMatch.sidName}`)
-        console.log(`[FLIGHTCALC] Cleaned Route: ${sidMatch.remainingRoute}`)
-    } else {
-        console.log('[FLIGHTCALC] ❌ No SID match found')
-    }
     
     return {
         sid: sidMatch,
