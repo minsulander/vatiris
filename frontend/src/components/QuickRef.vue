@@ -119,13 +119,15 @@ const runways = computed(() => {
                 "08/19L",
                 "19L",
                 "19L-NIGHT",
+                "19L-E",
                 "19R/08",
                 "19R/19L",
                 "19R",
                 "26/01L",
                 "26/19R",
-                "26/19L",
+                "26/19L-Q",
                 "26/19L-NIGHT",
+                "26/19L-E",
                 "26",
             ]
         default:
@@ -155,6 +157,8 @@ const runwayTitle = (runway: string) => {
             return "9A - 19L-Q"
         case "19L-NIGHT":
             return "9B - 19L-NIGHT"
+        case "19L-E":
+            return "9C - 19L-E"
         case "19R/08":
             return "10 - 19R/08-RT"
         case "19R/19L":
@@ -165,10 +169,12 @@ const runwayTitle = (runway: string) => {
             return "13 - 26/01L"
         case "26/19R":
             return "14 - 26/19R"
-        case "26/19L":
+        case "26/19L-Q":
             return "15A - 26/19L-Q"
         case "26/19L-NIGHT":
             return "15B - 26/19L-NIGHT"
+        case "26/19L-E":
+            return "15C - 26/19L-E"
         case "26":
             return "16 - 26"
         default:
@@ -239,8 +245,10 @@ const image = computed(() => {
         if (props.type == "APP" && shownRunway.value == "30") return "essb-8"
     } else if (props.ad == "ESSA") {
         const config = runways.value.indexOf(shownRunway.value)
-        if (config >= 0)
-            return `essa-${props.type.toLowerCase()}-` + `${config + 7}`.padStart(2, "0")
+        if (config >= 0) {
+            const offset = props.type == "TWR" ? 6 : 5
+            return `essa-${props.type.toLowerCase()}-` + `${config + offset}`.padStart(2, "0")
+        }
     }
     return ""
 })

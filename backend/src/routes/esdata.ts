@@ -36,7 +36,6 @@ esdata.get("/:key", async (req: Request, res: Response) => {
 
 esdata.post("/", async (req: Request, res: Response) => {
     // TODO some kind of auth but not oauth... could validate cid though
-    console.log("esdata", req.body)
     for (const key in req.body) {
         if (!(key in euroscopeData)) euroscopeData[key] = {}
         const data = euroscopeData[key]
@@ -50,7 +49,6 @@ esdata.post("/", async (req: Request, res: Response) => {
 
 esdata.post("/:key", async (req: Request, res: Response) => {
     // TODO some kind of auth but not oauth... could validate cid though
-    console.log(`esdata for ${req.params.key}`, req.body)
     if (!(req.params.key in euroscopeData)) euroscopeData[req.params.key] = {}
     const data = euroscopeData[req.params.key]
     Object.assign(data, req.body)
