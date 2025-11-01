@@ -219,7 +219,8 @@ export function processRouteWithSID(
         return { sid: null, cleanedRoute: route || "" }
     }
 
-    // If no runway provided, try to extract from metreport
+    // If runway is explicitly provided, use it (manual override)
+    // Otherwise, try to extract from metreport (ATIS source)
     let detectedRunway = runway
     if (!detectedRunway && metreport) {
         detectedRunway = sidManager.getRunwayFromMetreport(metreport) || undefined

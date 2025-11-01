@@ -95,6 +95,7 @@ import { useSettingsStore } from "@/stores/settings"
 import { useWxStore } from "@/stores/wx"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
 import { flightplanDepartureTime, distanceToAirport, formatRFL, normalizeFlightRules, getSIDName, getCleanedRoute } from "@/flightcalc"
+import { useFspRunway } from "@/composables/useFspRunway"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -116,6 +117,7 @@ const airportStore = useAirportStore()
 const vatfsp = useVatfspStore()
 const settings = useSettingsStore()
 const wx = useWxStore()
+const { manualRunwayOverride } = useFspRunway()
 
 const sortBy = ref("status")
 const sortDescending = ref(false)
@@ -412,15 +414,28 @@ function printFlight(dep: Departure) {
     let cleanedRoute = dep.route
     
     if (dep.adep && dep.route) {
-        // Get metreport data for runway detection
         const metreport = wx.metreport(dep.adep)
+        const isESGG = dep.adep === 'ESGG'
+        
+        // For ESGG: use manual override if set, otherwise let metreport extract runway from ATIS
+        let runwayForSID: string | undefined = undefined
+        let metreportForSID: string | undefined = undefined
+        
+        if (isESGG && manualRunwayOverride.value) {
+            // Manual override is set: use it and don't pass metreport (to prevent metreport from overriding)
+            runwayForSID = manualRunwayOverride.value
+            metreportForSID = undefined
+        } else {
+            // No manual override: pass metreport so it can extract runway from ATIS
+            metreportForSID = metreport
+        }
         
         // Extract SID and clean route
         sidName = getSIDName(
             dep.adep,
             dep.route,
-            undefined, // runway not available in dep object
-            metreport,
+            runwayForSID,
+            metreportForSID,
             dep.flightRules
         )
         
@@ -428,8 +443,8 @@ function printFlight(dep: Departure) {
             cleanedRoute = getCleanedRoute(
                 dep.adep,
                 dep.route,
-                undefined,
-                metreport,
+                runwayForSID,
+                metreportForSID,
                 dep.flightRules
             )
         }
