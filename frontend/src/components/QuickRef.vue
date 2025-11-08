@@ -11,7 +11,7 @@
             >
             <span v-if="ad == 'ESSA'" class="text-caption">
                 <v-btn variant="text" rounded="0" size="small" color="white"
-                    >{{ runwayTitle(shownRunway) }}
+                    >{{ runwayTitle(shownRunway) ||  'SELECT RUNWAY' }}
                     <v-menu activator="parent" transition="slide-y-transition">
                         <v-list density="compact">
                             <v-list-item
@@ -76,6 +76,7 @@
             <Image :id="image" :src="`/quickref/${image}.png`" />
         </div>
         <div v-else-if="shownRunway" class="pa-2">Invalid runway {{ shownRunway }}</div>
+        <div v-else-if="!activeRunway" class="pa-2">Unable to automatically select runway configuration, please set manually in the menu above.</div>
         <div v-else class="pa-2">Loading...</div>
     </div>
 </template>
