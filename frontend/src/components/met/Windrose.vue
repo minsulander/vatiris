@@ -373,8 +373,8 @@ const windData = computed(() => {
     return {
         direction: runwayData?.direction || data.direction,
         speed: runwayData?.speed || data.speed,
-        vrbFrom: runwayData?.variableFrom || data.variableFrom,
-        vrbTo: runwayData?.variableTo || data.variableTo,
+        vrbFrom: runwayData?.variableFrom || data.variableFrom || undefined,
+        vrbTo: runwayData?.variableTo || data.variableTo || undefined,
         gust: runwayData?.gust || data.gust,
         minWind: runwayData?.minWind || data.minWind,
         maxWind: runwayData?.maxWind || data.maxWind,
