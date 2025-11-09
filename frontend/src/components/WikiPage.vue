@@ -101,8 +101,10 @@ const aipItems = reactive({} as any)
 function fillAip() {
     const ad = props.page.toUpperCase()
     const aip = eaip.aipIndex
-    for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
-        aipItems[document.name] = `aip${document.prefix}`
+    if (aip && aip.airports && aip.airports.find((a: any) => a.icao == ad)) {
+        for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
+            aipItems[document.name] = `aip${document.prefix}`
+        }
     }
 }
 

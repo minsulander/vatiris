@@ -34,11 +34,11 @@ bus.on("refresh", () => {
 })
 
 onMounted(() => {
-    if (`${props.id}_image_scroll` in localStorage)
+    if (`${props.id}_image_scroll` in localStorage && div.value)
         div.value.parentElement.scrollTop = parseInt(localStorage[`${props.id}_image_scroll`])
     img.value.onload = () => {
         loaded.value = true
-        if (`${props.id}_image_scroll` in localStorage)
+        if (`${props.id}_image_scroll` in localStorage && div.value)
             div.value.parentElement.scrollTop = parseInt(localStorage[`${props.id}_image_scroll`])
     }
     div.value.parentElement.addEventListener("scroll", scroll)
