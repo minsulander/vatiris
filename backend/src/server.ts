@@ -53,10 +53,15 @@ app.get("/token", async (req: Request, res: Response) => {
 })
 
 app.post("/login", async (req: Request, res: Response) => {
-    const user = await auth.requireUser(req, res)
-    console.log("Login", user.cid, user.personal.name_full)
-    await db.upsertUserAtLogin(user.cid, user.personal.name_full, user.vatsim.division.name, user.vatsim.subdivision.name)
-    res.send("kthx")
+    try {
+        const user = await auth.requireUser(req, res)
+        console.log("Login", user.cid, user.personal.name_full)
+        await db.upsertUserAtLogin(user.cid, user.personal.name_full, user.vatsim.division.name, user.vatsim.subdivision.name)
+        res.send("kthx")
+    } catch (e) {
+        console.error(e)
+        res.status(500).send("failed")
+    }
 })
 
 import dataRoutes from "./routes/data"

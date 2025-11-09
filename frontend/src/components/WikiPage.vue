@@ -98,14 +98,17 @@ bus.on("refresh", () => {
 
 const aipItems = reactive({} as any)
 
-if (props.book == "lop") {
+function fillAip() {
     const ad = props.page.toUpperCase()
-    watch(eaip.aipIndex, () => {
-        const aip = eaip.aipIndex
-        for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
-            aipItems[document.name] = `aip${document.prefix}`
-        }
-    })
+    const aip = eaip.aipIndex
+    for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
+        aipItems[document.name] = `aip${document.prefix}`
+    }
+}
+
+if (props.book == "lop") {
+    fillAip()
+    watch(eaip.aipIndex, fillAip, { deep: true })
 }
 
 onMounted(() => {

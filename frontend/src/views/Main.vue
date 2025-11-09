@@ -348,7 +348,7 @@ for (const icao of wxAirports) {
     }
 }
 
-watch(eaip.aipIndex, () => {
+function fillAip() {
     const aip = eaip.aipIndex
     if ("enroute" in aip) {
         for (const document of aip.enroute) {
@@ -376,7 +376,9 @@ watch(eaip.aipIndex, () => {
             }
         }
     }
-})
+}
+fillAip()
+watch(eaip.aipIndex, fillAip, { deep: true })
 
 import("@/data/wiki-pdfs.json").then((module) => {
     for (const id in module.default) {

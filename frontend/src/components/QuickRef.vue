@@ -256,12 +256,14 @@ const image = computed(() => {
 
 const aipItems = reactive({} as any)
 
-watch(eaip.aipIndex, () => {
+function fillAip() {
     const aip = eaip.aipIndex
     for (const document of aip.airports.find((a: any) => a.icao == props.ad).documents) {
         aipItems[document.name] = `aip${document.prefix}`
     }
-})
+}
+fillAip()
+watch(eaip.aipIndex, fillAip, { deep: true })
 
 let wxSubscription: any = undefined
 onMounted(() => {

@@ -259,7 +259,7 @@ for (const [id, groups] of Object.entries(dct.menuItems)) {
     menuItems.DCT[id] = groups
 }
 
-watch(eaip.aipIndex, () => {
+function fillAip() {
     const aip = eaip.aipIndex
     if ("enroute" in aip) {
         menuItems.Documents.AIP["En-route kartor"] = {}
@@ -276,7 +276,10 @@ watch(eaip.aipIndex, () => {
             }
         }
     }
-})
+}
+
+fillAip()
+watch(eaip.aipIndex, fillAip, { deep: true })
 
 import("@/data/occupancy-sectors.json").then((module) => {
     for (const id in module.default) {
