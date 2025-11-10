@@ -71,6 +71,7 @@ import useEventBus from "./eventbus"
 import { registerSW } from "virtual:pwa-register"
 import { useWindStore } from "./stores/wind"
 import { useEaipStore } from "./stores/eaip"
+import { useVatfspStore } from "./stores/vatfsp"
 
 registerSW({ immediate: true })
 
@@ -96,3 +97,4 @@ global.bus = useEventBus()
 global.airport = useAirportStore()
 global.wind = useWindStore()
 global.eaip = useEaipStore()
+global.vatfsp = useVatfspStore()

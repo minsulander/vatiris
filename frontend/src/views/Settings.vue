@@ -28,13 +28,27 @@
                 label="METSENSOR flash changed values"
                 v-model="settings.metsensorFlash"
             />
-            <v-row class="mt-4">
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="Use custom PDF browser"
+                v-model="settings.customPdfBrowser"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Pros: The custom PDF browser works on mobile devices, zooms differently, and allows clicking to focus window.<br/>
+                Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
+            </p>
+
+            <h2 class="mt-6">Integrations</h2>
+
+            <v-row class="mt-2">
                 <v-col cols="12" sm="4">
                     <v-switch
                         color="white"
                         base-color="grey-darken-1"
                         hide-details
-                        label="PLS integration"
+                        label="PLS (PositionsLedningsSystem)"
                         v-model="settings.enablePLS"
                     />
                 </v-col>
@@ -88,16 +102,29 @@
                     </div>
                 </v-col>
             </v-row>
+
             <v-switch
                 color="white"
                 base-color="grey-darken-1"
                 hide-details
-                label="Use custom PDF browser"
-                v-model="settings.customPdfBrowser"
+                label="FSP (Flight Strip Printer)"
+                v-model="settings.fspEnabled"
+                class="mt-2"
             />
-            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
-                Pros: The custom PDF browser works on mobile devices, zooms differently, and allows clicking to focus window.<br/>
-                Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
+            <v-text-field
+                v-if="settings.fspEnabled"
+                label="FSP Server URL"
+                v-model="settings.fspUrl"
+                outlined
+                dense
+                placeholder="http://localhost:3000"
+                hint="URL to your Flight Strip Printer server"
+                persistent-hint
+                class="mt-4"
+            />
+            <p v-if="settings.fspEnabled" class="text-caption text-grey" style="margin-top: 5px">
+                Configure the URL to your FSP server to enable printing flight strips directly from the ARR/DEP module.
+                Example: http://localhost:3000 or http://192.168.1.100:3000
             </p>
         </v-container>
     </v-main>

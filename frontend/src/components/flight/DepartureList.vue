@@ -6,6 +6,7 @@
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
+                <th v-if="settings.fspEnabled" style="width: 28px"></th>
                 <th @click="clickHeader('callsign')">
                     Flight <v-icon>{{ sortIcon("callsign") }}</v-icon>
                 </th>
@@ -30,6 +31,21 @@
             </tr>
         </thead>
         <tr v-for="dep in departures" :key="dep.callsign">
+            <td v-if="settings.fspEnabled" style="padding: 2px; width: 28px">
+                <v-btn
+                    icon
+                    size="small"
+                    variant="flat"
+                    density="compact"
+                    :disabled="vatfsp.printing"
+                    @click="shouldAllowSingleClick(dep) ? printFlight(dep) : null"
+                    @dblclick="!shouldAllowSingleClick(dep) ? printFlight(dep) : null"
+                    :title="getDepartureButtonTitle(dep)"
+                    :color="getDepartureButtonColor(dep)"
+                    style="border-radius: 50%; min-width: 24px; width: 24px; height: 24px; cursor: pointer;"
+                >
+                </v-btn>
+            </td>
             <td class="font-weight-medium">{{ dep.callsign }}</td>
             <td>{{ dep.type }}</td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
@@ -74,8 +90,12 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
+import { useVatfspStore } from "@/stores/vatfsp"
+import { useSettingsStore } from "@/stores/settings"
+import { useWxStore } from "@/stores/wx"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { flightplanDepartureTime, distanceToAirport } from "@/flightcalc"
+import { flightplanDepartureTime, distanceToAirport, formatRFL, normalizeFlightRules, getSIDName, getCleanedRoute } from "@/flightcalc"
+import { useFspRunway } from "@/composables/useFspRunway"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -94,6 +114,10 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+const vatfsp = useVatfspStore()
+const settings = useSettingsStore()
+const wx = useWxStore()
+const { manualRunwayOverride } = useFspRunway()
 
 const sortBy = ref("status")
 const sortDescending = ref(false)
@@ -115,6 +139,11 @@ interface Departure {
     status: string
     ades: string
     sortTime: number
+    squawk?: string
+    route?: string
+    rfl?: string
+    flightRules?: string
+    tas?: string
 }
 
 const storedStand = {} as { [key: string]: string }
@@ -151,7 +180,13 @@ const departures = computed(() => {
                               pilot.latitude,
                           ])
                         : "",
+                squawk: pilot.flight_plan?.assigned_transponder,
+                route: pilot.flight_plan?.route,
+                rfl: pilot.flight_plan?.altitude,
+                flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
+                tas: pilot.flight_plan?.cruise_tas,
             } as Departure
+            // eslint-disable-next-line vue/no-side-effects-in-computed-properties
             if (dep.stand) storedStand[dep.callsign] = dep.stand
             else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
             return dep
@@ -248,12 +283,16 @@ const departures = computed(() => {
                           ])
                         : "",
             }
+            // eslint-disable-next-line vue/no-side-effects-in-computed-properties
             if (dep.stand) storedStand[dep.callsign] = dep.stand
             else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
             departures.push(dep)
         }
     }
+    // Clean up stored stands for flights no longer in the list
+    // eslint-disable-next-line vue/no-side-effects-in-computed-properties
     for (const callsign of Object.keys(storedStand)) {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         if (!departures.find(d => d.callsign == callsign)) delete storedStand[callsign]
     }
     return departures
@@ -326,5 +365,164 @@ function saveOptions() {
         sortBy: sortBy.value,
         sortDescending: sortDescending.value,
     })
+}
+
+function printFlight(dep: Departure) {
+    // If route or other data is missing, try to get it from VATSIM data directly
+    if (vatsim.data) {
+        const pilot = vatsim.data.pilots.find(p => p.callsign === dep.callsign)
+        if (pilot && pilot.flight_plan) {
+            if (!dep.route && pilot.flight_plan.route) {
+                dep.route = pilot.flight_plan.route
+            }
+            if (!dep.rfl && pilot.flight_plan.altitude) {
+                dep.rfl = pilot.flight_plan.altitude
+            }
+            if (!dep.squawk && pilot.flight_plan.assigned_transponder) {
+                dep.squawk = pilot.flight_plan.assigned_transponder
+            }
+            if (!dep.flightRules && pilot.flight_plan.flight_rules) {
+                dep.flightRules = normalizeFlightRules(pilot.flight_plan.flight_rules, pilot.flight_plan.route)
+            }
+            if (!dep.tas && pilot.flight_plan.cruise_tas) {
+                dep.tas = pilot.flight_plan.cruise_tas
+            }
+        } else {
+            const prefile = vatsim.data.prefiles.find(p => p.callsign === dep.callsign)
+            if (prefile && prefile.flight_plan) {
+                if (!dep.route && prefile.flight_plan.route) {
+                    dep.route = prefile.flight_plan.route
+                }
+                if (!dep.rfl && prefile.flight_plan.altitude) {
+                    dep.rfl = prefile.flight_plan.altitude
+                }
+                if (!dep.squawk && prefile.flight_plan.assigned_transponder) {
+                    dep.squawk = prefile.flight_plan.assigned_transponder
+                }
+                if (!dep.flightRules && prefile.flight_plan.flight_rules) {
+                    dep.flightRules = normalizeFlightRules(prefile.flight_plan.flight_rules, prefile.flight_plan.route)
+                }
+                if (!dep.tas && prefile.flight_plan.cruise_tas) {
+                    dep.tas = prefile.flight_plan.cruise_tas
+                }
+            }
+        }
+    }
+    
+    // Process SID information for departures
+    let sidName: string | undefined
+    let cleanedRoute = dep.route
+    
+    if (dep.adep && dep.route) {
+        const metreport = wx.metreport(dep.adep)
+        const isESGG = dep.adep === 'ESGG'
+        
+        // For ESGG: use manual override if set, otherwise let metreport extract runway from ATIS
+        let runwayForSID: string | undefined = undefined
+        let metreportForSID: string | undefined = undefined
+        
+        if (isESGG && manualRunwayOverride.value) {
+            // Manual override is set: use it and don't pass metreport (to prevent metreport from overriding)
+            runwayForSID = manualRunwayOverride.value
+            metreportForSID = undefined
+        } else {
+            // No manual override: pass metreport so it can extract runway from ATIS
+            metreportForSID = metreport
+        }
+        
+        // Extract SID and clean route
+        sidName = getSIDName(
+            dep.adep,
+            dep.route,
+            runwayForSID,
+            metreportForSID,
+            dep.flightRules
+        )
+        
+        if (sidName) {
+            cleanedRoute = getCleanedRoute(
+                dep.adep,
+                dep.route,
+                runwayForSID,
+                metreportForSID,
+                dep.flightRules
+            )
+        }
+    }
+
+    vatfsp.printFlightStrip(
+        {
+            callsign: dep.callsign,
+            type: dep.type,
+            adep: dep.adep,
+            ades: dep.ades,
+            stand: dep.stand,
+            std: dep.std,
+            status: dep.status,
+            flightRules: dep.flightRules,
+            tas: dep.tas,
+        },
+        false, // isArrival
+        dep.squawk,
+        cleanedRoute, // use cleaned route with SID removed
+        formatRFL(dep.rfl),
+        sidName, // pass SID name if found
+        undefined, // wtc - not available in dep object yet
+    )
+}
+
+function getDepartureButtonColor(dep: Departure): string {
+    // Flight plan changed after printing - URGENT
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+        return "red" // Urgent - needs reprint
+    }
+
+    // Already printed and no changes
+    if (vatfsp.isPrinted(dep.callsign)) {
+        return "grey-darken-1" // Already printed
+    }
+
+    // Not printed - check squawk assignment
+    const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+    if (!hasAssignedSquawk) {
+        return "blue-grey-lighten-2" // Not ready (no squawk)
+    }
+
+    // Not printed with assigned squawk - ready to print
+    return "orange" // Ready to print
+}
+
+function shouldAllowSingleClick(dep: Departure): boolean {
+    // Single click allowed for: red (urgent flight plan changed) or orange (ready to print)
+    // Double click required for: grey (already printed) or blue-grey (no squawk)
+    
+    // Allow single click only if flight plan changed (red) or ready with squawk (orange)
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+        return true // Red - urgent
+    }
+    
+    if (!vatfsp.isPrinted(dep.callsign)) {
+        const hasAssignedSquawk = !!(dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000")
+        return hasAssignedSquawk // Orange (true) or Blue-grey (false)
+    }
+    
+    return false // Grey - already printed
+}
+
+function getDepartureButtonTitle(dep: Departure): string {
+    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+        return "Click to reprint flight strip (flight plan changed)"
+    }
+    if (vatfsp.isPrinted(dep.callsign)) {
+        return "Double-click to reprint flight strip"
+    }
+    if (dep.status === "PRE") {
+        return "Double-click to print flight strip (not connected yet)"
+    }
+    const hasAssignedSquawk = dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000"
+    if (!hasAssignedSquawk) {
+        return "Double-click to print flight strip (no squawk assigned yet)"
+    }
+    return "Click to print flight strip"
 }
 </script>

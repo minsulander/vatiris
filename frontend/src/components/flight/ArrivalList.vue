@@ -6,6 +6,7 @@
     <table v-else style="border-collapse: collapse; width: 100%">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
+                <th v-if="settings.fspEnabled" style="width: 28px"></th>
                 <th @click="clickHeader('callsign')">
                     Flight <v-icon>{{ sortIcon("callsign") }}</v-icon>
                 </th>
@@ -33,6 +34,24 @@
             </tr>
         </thead>
         <tr v-for="arr in arrivals" :key="arr.callsign">
+            <td v-if="settings.fspEnabled" style="padding: 2px; width: 28px">
+                <v-btn
+                    icon
+                    size="small"
+                    variant="flat"
+                    density="compact"
+                    :disabled="vatfsp.printing"
+                    @click="!vatfsp.isPrinted(arr.callsign) ? printFlight(arr) : null"
+                    @dblclick="vatfsp.isPrinted(arr.callsign) ? printFlight(arr) : null"
+                    :title="getArrivalButtonTitle(arr)"
+                    :class="{
+                        'print-btn-flash': shouldFlashArrival(arr),
+                    }"
+                    :color="getArrivalButtonColor(arr)"
+                    style="border-radius: 50%; min-width: 24px; width: 24px; height: 24px; cursor: pointer;"
+                >
+                </v-btn>
+            </td>
             <td class="font-weight-medium">{{ arr.callsign }}</td>
             <td>{{ arr.type }}</td>
             <td v-if="multipleAirports">{{ arr.ades }}</td>
@@ -72,6 +91,20 @@ table th .v-icon {
     margin-left: -5px;
     margin-right: -5px;
 }
+
+.print-btn-flash {
+    animation: flash-button 2s infinite;
+}
+
+@keyframes flash-button {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
 </style>
 
 <script setup lang="ts">
@@ -79,8 +112,10 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
+import { useVatfspStore } from "@/stores/vatfsp"
+import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { distanceToAirport, flightplanArrivalTime } from "@/flightcalc"
+import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, normalizeFlightRules } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -99,6 +134,8 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+const vatfsp = useVatfspStore()
+const settings = useSettingsStore()
 
 const sortBy = ref("eta")
 const sortDescending = ref(false)
@@ -117,10 +154,16 @@ interface Arrival {
     ades: string
     stand: string
     sta: string
+    std: string
     eta: string
     status: string
     adep: string
     sortTime: number
+    squawk?: string
+    route?: string
+    rfl?: string
+    flightRules?: string
+    tas?: string
 }
 
 const arrivals = computed(() => {
@@ -140,6 +183,7 @@ const arrivals = computed(() => {
                 type: pilot.flight_plan?.aircraft_short,
                 ades: pilot.flight_plan?.arrival,
                 sta: flightplanArrivalTime(pilot.flight_plan)?.format("HHmm"),
+                std: flightplanDepartureTime(pilot.flight_plan)?.format("HHmm"),
                 adep: pilot.flight_plan?.departure,
                 sortTime: flightplanArrivalTime(pilot.flight_plan)
                     ?.utc()
@@ -151,6 +195,11 @@ const arrivals = computed(() => {
                               pilot.latitude,
                           ])
                         : "",
+                squawk: pilot.flight_plan?.assigned_transponder,
+                route: pilot.flight_plan?.route,
+                rfl: pilot.flight_plan?.altitude,
+                flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
+                tas: pilot.flight_plan?.cruise_tas,
             } as Arrival
         })
     for (const arr of arrivals) {
@@ -290,5 +339,66 @@ function saveOptions() {
         sortBy: sortBy.value,
         sortDescending: sortDescending.value,
     })
+}
+
+function printFlight(arr: Arrival) {
+    vatfsp.printFlightStrip(
+        {
+            callsign: arr.callsign,
+            type: arr.type,
+            adep: arr.adep,
+            ades: arr.ades,
+            stand: arr.stand,
+            sta: arr.sta,
+            std: arr.std,
+            eta: arr.eta,
+            status: arr.status,
+            flightRules: arr.flightRules,
+            tas: arr.tas,
+        },
+        true, // isArrival
+        arr.squawk, // squawk
+        arr.route, // route
+        formatRFL(arr.rfl), // rfl
+        undefined, // sid - not relevant for arrivals
+        undefined, // wtc
+    )
+}
+
+function shouldFlashArrival(arr: Arrival): boolean {
+    if (vatfsp.isPrinted(arr.callsign)) return false
+    if (!arr.eta) return false
+
+    // Parse ETA and check if within 10 minutes
+    const now = moment().utc()
+    const etaTime = moment.utc(arr.eta, "HHmm")
+
+    // Handle day rollover
+    if (etaTime.isBefore(now.clone().subtract(12, "hours"))) {
+        etaTime.add(1, "day")
+    }
+
+    const minutesUntilArrival = etaTime.diff(now, "minutes")
+    return minutesUntilArrival >= 0 && minutesUntilArrival <= 10
+}
+
+function getArrivalButtonColor(arr: Arrival): string {
+    if (vatfsp.isPrinted(arr.callsign)) {
+        return "grey-darken-1" // Already printed
+    }
+    if (shouldFlashArrival(arr)) {
+        return "red" // Urgent - ETA within 10 minutes
+    }
+    return "orange" // Ready to print
+}
+
+function getArrivalButtonTitle(arr: Arrival): string {
+    if (vatfsp.isPrinted(arr.callsign)) {
+        return "Double-click to reprint flight strip"
+    }
+    if (shouldFlashArrival(arr)) {
+        return "Click to print flight strip (ETA within 10 minutes)"
+    }
+    return "Click to print flight strip"
 }
 </script>
