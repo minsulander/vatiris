@@ -4,26 +4,25 @@
         "Runway in use", 
         "Open/closed STAR", 
         "Weather - winds, QNH, TRL, LVP, CB",
-        "Audio - XC if large position",
-        "Euroscope",
-        "CPDLC",
-        "GRP",
+        "Discord and AFV PTT",
+        "Audio - XC:ed frequencies",
+        "CPDLC/DCL",
         "vATIS - NOTAMs/APT CONDs",
-        "Self - own AoR",
-        "Other - bordering positions open",
+        "SELF - own AoR",
+        "OTHER - bordering positions open",
         "Individual (non-LoA) agreements",
         "Closures of RWYs/TWYs",
         "Restrictions - R/D/PCA",
         "Flow regulations/agreements",
         "Traffic on frequency",
         "Pending traffic",
-        "Conflicts and solutions planned/in progress"
+        "Conflicts and solutions"
     ],
     "sections": {
         "0": "<b>W</b>eather",
         "3": "<b>E</b>quipment",
-        "8": "<b>S</b>ituation",
-        "14": "<b>T</b>raffic"
+        "7": "<b>S</b>ituation",
+        "13": "<b>T</b>raffic"
     },
     "width": 370,
     "height": 730
