@@ -1,6 +1,7 @@
 {
     "title": "Handover/takeover briefing",
     "items": [
+        "<b>BYTT AV I PLS?</b>",
         "Runway in use", 
         "Open/closed STAR", 
         "Weather - winds, QNH, TRL, LVP, CB",
@@ -20,9 +21,9 @@
     ],
     "sections": {
         "0": "<b>W</b>eather",
-        "3": "<b>E</b>quipment",
-        "7": "<b>S</b>ituation",
-        "13": "<b>T</b>raffic"
+        "4": "<b>E</b>quipment",
+        "8": "<b>S</b>ituation",
+        "14": "<b>T</b>raffic"
     },
     "width": 370,
     "height": 730
