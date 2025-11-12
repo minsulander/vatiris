@@ -331,15 +331,15 @@ export const useWindStore = defineStore("wind", () => {
         return undefined
     }
 
-    function getRunwaysInUse(icao: string) {
-        const arrRwy = getRunwayInUse(icao, false)
-        const depRwy = getRunwayInUse(icao, true)
+    function getRunwaysInUse(icao: string, useAtis = true, useWx = true) {
+        const arrRwy = getRunwayInUse(icao, false, useAtis, useWx)
+        const depRwy = getRunwayInUse(icao, true, useAtis, useWx)
         if (arrRwy != depRwy) return `${arrRwy}/${depRwy}`
         return arrRwy
     }
 
-    function getRunwayInUse(icao: string, dep: boolean = false) {
-        if (vatsimStore.data && vatsimStore.data.atis) {
+    function getRunwayInUse(icao: string, dep = false, useAtis = true, useWx = true) {
+        if (useAtis && vatsimStore.data && vatsimStore.data.atis) {
             const atis = vatsimStore.data.atis.find(
                 (a) =>
                     a.callsign == `${icao}_ATIS` ||
@@ -350,7 +350,7 @@ export const useWindStore = defineStore("wind", () => {
                 if (rwyMatch && rwyMatch[1]) return rwyMatch[1]
             }
         }
-        if (wxAirports.includes(icao)) {
+        if (useWx && wxAirports.includes(icao)) {
             let rwy = wxStore.rwy(icao)
             if (rwy) {
                 const rwyEl = document.createElement("div")
