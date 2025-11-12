@@ -248,5 +248,10 @@
         "title": "VatIRIS Manual",
         "book": "general",
         "page": "vatiris"
+    },
+    "fps": {
+        "title": "FPS - Flight Progress Strips",
+        "book": "event-procedures",
+        "page": "fps-flight-progress-strips"
     }
 }

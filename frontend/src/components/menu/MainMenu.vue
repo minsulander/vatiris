@@ -221,6 +221,7 @@ const menuItems = reactive({
         },
         "REGIONAL AD": "regional",
         "TEXT ALIAS": "alias",
+        FPS: "wiki-fps",
         NOTEPAD: "notepad",
     },
     Traffic: {},
