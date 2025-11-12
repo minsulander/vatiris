@@ -51,8 +51,8 @@ const formattedMetreport = computed(() => {
                   ? " <div style='display: inline-block; transform: rotate(90deg);'><i class='mdi mdi-play'></i></div>"
                   : " <i class='mdi mdi-play'></i>"
         metreport = metreport.replace('id="qnh-trend">', `'id="qnh-trend">${trend}`)
-        if (metreport.includes("RWY --") && !wx.rwy(props.id)) {
-            const rwyInUse = windStore.getRunwaysInUse(props.id)
+        if (metreport.includes("RWY --")) {
+            const rwyInUse = windStore.getRunwaysInUse(props.id, false, false)
             if (rwyInUse) metreport = metreport.replace("RWY --" + ' '.repeat(rwyInUse.length-2), `RWY <span class="text-grey-darken-1">${rwyInUse}</span>`)
         }
     }
