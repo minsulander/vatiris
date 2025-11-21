@@ -149,6 +149,10 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("fspEnabled" in settings) fspEnabled.value = settings.fspEnabled
         if ("showT1" in settings) showT1.value = settings.showT1
         if ("showSlow" in settings) showSlow.value = settings.showSlow
+        // Legacy support: migrate showPropeller to showSlow
+        if ("showPropeller" in settings && !("showSlow" in settings)) {
+            showSlow.value = settings.showPropeller
+        }
         // Legacy support for old setting names
         if ("vatfspUrl" in settings && !("fspUrl" in settings)) fspUrl.value = settings.vatfspUrl
         if ("vatfspEnabled" in settings && !("fspEnabled" in settings)) fspEnabled.value = settings.vatfspEnabled

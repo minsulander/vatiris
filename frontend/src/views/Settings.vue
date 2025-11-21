@@ -58,12 +58,13 @@
                 color="white"
                 base-color="grey-darken-1"
                 hide-details
-                label="Slow display"
+                label="Slow/Prop display"
                 v-model="settings.showSlow"
                 class="mt-2"
             />
             <p class="text-caption text-grey ml-13" style="margin-top: -15px">
-                Display turtle icon next to aircraft type for slow IFR aircraft (as per LPM) from ESSA.
+                Display turtle icon for slow IFR aircraft (as per LPM) from ESSA.<br>
+                Display fan icon for propeller-driven aircraft from ESGG.
             </p>
 
             <h2 class="mt-6">Integrations</h2>

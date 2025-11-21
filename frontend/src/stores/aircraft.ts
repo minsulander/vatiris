@@ -54,6 +54,32 @@ export const useAircraftStore = defineStore("aircraft", () => {
     }
 
     /**
+     * Check if aircraft is propeller-driven
+     * @param aircraftType ICAO aircraft type code (e.g., "A320")
+     * @returns true if aircraft is propeller-driven (piston or turboprop), false if jet or not found
+     */
+    function isPropellerDriven(aircraftType: string | undefined): boolean {
+        if (!aircraftType) return false
+        
+        // Find aircraft in ICAO_Aircraft.json
+        const aircraft = (aircraftData as any[]).find((a: any) => a.ICAO === aircraftType.toUpperCase())
+        if (!aircraft) return false
+        
+        const description = aircraft.Description
+        if (!description || typeof description !== 'string') return false
+        
+        // Description format: L1P, L2T, L2J, etc. - 3rd character is engine type
+        // J = Jet, P = Piston, T = Turboprop/Turboshaft
+        // If 3rd character is not J (jet), it's propeller-driven
+        if (description.length >= 3) {
+            const engineType = description[2]
+            return engineType !== "J" // Not a jet, so it's propeller-driven
+        }
+        
+        return false
+    }
+
+    /**
      * Check if aircraft is slow based on Stockholm LPM criteria (from VatScout)
      * Slow aircraft are:
      * - All propeller driven aircraft of wake turbulence category LIGHT, except P180
@@ -98,6 +124,6 @@ export const useAircraftStore = defineStore("aircraft", () => {
         getT1,
         isSlowAircraft,
         isNotMediumWTC,
+        isPropellerDriven,
     }
 })
-

@@ -48,7 +48,7 @@
             </td>
             <td class="font-weight-medium">{{ dep.callsign }}</td>
             <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(dep.type) }">
-                {{ dep.type }}<v-icon v-if="settings.showSlow && dep.adep === 'ESSA' && isSlowDeparture(dep)" class="slow-icon">mdi-tortoise</v-icon>
+                {{ dep.type }}<v-icon v-if="settings.showSlow && dep.adep?.toUpperCase() === 'ESSA' && isSlowDeparture(dep)" class="slow-icon">mdi-tortoise</v-icon><v-icon v-if="settings.showSlow && dep.adep?.toUpperCase() === 'ESGG' && isPropellerDeparture(dep)" class="propeller-icon">mdi-fan</v-icon>
             </td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
@@ -87,6 +87,15 @@ table th .v-icon {
 }
 
 .slow-icon {
+    margin-left: 2px;
+    vertical-align: middle;
+    color: #1976d2;
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+}
+
+.propeller-icon {
     margin-left: 2px;
     vertical-align: middle;
     color: #1976d2;
@@ -569,6 +578,10 @@ function isSlowDeparture(dep: Departure): boolean {
 
 function isNotMediumWTC(aircraftType: string | undefined): boolean {
     return aircraftStore.isNotMediumWTC(aircraftType)
+}
+
+function isPropellerDeparture(dep: Departure): boolean {
+    return aircraftStore.isPropellerDriven(dep.type)
 }
 
 </script>
