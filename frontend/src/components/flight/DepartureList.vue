@@ -47,7 +47,9 @@
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ dep.callsign }}</td>
-            <td>{{ dep.type }}</td>
+            <td>
+                {{ dep.type }}<v-icon v-if="settings.showSlow && dep.adep === 'ESSA' && isSlowDeparture(dep)" class="slow-icon">mdi-tortoise</v-icon>
+            </td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
             <td :class="dep.sortTime < 0 ? 'text-grey-darken-2' : ''">{{ dep.std }}</td>
@@ -84,6 +86,15 @@ table th .v-icon {
     margin-right: -5px;
 }
 
+.slow-icon {
+    margin-left: 2px;
+    vertical-align: middle;
+    color: #1976d2;
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+}
+
 .t1-code {
     color: #1976d2;
     font-weight: 600;
@@ -98,6 +109,7 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
+import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { useWxStore } from "@/stores/wx"
@@ -122,6 +134,7 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+const aircraftStore = useAircraftStore()
 const vatfsp = useVatfspStore()
 const settings = useSettingsStore()
 const wx = useWxStore()
@@ -538,6 +551,11 @@ function getDepartureButtonTitle(dep: Departure): string {
         return "Double-click to print flight strip (no squawk assigned yet)"
     }
     return "Click to print flight strip"
+}
+
+function isSlowDeparture(dep: Departure): boolean {
+    // Only check slow aircraft for ESSA departures
+    return aircraftStore.isSlowAircraft(dep.type, dep.flightRules)
 }
 
 </script>

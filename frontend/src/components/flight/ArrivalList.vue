@@ -127,6 +127,7 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useFdpStore } from "@/stores/fdp"
 import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
+import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
@@ -149,6 +150,7 @@ const vatsim = useVatsimStore()
 const fdp = useFdpStore()
 const esdata = useEsdataStore()
 const airportStore = useAirportStore()
+const aircraftStore = useAircraftStore()
 const vatfsp = useVatfspStore()
 const settings = useSettingsStore()
 
@@ -420,6 +422,6 @@ function getArrivalButtonTitle(arr: Arrival): string {
 }
 
 function getT1ForArrival(arr: Arrival): string | undefined {
-    return airportStore.getT1(arr.type, arr.ades, arr.remarks)
+    return aircraftStore.getT1(arr.ades, arr.remarks)
 }
 </script>

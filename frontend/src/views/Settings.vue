@@ -44,12 +44,24 @@
                 color="white"
                 base-color="grey-darken-1"
                 hide-details
-                label="T1 in Flight Lists"
+                label="T1 in flight list"
                 v-model="settings.showT1"
                 class="mt-2"
             />
             <p class="text-caption text-grey ml-13" style="margin-top: -15px">
                 Display T1 code next to aircraft type for flights with PBN/T1 capability at RNP AR airports (ESGG, ESMS, ESNZ, ESSA).
+            </p>
+
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="Slow in flight list"
+                v-model="settings.showSlow"
+                class="mt-2"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Display turtle icon next to aircraft type for slow IFR aircraft (as per LPM) from ESSA.
             </p>
 
             <h2 class="mt-6">Integrations</h2>

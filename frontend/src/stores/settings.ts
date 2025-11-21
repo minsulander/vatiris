@@ -18,6 +18,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const fspUrl = ref("")
     const fspEnabled = ref(false)
     const showT1 = ref(true)
+    const showSlow = ref(true)
 
     // settings stored in localStorage (device specific)
     const customPdfBrowser = ref(localStorage.customPdfBrowser == "true" || !browserHasPDFViewer())
@@ -52,6 +53,7 @@ export const useSettingsStore = defineStore("settings", () => {
             fspUrl,
             fspEnabled,
             showT1,
+            showSlow,
         ],
         () => {
             // PLS logic validation
@@ -92,6 +94,7 @@ export const useSettingsStore = defineStore("settings", () => {
                 fspUrl: fspUrl.value,
                 fspEnabled: fspEnabled.value,
                 showT1: showT1.value,
+                showSlow: showSlow.value,
             }
             localStorage.settings = JSON.stringify(settings)
             if (Date.now() - lastLoadTime > 3000 && auth.user) {
@@ -145,6 +148,7 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("fspUrl" in settings) fspUrl.value = settings.fspUrl
         if ("fspEnabled" in settings) fspEnabled.value = settings.fspEnabled
         if ("showT1" in settings) showT1.value = settings.showT1
+        if ("showSlow" in settings) showSlow.value = settings.showSlow
         // Legacy support for old setting names
         if ("vatfspUrl" in settings && !("fspUrl" in settings)) fspUrl.value = settings.vatfspUrl
         if ("vatfspEnabled" in settings && !("fspEnabled" in settings)) fspEnabled.value = settings.vatfspEnabled
@@ -183,6 +187,7 @@ export const useSettingsStore = defineStore("settings", () => {
         fspUrl,
         fspEnabled,
         showT1,
+        showSlow,
         customPdfBrowser,
     }
 })
