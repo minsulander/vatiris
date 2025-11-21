@@ -53,7 +53,9 @@
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ arr.callsign }}</td>
-            <td>{{ arr.type }}</td>
+            <td class="type-cell">
+                {{ arr.type }}<span v-if="settings.showT1 && getT1ForArrival(arr)" class="t1-code">T{{ getT1ForArrival(arr) }}</span>
+            </td>
             <td v-if="multipleAirports">{{ arr.ades }}</td>
             <td class="font-weight-medium">{{ arr.stand }}</td>
             <td>{{ arr.sta }}</td>
@@ -77,6 +79,11 @@ table tr th {
 table tr td {
     font-size: 14px;
     padding: 0 2px;
+}
+
+table tr td.type-cell {
+    white-space: nowrap;
+    padding: 0 1px;
 }
 table tr:nth-child(even) {
     background: #ec6;
@@ -105,6 +112,14 @@ table th .v-icon {
         opacity: 0.3;
     }
 }
+
+.t1-code {
+    color: #1976d2;
+    font-weight: 600;
+    margin-left: 2px;
+    font-size: 9px;
+}
+
 </style>
 
 <script setup lang="ts">
@@ -164,6 +179,7 @@ interface Arrival {
     rfl?: string
     flightRules?: string
     tas?: string
+    remarks?: string
 }
 
 const arrivals = computed(() => {
@@ -200,6 +216,7 @@ const arrivals = computed(() => {
                 rfl: pilot.flight_plan?.altitude,
                 flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
                 tas: pilot.flight_plan?.cruise_tas,
+                remarks: pilot.flight_plan?.remarks,
             } as Arrival
         })
     for (const arr of arrivals) {
@@ -400,5 +417,9 @@ function getArrivalButtonTitle(arr: Arrival): string {
         return "Click to print flight strip (ETA within 10 minutes)"
     }
     return "Click to print flight strip"
+}
+
+function getT1ForArrival(arr: Arrival): string | undefined {
+    return airportStore.getT1(arr.type, arr.ades, arr.remarks)
 }
 </script>

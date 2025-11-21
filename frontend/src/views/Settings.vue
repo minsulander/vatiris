@@ -40,6 +40,18 @@
                 Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
             </p>
 
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="T1 in Flight Lists"
+                v-model="settings.showT1"
+                class="mt-2"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Display T1 code next to aircraft type for flights with PBN/T1 capability at RNP AR airports (ESGG, ESMS, ESNZ, ESSA).
+            </p>
+
             <h2 class="mt-6">Integrations</h2>
 
             <v-row class="mt-2">

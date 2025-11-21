@@ -83,6 +83,14 @@ table th .v-icon {
     margin-left: -5px;
     margin-right: -5px;
 }
+
+.t1-code {
+    color: #1976d2;
+    font-weight: 600;
+    margin-left: 3px;
+    font-size: 7px;
+}
+
 </style>
 
 <script setup lang="ts">
@@ -144,6 +152,7 @@ interface Departure {
     rfl?: string
     flightRules?: string
     tas?: string
+    remarks?: string
 }
 
 const storedStand = {} as { [key: string]: string }
@@ -185,6 +194,7 @@ const departures = computed(() => {
                 rfl: pilot.flight_plan?.altitude,
                 flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
                 tas: pilot.flight_plan?.cruise_tas,
+                remarks: pilot.flight_plan?.remarks,
             } as Departure
             // eslint-disable-next-line vue/no-side-effects-in-computed-properties
             if (dep.stand) storedStand[dep.callsign] = dep.stand
@@ -243,6 +253,8 @@ const departures = computed(() => {
                 ades: prefile.flight_plan?.arrival,
                 sortTime: depTime ? depTime.diff(moment().utc(), "seconds") : 0,
                 status: "PRE",
+                tas: prefile.flight_plan?.cruise_tas,
+                remarks: prefile.flight_plan?.remarks,
             } as Departure
         })
     for (const dep of prefileDeps) departures.push(dep)
@@ -282,6 +294,8 @@ const departures = computed(() => {
                               pilot.latitude,
                           ])
                         : "",
+                tas: pilot.flight_plan?.cruise_tas,
+                remarks: pilot.flight_plan?.remarks,
             }
             // eslint-disable-next-line vue/no-side-effects-in-computed-properties
             if (dep.stand) storedStand[dep.callsign] = dep.stand
@@ -525,4 +539,5 @@ function getDepartureButtonTitle(dep: Departure): string {
     }
     return "Click to print flight strip"
 }
+
 </script>
