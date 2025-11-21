@@ -53,7 +53,7 @@
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ arr.callsign }}</td>
-            <td class="type-cell">
+            <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(arr.type) }">
                 {{ arr.type }}<span v-if="settings.showT1 && getT1ForArrival(arr)" class="t1-code">T{{ getT1ForArrival(arr) }}</span>
             </td>
             <td v-if="multipleAirports">{{ arr.ades }}</td>
@@ -84,6 +84,10 @@ table tr td {
 table tr td.type-cell {
     white-space: nowrap;
     padding: 0 1px;
+}
+
+table tr td.type-cell.wtc-not-medium {
+    background-color: #FFB933 !important;
 }
 table tr:nth-child(even) {
     background: #ec6;
@@ -423,5 +427,9 @@ function getArrivalButtonTitle(arr: Arrival): string {
 
 function getT1ForArrival(arr: Arrival): string | undefined {
     return aircraftStore.getT1(arr.ades, arr.remarks)
+}
+
+function isNotMediumWTC(aircraftType: string | undefined): boolean {
+    return aircraftStore.isNotMediumWTC(aircraftType)
 }
 </script>

@@ -33,6 +33,27 @@ export const useAircraftStore = defineStore("aircraft", () => {
     }
 
     /**
+     * Get wake turbulence category (WTC) for an aircraft type
+     * @param aircraftType ICAO aircraft type code (e.g., "A320")
+     * @returns WTC (L, M, H) or undefined if not found
+     */
+    function getWTC(aircraftType: string | undefined): string | undefined {
+        if (!aircraftType) return undefined
+        const aircraft = (aircraftData as any[]).find((a: any) => a.ICAO === aircraftType.toUpperCase())
+        return aircraft?.WTC
+    }
+
+    /**
+     * Check if aircraft WTC is not Medium (M)
+     * @param aircraftType ICAO aircraft type code (e.g., "A320")
+     * @returns true if WTC exists and is not "M"
+     */
+    function isNotMediumWTC(aircraftType: string | undefined): boolean {
+        const wtc = getWTC(aircraftType)
+        return wtc !== undefined && wtc !== "M"
+    }
+
+    /**
      * Check if aircraft is slow based on Stockholm LPM criteria (from VatScout)
      * Slow aircraft are:
      * - All propeller driven aircraft of wake turbulence category LIGHT, except P180
@@ -76,6 +97,7 @@ export const useAircraftStore = defineStore("aircraft", () => {
     return {
         getT1,
         isSlowAircraft,
+        isNotMediumWTC,
     }
 })
 

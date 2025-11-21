@@ -40,11 +40,13 @@
                 Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
             </p>
 
+            <h2 class="mt-6">Flight List</h2>
+
             <v-switch
                 color="white"
                 base-color="grey-darken-1"
                 hide-details
-                label="T1 in flight list"
+                label="T1 display"
                 v-model="settings.showT1"
                 class="mt-2"
             />
@@ -56,7 +58,7 @@
                 color="white"
                 base-color="grey-darken-1"
                 hide-details
-                label="Slow in flight list"
+                label="Slow display"
                 v-model="settings.showSlow"
                 class="mt-2"
             />

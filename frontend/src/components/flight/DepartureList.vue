@@ -47,7 +47,7 @@
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ dep.callsign }}</td>
-            <td>
+            <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(dep.type) }">
                 {{ dep.type }}<v-icon v-if="settings.showSlow && dep.adep === 'ESSA' && isSlowDeparture(dep)" class="slow-icon">mdi-tortoise</v-icon>
             </td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
@@ -93,6 +93,15 @@ table th .v-icon {
     font-size: 12px;
     width: 12px;
     height: 12px;
+}
+
+table tr td.type-cell {
+    white-space: nowrap;
+    padding: 0 1px;
+}
+
+table tr td.type-cell.wtc-not-medium {
+    background-color: #FFB933 !important;
 }
 
 .t1-code {
@@ -556,6 +565,10 @@ function getDepartureButtonTitle(dep: Departure): string {
 function isSlowDeparture(dep: Departure): boolean {
     // Only check slow aircraft for ESSA departures
     return aircraftStore.isSlowAircraft(dep.type, dep.flightRules)
+}
+
+function isNotMediumWTC(aircraftType: string | undefined): boolean {
+    return aircraftStore.isNotMediumWTC(aircraftType)
 }
 
 </script>
