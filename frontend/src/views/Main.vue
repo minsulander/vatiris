@@ -82,6 +82,7 @@ import Callsigns from "@/components/icao/Callsigns.vue"
 import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
+import Rvr from "@/components/met/Rvr.vue"
 import { useEaipStore } from "@/stores/eaip"
 
 const apiBaseUrl = "https://api.vatiris.se"
@@ -316,6 +317,14 @@ for (const icao of metarAirports) {
             height: 500,
             class: "no-max",
         }
+    }
+    availableWindows[`rvr${icao}`] = {
+        title: `RVR ${icao}`,
+        component: Rvr,
+        props: { id: icao },
+        width: 175,
+        height: 160,
+        class: "no-max",
     }
 }
 for (const icao of wxAirports) {
