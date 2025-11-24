@@ -220,9 +220,12 @@ const availableRunways = computed(() => {
             
             // If headings are approximately opposite (within 10 degrees of 180)
             if (Math.abs(diff - 180) < 10) {
-                const rwy2Num = rwy2.name.replace(/[LRC]$/, "")
-                // Sort so smaller number comes first
-                const pair = [rwy1Num, rwy2Num].sort((a, b) => parseInt(a) - parseInt(b))
+                // Preserve L/R/C designators when creating pairs
+                const pair = [rwy1.name, rwy2.name].sort((a, b) => {
+                    const aNum = parseInt(a.replace(/[LRC]$/, ""))
+                    const bNum = parseInt(b.replace(/[LRC]$/, ""))
+                    return aNum - bNum
+                })
                 pairs.push(pair.join("/"))
                 processed.add(rwy1.name)
                 processed.add(rwy2.name)
@@ -233,15 +236,15 @@ const availableRunways = computed(() => {
         
         // If no opposite found, treat as single runway (shouldn't happen normally)
         if (!oppositeFound && !processed.has(rwy1.name)) {
-            pairs.push(rwy1Num)
+            pairs.push(rwy1.name)
             processed.add(rwy1.name)
         }
     }
     
     // Sort pairs by first runway number
     return pairs.sort((a, b) => {
-        const aNum = parseInt(a.split("/")[0])
-        const bNum = parseInt(b.split("/")[0])
+        const aNum = parseInt(a.split("/")[0].replace(/[LRC]$/, ""))
+        const bNum = parseInt(b.split("/")[0].replace(/[LRC]$/, ""))
         return aNum - bNum
     })
 })
@@ -251,9 +254,9 @@ const currentRunway = computed(() => {
     if (selectedRunway.value) return selectedRunway.value
     const defaultRunway = windStore.getRunwayInUse(props.id)
     if (defaultRunway) {
-        // Find which pair contains the default runway
+        // Find which pair contains the default runway (check both with and without designator)
         const defaultNum = defaultRunway.replace(/[LRC]$/, "")
-        const pair = availableRunways.value.find(p => p.includes(defaultNum))
+        const pair = availableRunways.value.find(p => p.includes(defaultRunway) || p.includes(defaultNum))
         if (pair) return pair
     }
     return availableRunways.value[0] || ""
@@ -273,13 +276,22 @@ const time = computed(() => {
     return metar.time || ""
 })
 
-// Format timestamp: remove seconds/milliseconds (":00.000") but keep "Z", and replace T with space
+// Format timestamp: show only time (HH:MM) unless date differs from today
 const formattedTime = computed(() => {
     if (!time.value) return ""
-    // Replace T with space, then remove seconds and milliseconds part
-    // Input: "2025-11-23T15:00:00.000Z" -> "2025-11-23 15:00:00.000Z" -> "2025-11-23 15:00Z"
-    // Match pattern: HH:MM:SS.MMMZ or HH:MM:SSZ and replace :SS.MMMZ or :SSZ with just Z
-    return time.value.replace("T", " ").replace(/:\d{2}(\.\d{3})?Z$/, "Z")
+    const timeMoment = moment(time.value)
+    const now = moment()
+    
+    // Check if date differs from today
+    const isToday = timeMoment.isSame(now, 'day')
+    
+    if (isToday) {
+        // Show only time: HH:MM
+        return timeMoment.utc().format('HH:mm')
+    } else {
+        // Show date and time: YYYY-MM-DD HH:MM
+        return timeMoment.utc().format('YYYY-MM-DD HH:mm')
+    }
 })
 
 const parsedMetar = computed(() => metar.parse(props.id))
@@ -292,14 +304,15 @@ const currentRunwayWindData = computed(() => {
     const windData = windStore.windData[props.id]
     const rwyParts = currentRunway.value.split("/")
     
-    // Get runway data for both ends
+    // Get runway data for both ends (match with full name including L/R/C)
     const leRwy = windData.runways.find(r => {
-        const rwyNum = r.name.replace(/[LRC]$/, "")
-        return rwyNum === rwyParts[0]
+        // Match by full name first, then by numeric part
+        return r.name === rwyParts[0] || r.name.replace(/[LRC]$/, "") === rwyParts[0].replace(/[LRC]$/, "")
     })
     const heRwy = windData.runways.find(r => {
-        const rwyNum = r.name.replace(/[LRC]$/, "")
-        return rwyNum === rwyParts[1] || (rwyParts.length === 1 && rwyNum === rwyParts[0])
+        // Match by full name first, then by numeric part
+        return r.name === rwyParts[1] || (rwyParts.length === 1 && r.name === rwyParts[0]) ||
+               r.name.replace(/[LRC]$/, "") === (rwyParts[1] || rwyParts[0]).replace(/[LRC]$/, "")
     })
     
     if (!leRwy && !heRwy) return null
@@ -442,9 +455,10 @@ const metsensorText = computed(() => {
     
     // RWY column: Show runway identifiers (three columns)
     // Middle column should have "M" for midpoint
-    const rwyCol1 = rwyParts.length >= 2 ? rwyParts[0].padStart(2, "0") : rwyParts.length === 1 ? rwyParts[0].padStart(2, "0") : ""
+    // Preserve L/R/C designators in runway display
+    const rwyCol1 = rwyParts.length >= 2 ? rwyParts[0] : rwyParts.length === 1 ? rwyParts[0] : ""
     const rwyCol2 = "M" // Middle column with "M" for midpoint
-    const rwyCol3 = rwyParts.length >= 2 ? rwyParts[1].padStart(2, "0") : ""
+    const rwyCol3 = rwyParts.length >= 2 ? rwyParts[1] : ""
     const rwyLine = formatThreeColumns("RWY", rwyCol1, rwyCol2, rwyCol3)
     
     // MEAN02 column: Wind direction/speed from METAR (like windrose)
@@ -455,12 +469,14 @@ const metsensorText = computed(() => {
             const dir = rwy?.direction ?? general?.direction
             const spd = rwy?.speed ?? general?.speed
             
-            // Check for calm wind: when speed is 0 and direction is undefined/null/0
-            // Wind is calm when speed is 0 (explicitly 0, not undefined) and direction is missing/0
-            const isCalm = spd === 0 && (dir === undefined || dir === null || dir === 0)
+            // Check for calm wind: when speed is 0 or missing, and direction is undefined/null/0/"CALM"
+            // Also check if both speed and direction are missing/0
+            const speedIsZero = spd === 0 || spd === undefined || spd === null
+            const directionIsCalm = dir === undefined || dir === null || dir === 0 || dir === "CALM" || (typeof dir === "string" && dir.toUpperCase() === "CALM")
+            const isCalm = speedIsZero && directionIsCalm
             
             if (isCalm) {
-                return "000/00KT"
+                return "000/00"
             }
             
             if (typeof dir === "number" && typeof spd === "number" && spd > 0) {
@@ -551,15 +567,19 @@ const metsensorText = computed(() => {
     // Parse RVR from raw METAR string and map to specific runways
     if (metar.metar[props.id] && !metar.metar[props.id].includes("Loading")) {
         const rawMetar = metar.metar[props.id]
-        // METAR RVR format: R{runway number}{designator}/{RVR value}N (e.g., R03/2000N, R26R/P2000N, R03/M0050N, R32/0550N)
-        // Also handles ranges: R03/1200V2000N, R03/1200U2000N, R03/P2000N, R03/M0050N
-        const rvrPattern = /R(\d{2}[LCR]?)\/([PM]?)(\d{4})(?:[VU](\d{4}))?N/g
+        // METAR RVR format: R{runway number}{designator}/{RVR value}[V{max}]?[NUD]
+        // N=no change, U=upward trend, D=downward trend
+        // Examples: R03/2000N, R26R/P2000N, R03/M0050N, R32/0550N, R33/0400U, R03/1200V2000N
+        const rvrPattern = /R(\d{2}[LCR]?)\/([PM]?)(\d{4})(?:V(\d{4}))?[NUD]/g
         const matches = [...rawMetar.matchAll(rvrPattern)]
         
-        // Get current runway numbers for matching
+        // Get current runway numbers for matching (preserve L/R/C designators)
         const rwyParts = currentRunway.value.split("/")
-        const rwy1Num = rwyParts[0] ? rwyParts[0].padStart(2, "0") : ""
-        const rwy2Num = rwyParts.length > 1 ? rwyParts[1].padStart(2, "0") : ""
+        const rwy1Full = rwyParts[0] || ""
+        const rwy2Full = rwyParts.length > 1 ? rwyParts[1] : ""
+        // Get numeric parts for matching (METAR may not have L/R/C)
+        const rwy1Num = rwy1Full ? rwy1Full.replace(/[LRC]$/, "").padStart(2, "0") : ""
+        const rwy2Num = rwy2Full ? rwy2Full.replace(/[LRC]$/, "").padStart(2, "0") : ""
         
         // Process each RVR match
         for (const match of matches) {
