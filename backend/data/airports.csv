@@ -1,0 +1,172 @@
+"id","ident","type","name","latitude_deg","longitude_deg","elevation_ft","continent","iso_country","iso_region","municipality","scheduled_service","gps_code","iata_code","local_code","home_link","wikipedia_link","keywords"
+2643,"ESCF","medium_airport","Malmen Air Base",58.402302,15.5257,308,"EU","SE","SE-E","Linköping","no","ESCF",,,,"https://en.wikipedia.org/wiki/Malmen_Airbase",
+2644,"ESCK","closed","Bråvalla Air Base",58.610901,16.1036,,"EU","SE","SE-E",,"no",,,,,,
+2645,"ESCM","small_airport","Ärna Air Base",59.897301,17.5886,68,"EU","SE","SE-C","Uppsala","no","ESCM",,,,"https://en.wikipedia.org/wiki/%C3%84rna",
+30439,"ESCN","closed","Stockholm Tullinge Airport",59.17940139770508,17.907800674438477,180,"EU","SE","SE-AB","Stockholm","no",,,,,,"ESCN, ESCN"
+31020,"ESCY","closed","Nyge Airport",58.7456016541,17.0489006042,7,"EU","SE","SE-D","Nyköping","no",,,,,,"ESCY, ESCY"
+2646,"ESDF","medium_airport","Ronneby Airport",56.266701,15.265,191,"EU","SE","SE-K","Ronneby","yes","ESDF","RNB",,"https://www.swedavia.com/ronneby/","https://en.wikipedia.org/wiki/Ronneby_Airport",
+300955,"ESEM","heliport","Lund Hospital Heliport",55.711812312300005,13.1986892223,352,"EU","SE","SE-M","Lund","no","ESEM",,,,,
+29311,"ESFA","small_airport","Hässleholm Bokeberg Airfield",56.134407,13.875647,105,"EU","SE","SE-M","Hässleholm","no","ESFA",,,"http://www.hlmfk.se","https://sv.wikipedia.org/wiki/H%C3%A4ssleholms_flygplats",
+29312,"ESFH","closed","Hasslosa Air Base",58.409698486328,13.26309967041,,"EU","SE","SE-Q","Hasslosa","no",,,,,,"ESFH, ESFH"
+29313,"ESFI","closed","Knislinge Air Base",56.18719863889999,14.136300087,,"EU","SE","SE-M","Knislinge","no",,,,,,"ESFI, ESFI"
+29314,"ESFJ","closed","Sjöbo Air Base",55.64899826049805,13.626099586486816,,"EU","SE","SE-M","Sjöbo","no",,,,,,"ESFJ, ESFJ"
+29315,"ESFM","closed","Moholm Air Base",58.5975,14.1109,,"EU","SE","SE-Q","Moholm","no",,,,,"http://sv.wikipedia.org/Moholm-Bällefors_flygbas","ESFM, ESFM"
+29316,"ESFQ","closed","Kosta Air Base",56.844501,15.4528,,"EU","SE","SE-G",,"no",,,,,,
+2647,"ESFR","medium_airport","Råda Air Base",58.4981,13.0532,230,"EU","SE","SE-Q","Råda","no","ESFR",,,,"https://sv.wikipedia.org/wiki/R%C3%A5da_flygbas",
+29317,"ESFS","small_airport","Sandvik Airfield",57.0681,16.8613,30,"EU","SE","SE-H","Sandvik","no","ESFS",,,,,"Öland"
+29318,"ESFU","closed","Urasa Air Base",56.6814002991,14.946700096099999,,"EU","SE","SE-G","Växjö","no",,,,,"http://sv.wikipedia.org/wiki/Ur%C3%A5sa_flygbas","ESFU, ESFU"
+29319,"ESFY","closed","Byholma Air Base",56.7834014893,13.6014003754,,"EU","SE","SE-G","Byholma","no",,,,,"http://sv.wikipedia.org/wiki/Byholma_flygbas","ESFY, ESFY"
+29320,"ESGA","small_airport","Backamo Airfield",58.1772,11.9735,415,"EU","SE","SE-Q","Uddevalla","no","ESGA",,,,"https://sv.wikipedia.org/wiki/Backamo_flygf%C3%A4lt",
+29321,"ESGC","small_airport","Ålleberg Airfield",58.134499,13.6026,,"EU","SE","SE-Q","Ålleberg","no","ESGC",,,,,
+29322,"ESGD","small_airport","Bämmelshed Airfield",58.191799,13.9957,,"EU","SE","SE-Q","Tidaholm","no","ESGD",,,,,
+29323,"ESGE","small_airport","Borås Airfield",57.695935,12.845002,588,"EU","SE","SE-Q","Borås","no","ESGE",,,"http://www.borasflygplats.se","https://sv.wikipedia.org/wiki/Bor%C3%A5s_flygplats","Viared"
+29324,"ESGF","small_airport","Morup Airfield",56.968598,12.387439,,"EU","SE","SE-N","Falkenberg","no","ESGF",,,,,
+2648,"ESGG","large_airport","Göteborg Landvetter Airport",57.6628,12.2798,506,"EU","SE","SE-Q","Göteborg","yes","ESGG","GOT",,"https://www.swedavia.com/landvetter/","https://en.wikipedia.org/wiki/G%C3%B6teborg_Landvetter_Airport","Göteborg-Landvetter, Gothenburg"
+29325,"ESGH","small_airport","Herrljunga Airfield",58.029301,13.1082,,"EU","SE","SE-Q","Herrljunga","no","ESGH",,,,,
+29326,"ESGI","small_airport","Alingsås Airfield",57.948888,12.575827,,"EU","SE","SE-Q","Alingsås","no","ESGI",,,,,
+2649,"ESGJ","medium_airport","Jönköping Airport",57.757598876953125,14.068699836730957,741,"EU","SE","SE-F","Jönköping","yes","ESGJ","JKG",,"http://www.lfv.se/templates/LFV_AirportStartPage____1672.aspx","https://en.wikipedia.org/wiki/J%C3%B6nk%C3%B6ping_Airport",
+2650,"ESGK","small_airport","Falköping Airfield",58.1698,13.5878,785,"EU","SE","SE-Q","Falköping","no","ESGK",,,,"https://en.wikipedia.org/wiki/Falk%C3%B6ping_Airport",
+2651,"ESGL","small_airport","Lidköping-Hovby Airport",58.4655,13.1744,200,"EU","SE","SE-Q","Lidköping","no","ESGL","LDK",,"http://www.lidkopingairport.com/","https://en.wikipedia.org/wiki/Lidk%C3%B6ping-Hovby_Airport",
+29327,"ESGM","small_airport","Öresten Airfield",57.445301,12.649,,"EU","SE","SE-Q","Öresten","no","ESGM",,,,"https://sv.wikipedia.org/wiki/%C3%96resten_flygf%C3%A4lt","Oreste Airport"
+29904,"ESGN","small_airport","Brännebrona Airfield",58.578602,13.6106,259,"EU","SE","SE-Q","Götene","no","ESGN",,,,,
+30522,"ESGO","small_airport","Vårgårda Airfield",58.039398,12.7889,318,"EU","SE","SE-Q","Vårgårda","no","ESGO",,,,"https://sv.wikipedia.org/wiki/V%C3%A5rg%C3%A5rda_flygplats",
+2652,"ESGP","medium_airport","Säve Airport",57.7747,11.8704,59,"EU","SE","SE-Q","Göteborg","no","ESGP","GSE",,"https://www.saveflygplats.com/","https://en.wikipedia.org/wiki/S%C3%A4ve_Airport","Göteborg City Airport, Gothenburg City Airport"
+2653,"ESGR","medium_airport","Skövde Airport",58.456402,13.9727,324,"EU","SE","SE-Q","Skövde","no","ESGR","KVB",,,"https://en.wikipedia.org/wiki/Sk%C3%B6vde_Airport",
+29328,"ESGS","small_airport","Näsinge Airfield",59.0168,11.3437,115,"EU","SE","SE-Q","Strömstad","no","ESGS",,,,,
+2654,"ESGT","medium_airport","Trollhättan-Vänersborg Airport",58.31809997558594,12.345000267028809,137,"EU","SE","SE-Q","Trollhättan","yes","ESGT","THN",,,"https://en.wikipedia.org/wiki/Trollh%C3%A4ttan-V%C3%A4nersborg_Airport",
+29329,"ESGU","small_airport","Rörkärr Airfield",58.367599,11.7754,,"EU","SE","SE-Q","Uddevalla","no","ESGU",,,,"https://sv.wikipedia.org/wiki/R%C3%B6rk%C3%A4rr_flygf%C3%A4lt",
+29330,"ESGV","small_airport","Varberg Getterön airfield",57.124599,12.2283,5,"EU","SE","SE-N","Varberg","no","ESGV",,,,"https://sv.wikipedia.org/wiki/Varbergs_flygplats",
+29331,"ESGY","small_airport","Säffle Airfield",59.085512,12.949705,,"EU","SE","SE-S","Säffle","no","ESGY",,,,"https://sv.wikipedia.org/wiki/S%C3%A4ffle_flygplats",
+355418,"ESHB","heliport","Sahlgrenska University East Hospital Helipad",57.72097,12.04779,134,"EU","SE","SE-Q","Göteborg","no","ESHB",,,,,"Gothenburg, SU Östra"
+2655,"ESIA","small_airport","Karlsborg Air Base",58.513802,14.5071,308,"EU","SE","SE-Q","Karlsborg","no","ESIA",,,,"https://sv.wikipedia.org/wiki/Karlsborgs_flygplats",
+2656,"ESIB","medium_airport","Såtenäs Air Base",58.426399,12.7144,181,"EU","SE","SE-Q","Såtenäs","no","ESIB",,,,"https://sv.wikipedia.org/wiki/Lidk%C3%B6ping-S%C3%A5ten%C3%A4s_flygplats",
+29332,"ESKA","small_airport","Lunda Airfield",60.132801,18.1049,75,"EU","SE","SE-C","Gimo","no","ESKA",,,,"https://en.wikipedia.org/wiki/Gimo_Air_Base","Gimo AB"
+2657,"ESKB","closed","Barkarby Airport",59.414474,17.882137,,"EU","SE","SE-AB",,"no",,,,,"https://en.wikipedia.org/wiki/Barkarby_Airport",
+29333,"ESKC","small_airport","Uppsala-Sundbro Airfield",59.922699,17.5368,,"EU","SE","SE-C",,"no","ESKC",,,,,
+29334,"ESKD","small_airport","Dala Järna Airfield",60.556099,14.3771,770,"EU","SE","SE-W","Dala Järna","no","ESKD",,,,,
+29335,"ESKG","small_airport","Gryttjom Airfield",60.286999,17.4217,,"EU","SE","SE-C","Gryttjom","no","ESKG",,,,,
+29336,"ESKH","small_airport","Ekshärad Airfield",60.1548,13.5286,,"EU","SE","SE-S","Ekshärad","no","ESKH",,,,,
+2658,"ESKK","medium_airport","Karlskoga Airport",59.345901,14.4959,407,"EU","SE","SE-T",,"no","ESKK","KSK",,"https://karlskoga-airport.se/","https://en.wikipedia.org/wiki/Karlskoga_Airport",
+2659,"ESKM","medium_airport","Mora Airport",60.957901,14.5114,634,"EU","SE","SE-W","Mora","yes","ESKM","MXX",,,"https://en.wikipedia.org/wiki/Mora-Siljan_Airport",
+2660,"ESKN","medium_airport","Stockholm Skavsta Airport",58.788601,16.912201,140,"EU","SE","SE-D","Nyköping","yes","ESKN","NYO",,,"https://en.wikipedia.org/wiki/Stockholm-Skavsta_Airport",
+29337,"ESKO","small_airport","Munkfors Airfield",59.798801,13.4907,,"EU","SE","SE-S","Munkfors","no","ESKO",,,,,
+316498,"ESKS","medium_airport","Scandinavian Mountains Airport",61.158393,12.842503,1608,"EU","SE","SE-W","Malung-Sälen","yes","ESKS","SCR",,"https://scandinavianmountains.se/en/home/","https://en.wikipedia.org/wiki/Scandinavian_Mountains_Airport","Sälens Flygplats, Trysil"
+29339,"ESKT","small_airport","Tierp Airfield",60.350351,17.418652,129,"EU","SE","SE-C","Tierp","no","ESKT",,,"https://nufk.com/","https://sv.wikipedia.org/wiki/Tierps_flygbas","ESKT"
+29340,"ESKU","small_airport","Sunne Airfield",59.860199,13.1129,,"EU","SE","SE-S",,"no","ESKU",,,,"https://sv.wikipedia.org/wiki/Sunne-Holmby_flygplats",
+2661,"ESKV","small_airport","Arvika Airfield",59.6759,12.6394,237,"EU","SE","SE-S","Arvika","no","ESKV",,,"https://www.arvikaflygklubb.se","https://sv.wikipedia.org/wiki/Arvika_flygplats",
+29341,"ESKX","closed","Björkvik Air Base",58.790798,16.571199,,"EU","SE","SE-D","Björkvik","no",,,,,,"ESKX"
+2662,"ESMA","closed","Emmaboda Airfield",56.610802,15.6048,,"EU","SE","SE-H","Emmaboda","no",,,,,,
+29342,"ESMB","small_airport","Borglanda Airfield",56.862999,16.656099,115,"EU","SE","SE-H","Borglanda","no","ESMB",,,"http://www.borglanda.se",,"Öland"
+29343,"ESMC","small_airport","Ränneslätt Airfield",57.670601,14.943,720,"EU","SE","SE-F","Eksjö","no","ESMC",,,"http://norrasmalandsfk.se","https://sv.wikipedia.org/wiki/Eksj%C3%B6-R%C3%A4nnesl%C3%A4tt_flygf%C3%A4lt",
+29938,"ESMD","closed","Hässleholm Vankivar Airport",56.18470001220703,13.750300407409668,180,"EU","SE","SE-M","Hässleholm","no",,,,,,"ESMD, ESMD"
+29344,"ESME","small_airport","Eslöv Airfield",55.848923,13.329935,296,"EU","SE","SE-M","Eslöv","no","ESME",,,,"http://sv.wikipedia.org/wiki/Esl%C3%B6vs_flygplats",
+29345,"ESMF","small_airport","Fagerhult Airfield",56.387901,13.4706,378,"EU","SE","SE-M","Fagerhult","no","ESMF",,,,,
+2663,"ESMG","small_airport","Feringe Airfield",56.950298,13.9217,538,"EU","SE","SE-G","Ljungby","no","ESMG",,,"http://www.feringefk.se/","https://sv.wikipedia.org/wiki/Ljungby-Feringe_flygplats",
+29346,"ESMH","small_airport","Höganäs Airfield",56.184799,12.5761,21,"EU","SE","SE-M","Höganäs","no","ESMH",,,,,
+29347,"ESMI","small_airport","Sjöbo/Sövde Airfield",55.598202,13.6747,118,"EU","SE","SE-M","Sövdeborg","no","ESMI",,,"http://www.sjoboflyg.se/esmi.php",,
+29348,"ESMJ","small_airport","Kågeröd Simmelsberga Airfield",55.994701,13.0509,276,"EU","SE","SE-M","Kågeröd","no","ESMJ",,,,,
+2664,"ESMK","medium_airport","Kristianstad Airport",55.9217,14.0855,76,"EU","SE","SE-M","Kristianstad","yes","ESMK","KID",,"https://kidairport.com","https://en.wikipedia.org/wiki/Kristianstad_Airport",
+2665,"ESML","small_airport","Landskrona Airfield",55.945999,12.87,194,"EU","SE","SE-M","Landskrona","no","ESML",,,"http://landskronaflygklubb.se","https://de.wikipedia.org/wiki/Flugplatz_Landskrona",
+30091,"ESMN","closed","Lund Airfield",55.684399,13.2108,79,"EU","SE","SE-M","Lund","no",,,,"http://www.lundsflygklubb.se/",,"Hasslanda Airfield, ESMN"
+2666,"ESMO","small_airport","Oskarshamn Airport",57.350498,16.497999,96,"EU","SE","SE-H",,"no","ESMO","OSK",,,"https://en.wikipedia.org/wiki/Oskarshamn_Airport",
+2667,"ESMP","small_airport","Anderstorp Airfield",57.264198,13.5994,507,"EU","SE","SE-F","Anderstorp","no","ESMP",,,,,
+2668,"ESMQ","medium_airport","Kalmar Airport",56.685501,16.2876,17,"EU","SE","SE-H","Kalmar","yes","ESMQ","KLR",,,"https://en.wikipedia.org/wiki/Kalmar_Airport",
+29349,"ESMR","closed","Trelleborg Airport",55.3833007812,13.0310001373,,"EU","SE","SE-M","Trelleborg","no",,,,,,"Maglarp Airport, ESMR"
+2669,"ESMS","medium_airport","Malmö Sturup Airport",55.535564,13.376327,236,"EU","SE","SE-M","Malmö","yes","ESMS","MMX",,"http://www.swedavia.com/malmo/","https://en.wikipedia.org/wiki/Malm%C3%B6_Airport",
+2670,"ESMT","medium_airport","Halmstad Airport",56.69110107421875,12.820199966430664,101,"EU","SE","SE-N","Halmstad","yes","ESMT","HAD",,,"https://en.wikipedia.org/wiki/Halmstad_Airport",
+29350,"ESMU","small_airport","Möckeln Airfield",56.572016,14.168415,480,"EU","SE","SE-G","Älmhult","no","ESMU",,,,"https://en.wikipedia.org/wiki/M%C3%B6ckeln_Airport",
+2671,"ESMV","small_airport","Hagshult Air Base",57.292198,14.1372,556,"EU","SE","SE-F",,"no","ESMV",,,"http://www.flygklubb.se/medlem/index.cfm?klubb=001&user=999&password=demo","https://sv.wikipedia.org/wiki/Hagshult_flygbas",
+29351,"ESMW","closed","Tingsryd Airport",56.5331,14.9641,,"EU","SE","SE-G","Tingsryd","no",,,,,,"ESMW"
+2672,"ESMX","medium_airport","Växjö Kronoberg Airport",56.929100036621094,14.727999687194824,610,"EU","SE","SE-G","Växjö","yes","ESMX","VXO",,,"https://en.wikipedia.org/wiki/V%C3%A4xj%C3%B6_Airport",
+29352,"ESMY","small_airport","Smålandsstenar Smålanda Airfield",57.168598,13.4402,540,"EU","SE","SE-F","Smålandsstenar","no","ESMY",,,,,
+29353,"ESMZ","small_airport","Ölanda Airfield",57.328236,17.050524,27,"EU","SE","SE-H","Ölanda","no","ESMZ",,,"http://www.ölanda.se/",,"Öland"
+2673,"ESNA","small_airport","Hallviken Airfield",63.7383,15.4583,1119,"EU","SE","SE-Z","Hallviken","no","ESNA",,,,"https://sv.wikipedia.org/wiki/Hallvikens_flygf%C3%A4lt",
+29354,"ESNB","small_airport","Sollefteå/Långsele Airfield",63.1712,16.985201,423,"EU","SE","SE-Y","Långsele","no","ESNB",,,,,
+2674,"ESNC","small_airport","Hedlanda Airfield",62.410631,13.745699,1460,"EU","SE","SE-Z","Hede","no","ESNC",,,,"http://sv.wikipedia.org/wiki/Hedlanda_flygplats",
+2675,"ESND","small_airport","Sveg Airport",62.047798,14.4229,1178,"EU","SE","SE-Z","Sveg","yes","ESND","EVG",,,"https://en.wikipedia.org/wiki/Sveg_Airport",
+29355,"ESNE","small_airport","Överkalix Airfield",66.529093,22.356319,,"EU","SE","SE-BD","Överkalix","no","ESNE",,,,"https://sv.wikipedia.org/wiki/%C3%96verkalix-Naishedens_flygf%C3%A4lt","Ylikainuu"
+29356,"ESNF","closed","Färila Air Base",61.897999,15.7053,676,"EU","SE","SE-X","Färila","no",,,,,"https://sv.wikipedia.org/wiki/F%C3%A4rila_flygbas","ESNF, Föne"
+2676,"ESNG","medium_airport","Gällivare Airport",67.13240051269531,20.814599990844727,1027,"EU","SE","SE-BD","Gällivare","yes","ESNG","GEV",,,"https://en.wikipedia.org/wiki/G%C3%A4llivare_Airport",
+2677,"ESNH","closed","Hudiksvall Airport",61.768101,17.0807,,"EU","SE","SE-X","Hudiksvall","no",,,,,,"ESNH, HUV"
+29357,"ESNI","closed","Kubbe Air Base",63.632499694824,17.936000823975,,"EU","SE","SE-Y","Kubbe","no",,,,,,"ESNI, ESNI"
+2678,"ESNJ","small_airport","Jokkmokk Airfield",66.496201,20.1472,904,"EU","SE","SE-BD",,"no","ESNJ",,,,"https://sv.wikipedia.org/wiki/Jokkmokks_flygbas",
+2679,"ESNK","medium_airport","Kramfors-Sollefteå Höga Kusten Airport",63.048599,17.7689,34,"EU","SE","SE-Y","Nyland","yes","ESNK","KRF",,,"https://en.wikipedia.org/wiki/Kramfors_Airport",
+2680,"ESNL","medium_airport","Lycksele Airport",64.548302,18.7162,705,"EU","SE","SE-AC","Lycksele","yes","ESNL","LYC",,,"https://en.wikipedia.org/wiki/Lycksele_Airport",
+2681,"ESNM","small_airport","Optand Airfield",63.128601,14.8028,1236,"EU","SE","SE-Z",,"no","ESNM",,,,"https://sv.wikipedia.org/wiki/%C3%96stersund-Optand_flygf%C3%A4lt",
+2682,"ESNN","medium_airport","Sundsvall-Härnösand Airport",62.528099060058594,17.443899154663086,16,"EU","SE","SE-Y","Sundsvall/ Härnösand","yes","ESNN","SDL",,,"https://en.wikipedia.org/wiki/Sundsvall-H%C3%A4rn%C3%B6sand_Airport",
+2683,"ESNO","medium_airport","Örnsköldsvik Airport",63.40829849243164,18.989999771118164,354,"EU","SE","SE-Y","Örnsköldsvik","yes","ESNO","OER",,,"https://en.wikipedia.org/wiki/%C3%96rnsk%C3%B6ldsvik_Airport",
+2684,"ESNP","small_airport","Piteå Airfield",65.3983,21.260799,43,"EU","SE","SE-BD","Piteå","no","ESNP",,,,,
+2685,"ESNQ","medium_airport","Kiruna Airport",67.821998596191,20.336799621582,1508,"EU","SE","SE-BD","Kiruna","yes","ESNQ","KRN",,"https://www.swedavia.com/kiruna/","https://en.wikipedia.org/wiki/Kiruna_Airport",
+2686,"ESNR","small_airport","Orsa Airfield",61.189999,14.7126,683,"EU","SE","SE-W",,"no","ESNR",,,,"https://sv.wikipedia.org/wiki/Orsa-Tallheds_flygf%C3%A4lt",
+2687,"ESNS","medium_airport","Skellefteå Airport",64.62480163574219,21.076900482177734,157,"EU","SE","SE-AC","Skellefteå","yes","ESNS","SFT",,,"https://en.wikipedia.org/wiki/Skellefte%C3%A5_Airport",
+2688,"ESNT","closed","Sättna Airport",62.4814,17.002899,,"EU","SE","SE-Y",,"no",,,,,,"ESNT"
+2689,"ESNU","medium_airport","Umeå Airport",63.791801452637,20.282800674438,24,"EU","SE","SE-AC","Umeå","yes","ESNU","UME",,"https://www.swedavia.com/umea/","https://en.wikipedia.org/wiki/Ume%C3%A5_Airport",
+2690,"ESNV","medium_airport","Vilhelmina South Lapland Airport",64.579102,16.833599,1140,"EU","SE","SE-AC","Vilhelmina","yes","ESNV","VHM",,,"https://en.wikipedia.org/wiki/Vilhelmina_Airport",
+2691,"ESNX","medium_airport","Arvidsjaur Airport",65.59030151367188,19.28190040588379,1245,"EU","SE","SE-BD","Arvidsjaur","yes","ESNX","AJR",,,"https://en.wikipedia.org/wiki/Arvidsjaur_Airport",
+2692,"ESNY","medium_airport","Söderhamn Airport",61.261501,17.0991,88,"EU","SE","SE-X","Söderhamn","no","ESNY","SOO",,"http://www.flygstaden.se/flygf-ltet","https://en.wikipedia.org/wiki/S%C3%B6derhamn_Airport",
+29358,"ESNZ","medium_airport","Åre Östersund Airport",63.194135,14.500322,1233,"EU","SE","SE-Z","Östersund","yes","ESNZ","OSD",,"https://www.swedavia.com/ostersund/","https://en.wikipedia.org/wiki/%C3%85re_%C3%96stersund_Airport","F4 Frösön Air Base, ESPC"
+2693,"ESOE","medium_airport","Örebro Airport",59.22370147705078,15.038000106811523,188,"EU","SE","SE-T","Örebro","yes","ESOE","ORB",,,"https://en.wikipedia.org/wiki/%C3%96rebro_Airport",
+2694,"ESOH","small_airport","Hagfors Airport",60.0201,13.5789,474,"EU","SE","SE-S","Råda","yes","ESOH","HFS",,,"https://en.wikipedia.org/wiki/Hagfors_Airport",
+2695,"ESOK","medium_airport","Karlstad Airport",59.444698,13.3374,352,"EU","SE","SE-S","Karlstad","yes","ESOK","KSD",,"https://www.ksdarprt.se/","https://en.wikipedia.org/wiki/Karlstad_Airport",
+29359,"ESOL","small_airport","Lemstanas Airfield",60.586597,16.586566,210,"EU","SE","SE-X","Storvik","no","ESOL",,,"http://flygklubbenstorvik.se/wp/","https://sv.wikipedia.org/wiki/Storvik-Lemstan%C3%A4s_flygf%C3%A4lt",
+2696,"ESOW","medium_airport","Stockholm Västerås Airport",59.58940124511719,16.63360023498535,21,"EU","SE","SE-U","Stockholm / Västerås","yes","ESOW","VST",,,"https://en.wikipedia.org/wiki/Stockholm-V%C3%A4ster%C3%A5s_Airport",
+2697,"ESPA","medium_airport","Luleå Airport",65.5438,22.122,65,"EU","SE","SE-BD","Luleå","yes","ESPA","LLA",,"https://www.swedavia.com/lulea/","https://en.wikipedia.org/wiki/Lule%C3%A5_Airport","Kallax Air Base"
+2699,"ESPE","small_airport","Vidsel Air Base",65.875298,20.1499,597,"EU","SE","SE-BD","Vidsel","no","ESPE",,,,"https://en.wikipedia.org/wiki/Vidsel_Air_Base",
+29360,"ESPG","closed","Boden Army Air Base",65.810302734375,21.691299438477,,"EU","SE","SE-BD","Boden","no",,,,,,"ESPG, ESPG"
+29361,"ESPJ","closed","Hede Air Base",65.838302612305,21.468799591064,,"EU","SE","SE-BD",,"no",,,,,,"ESPJ, ESPJ"
+2700,"ESQO","small_airport","Arboga Airfield",59.3866,15.9241,33,"EU","SE","SE-U",,"no","ESQO",,,,"https://en.wikipedia.org/wiki/Arboga_Airfield",
+29362,"ESQP","heliport","Berga Heliport",59.070202,18.117001,,"EU","SE","SE-AB","Berga Naval Base","no","ESQP",,,,"https://sv.wikipedia.org/wiki/Berga_helikopterflygplats",
+2701,"ESSA","large_airport","Stockholm-Arlanda Airport",59.64849,17.928829,137,"EU","SE","SE-AB","Stockholm","yes","ESSA","ARN",,"http://www.swedavia.se/arlanda/","https://en.wikipedia.org/wiki/Stockholm-Arlanda_Airport",
+2702,"ESSB","medium_airport","Stockholm-Bromma Airport",59.354400634765625,17.941699981689453,47,"EU","SE","SE-AB","Stockholm","yes","ESSB","BMA",,,"https://en.wikipedia.org/wiki/Stockholm-Bromma_Airport",
+29363,"ESSC","small_airport","Ekeby Airfield",59.3839,16.4419,,"EU","SE","SE-D","Eskilstuna","no","ESSC",,,,"https://sv.wikipedia.org/wiki/Ekeby_flygf%C3%A4lt",
+2703,"ESSD","medium_airport","Dala Airport",60.422001,15.5152,503,"EU","SE","SE-W","Borlange","yes","ESSD","BLE",,"https://www.dalaflyget.se/","https://en.wikipedia.org/wiki/Borl%C3%A4nge_Airport",
+29364,"ESSE","small_airport","Skå-Edeby Airfield",59.3451,17.740499,20,"EU","SE","SE-AB","Stockholm","no","ESSE",,,,"https://sv.wikipedia.org/wiki/Sk%C3%A5-Edeby_flygf%C3%A4lt",
+2704,"ESSF","small_airport","Hultsfred Airport",57.525799,15.8233,366,"EU","SE","SE-H",,"no","ESSF","HLF",,"http://www.hultsfredairport.se/","https://en.wikipedia.org/wiki/Hultsfred_Airport",
+29365,"ESSG","small_airport","Ludvika Airfield",60.088299,15.0964,900,"EU","SE","SE-W","Ludvika","no","ESSG",,,,,
+29366,"ESSH","small_airport","Laxå Airfield",58.978699,14.6662,,"EU","SE","SE-T","Laxå","no","ESSH",,,,"https://sv.wikipedia.org/wiki/Lax%C3%A5_flygf%C3%A4lt",
+29367,"ESSI","small_airport","Visingsö Airfield",58.0984,14.4026,,"EU","SE","SE-F","Visingsö","no","ESSI",,,,,
+2705,"ESSK","medium_airport","Gävle Sandviken Airport",60.5933,16.951401,224,"EU","SE","SE-X","Gävle / Sandviken","no","ESSK","GVX",,,"https://en.wikipedia.org/wiki/G%C3%A4vle-Sandviken_Airport",
+2706,"ESSL","medium_airport","Linköping City Airport",58.4062004089,15.680500030500001,172,"EU","SE","SE-E","Linköping","yes","ESSL","LPI",,"http://www.linkopingsflygplats.se/","https://en.wikipedia.org/wiki/Link%C3%B6ping_SAAB_Airport",
+29368,"ESSM","small_airport","Brattforshede Airfield",59.608398,13.9123,,"EU","SE","SE-S","Lindfors","no","ESSM",,,,,
+30191,"ESSN","small_airport","Norrtälje Airfield",59.732592,18.695215,39,"EU","SE","SE-AB","Norrtälje","no","ESSN",,,"https://rfk.nu","https://en.wikipedia.org/wiki/Mellingeholm_Airport","Mellingeholm"
+2707,"ESSP","medium_airport","Norrköping Airport",58.586299896240234,16.250600814819336,32,"EU","SE","SE-E","Norrköping","yes","ESSP","NRK",,,"https://en.wikipedia.org/wiki/Norrk%C3%B6ping_Airport","Kungsangen"
+30015,"ESSQ","closed","Karlstad South Airport",59.359199523899996,13.4660997391,148,"EU","SE","SE-S","Karlstad","no",,,,,,"ESSQ, ESSQ"
+2708,"ESST","medium_airport","Torsby Airport",60.1576,12.9913,393,"EU","SE","SE-S","Torsby","yes","ESST","TYF",,"http://www.torsbyflygplats.se","https://en.wikipedia.org/wiki/Torsby_Airport",
+2709,"ESSU","medium_airport","Eskilstuna Airport",59.351101,16.708401,139,"EU","SE","SE-D","Eskilstuna","no","ESSU","EKT",,"https://www.eskilstunaflygplats.se/","https://en.wikipedia.org/wiki/Eskilstuna_Airport",
+2710,"ESSV","medium_airport","Visby Airport",57.662799835205,18.346200942993,164,"EU","SE","SE-I","Visby","yes","ESSV","VBY",,"https://www.swedavia.com/visby/","https://en.wikipedia.org/wiki/Visby_Airport",
+29369,"ESSW","small_airport","Västervik Airport",57.779999,16.5236,118,"EU","SE","SE-H","Västervik","no","ESSW","VVK",,"http://www.essw.se","https://sv.wikipedia.org/wiki/V%C3%A4sterviks_flygplats","Vastervik, essw, Västervik"
+29370,"ESSX","small_airport","Johannisberg Airfield",59.575802,16.503201,33,"EU","SE","SE-U","Västerås","no","ESSX",,,,"https://sv.wikipedia.org/wiki/V%C3%A4ster%C3%A5s/Johannisbergs_flygf%C3%A4lt",
+29371,"ESSZ","small_airport","Vängsö Airfield",59.101101,17.2111,46,"EU","SE","SE-D","Vängsö","no","ESSZ",,,"https://www.osfk.se/",,
+2711,"ESTA","medium_airport","Ängelholm-Helsingborg Airport",56.29610061645508,12.847100257873535,68,"EU","SE","SE-M","Ängelholm","yes","ESTA","AGH",,"http://www.lfv.se/templates/LFV_AirportStartPage____4777.aspx","https://en.wikipedia.org/wiki/%C3%84ngelholm-Helsingborg_Airport","ESDB, Ängelholm Air Base"
+29869,"ESTF","small_airport","Fjällbacka Anra Airfield",58.630009,11.314459,10,"EU","SE","SE-Q","Fjällbacka","no","ESTF",,,,,
+29920,"ESTG","closed","Grönhögen Airport",56.275002,16.42,10,"EU","SE","SE-H",,"no",,,,,,
+2712,"ESTL","medium_airport","Ljungbyhed Airfield",56.082802,13.2125,140,"EU","SE","SE-M","Ljungbyhed","no","ESTL",,,,"https://sv.wikipedia.org/wiki/Ljungbyheds_flygplats",
+29372,"ESTO","closed","Tomelilla Airfield",55.543301,14.0009,,"EU","SE","SE-M","Tomelilla","no",,,,,,"ESTO, ESTO"
+30525,"ESTT","small_airport","Vellinge Airfield",55.3912021148,13.0221033096,12,"EU","SE","SE-M","Vellinge","no","ESTT",,,"http://www.estt.se/front/","https://en.wikipedia.org/wiki/Vellinge_Airport","Vellinge/Söderslätt Airfield"
+29373,"ESUA","closed","Åmsele Air Base",64.570602416992,19.314100265503,,"EU","SE","SE-AC","Åmsele","no",,,,,,"ESUA, ESUA"
+29374,"ESUB","small_airport","Arbrå Airfield",61.512501,16.372499,,"EU","SE","SE-X","Arbrå","no","ESUB",,,,,
+2713,"ESUD","medium_airport","Storuman Airport",64.960899,17.6966,915,"EU","SE","SE-AC","Storuman","no","ESUD","SQO",,,"https://en.wikipedia.org/wiki/Storuman_Airport",
+29375,"ESUE","small_airport","Idre Airport",61.869701,12.6894,1480,"EU","SE","SE-W","Idre","no","ESUE","IDB",,"https://www.idrefjallensairport.se/",,
+29376,"ESUF","closed","Fällfors Air Base",65.107597351074,20.761100769043,,"EU","SE","SE-AC","Fällfors","no",,,,,,"ESUF, ESUF"
+29377,"ESUG","small_airport","Gargnäs Airfield",65.305298,17.9755,,"EU","SE","SE-AC","Gargnäs","no","ESUG",,,,,
+29378,"ESUH","small_airport","Myran Airfield",62.632469,17.981701,,"EU","SE","SE-Y","Härnösand","no","ESUH",,,,,
+30129,"ESUI","small_airport","Mellansel Airfield",63.391806,18.319471,310,"EU","SE","SE-Y","Mellansel","no","ESUI",,,,,
+29379,"ESUJ","small_airport","Tälje Airfield",62.5653,15.8347,446,"EU","SE","SE-Y","Ånge","no","ESUJ",,,,,
+2714,"ESUK","small_airport","Kalixfors Airfield",67.764801,20.2572,1549,"EU","SE","SE-BD",,"no","ESUK",,,,"https://sv.wikipedia.org/wiki/Kalixfors_flygbas",
+29380,"ESUL","small_airport","Ljusdal Airfield",61.817001,16.004299,500,"EU","SE","SE-X","Ljusdal","no","ESUL",,,,,
+29381,"ESUM","small_airport","Mohed Airfield",61.291199,16.8463,200,"EU","SE","SE-X","Mohed","no","ESUM",,,,"https://sv.wikipedia.org/wiki/S%C3%B6derhamn-Mohed_flygf%C3%A4lt",
+29909,"ESUO","small_airport","Graftavallen Airfield",63.041698,14.0014,1640,"EU","SE","SE-Z","Graftavallen","no","ESUO",,,,,
+2715,"ESUP","small_airport","Pajala Airport",67.244569,23.074894,542,"EU","SE","SE-BD",,"yes","ESUP","PJA",,,"https://en.wikipedia.org/wiki/Pajala_Airport",
+29382,"ESUR","small_airport","Ramsele Airfield",63.490299,16.4834,,"EU","SE","SE-Y","Sollefteå","no","ESUR",,,,,
+29383,"ESUS","small_airport","Åsele Airfield",64.155938,17.285045,,"EU","SE","SE-AC","Åsele","no","ESUS",,,,,
+2716,"ESUT","small_airport","Hemavan Airport",65.806099,15.0828,1503,"EU","SE","SE-AC","Hemavan","yes","ESUT","HMV",,,"https://en.wikipedia.org/wiki/Hemavan_Airport",
+29384,"ESUV","small_airport","Älvsbyn Airfield",65.645699,21.0611,,"EU","SE","SE-BD","Älvsbyn","no","ESUV",,,,"https://sv.wikipedia.org/wiki/%C3%84lvsbyn-H%C3%B6gheden_flygf%C3%A4lt","Alvsby"
+29385,"ESUY","small_airport","Edsby Airfield",61.386732,15.833166,,"EU","SE","SE-X","Edsbyn","no","ESUY",,,,,"Edsby Flygplats"
+29386,"ESVA","small_airport","Avesta Airfield",60.180401,16.122801,,"EU","SE","SE-W","Avesta","no","ESVA",,,,,
+29739,"ESVB","small_airport","Bunge Airfield",57.849701,19.035,69,"EU","SE","SE-I","Bunge","no","ESVB",,,,"https://en.wikipedia.org/wiki/Bunge_Airbase","Bunge Flygfält"
+29387,"ESVG","small_airport","Gagnef Airfiekld",60.551701,15.0816,,"EU","SE","SE-W","Djurås","no","ESVG",,,,,
+29388,"ESVH","small_airport","Hällefors Airfield",59.867401,14.4239,,"EU","SE","SE-T","Hällefors","no","ESVH",,,,"https://sv.wikipedia.org/wiki/H%C3%A4llefors_flygf%C3%A4lt",
+29389,"ESVK","small_airport","Katrineholm Airfield",59.022301,16.220301,148,"EU","SE","SE-D","Katrineholm","no","ESVK",,,,,
+29390,"ESVM","small_airport","Skinnlanda Airfield",60.658798,13.7266,,"EU","SE","SE-W","Malung","no","ESVM",,,,,
+29391,"ESVQ","small_airport","Köping/Gålby flygfält",59.5275,15.9697,23,"EU","SE","SE-U","Köping","no","ESVQ",,,,"https://sv.wikipedia.org/wiki/K%C3%B6ping/G%C3%A5lby_flygf%C3%A4lt",
+29392,"ESVS","small_airport","Siljansnäs Air Park",60.785099,14.8272,611,"EU","SE","SE-W","Siljansnäs","no","ESVS",,,"http://www.siljansnasfk.com","http://sv.wikipedia.org/wiki/Siljan_airpark",

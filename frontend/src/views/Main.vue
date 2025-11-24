@@ -48,6 +48,7 @@ import Window from "@/components/Window.vue"
 import Welcome from "@/components/Welcome.vue"
 import Metreport from "@/components/met/Metreport.vue"
 import MetsensorWX from "@/components/met/MetsensorWX.vue"
+import MetsensorMETAR from "@/components/met/MetsensorMETAR.vue"
 import Notam from "@/components/Notam.vue"
 import Echarts from "@/components/Echarts.vue"
 import Smhi from "@/components/met/Smhi.vue"
@@ -325,6 +326,19 @@ for (const icao of wxAirports) {
         width: 360,
         height: 380,
         class: "no-max",
+    }
+}
+// Register metsensor windows for airports that have METAR but not AWOS
+for (const icao of metarAirports) {
+    if (!wxAirports.includes(icao)) {
+        availableWindows[`metsen${icao}`] = {
+            title: `METSENSOR ${icao}`,
+            component: MetsensorMETAR,
+            props: { id: icao },
+            width: 360,
+            height: 380,
+            class: "no-max",
+        }
     }
 }
 for (const icao of metarAirports) {

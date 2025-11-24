@@ -148,10 +148,21 @@ export const useWindStore = defineStore("wind", () => {
             return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
         if (windDirection === "VRB") return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
         if (typeof windDirection === "string") windDirection = parseInt(windDirection)
-        const angle = Math.abs(windDirection - runwayHeading)
+        
+        // Handle calm wind (speed 0) - components should be 0
+        if (windSpeed === 0 || isNaN(windSpeed)) {
+            return { headWind: 0, crossWind: 0, crossWindDir: "" }
+        }
+        
+        // Validate windDirection is a valid number
+        if (isNaN(windDirection as number)) {
+            return { headWind: 0, crossWind: 0, crossWindDir: "VRB" }
+        }
+        
+        const angle = Math.abs((windDirection as number) - runwayHeading)
         const headWind = Math.round(windSpeed * Math.cos((angle * Math.PI) / 180))
         const crossWind = Math.abs(Math.round(windSpeed * Math.sin((angle * Math.PI) / 180)))
-        const crossWindDir = (windDirection - runwayHeading + 360) % 360 > 180 ? "L" : "R"
+        const crossWindDir = ((windDirection as number) - runwayHeading + 360) % 360 > 180 ? "L" : "R"
         return { headWind, crossWind, crossWindDir }
     }
 

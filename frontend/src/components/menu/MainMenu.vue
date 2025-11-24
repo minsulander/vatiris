@@ -238,10 +238,11 @@ const eaip = useEaipStore()
 
 for (const icao of wxAirports) {
     menuItems.MET.AIRPORT[icao] = `airport${icao}`
-    menuItems.MET.METSENSOR[icao] = `metsen${icao}`
 }
 
 for (const icao of metarAirports) {
+    // All airports with METAR have metsensor (either AWOS or METAR-based)
+    menuItems.MET.METSENSOR[icao] = `metsen${icao}`
     menuItems.MET.METREPORT[icao] = `metrep${icao}`
     if (icao == "ESSA") {
         menuItems.MET.METREPORT[`${icao} ARR`] = `metrep${icao}arr`

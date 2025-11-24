@@ -6,7 +6,8 @@
         <hr v-if="tafAvailable" class="component-divider">
         <Taf v-if="tafAvailable" :id="props.id" />
         <hr class="component-divider">
-        <Metsensor :id="props.id" />
+        <MetsensorWX v-if="useAwos" :id="props.id" />
+        <MetsensorMETAR v-else :id="props.id" />
     </div>
 </template>
 
@@ -14,13 +15,15 @@
 import Sun from "@/components/met/Sun.vue"
 import Metreport from "@/components/met/Metreport.vue"
 import Taf from "@/components/met/Taf.vue"
-import Metsensor from "@/components/met/MetsensorWX.vue"
-import { tafAirports } from "@/metcommon"
+import MetsensorWX from "@/components/met/MetsensorWX.vue"
+import MetsensorMETAR from "@/components/met/MetsensorMETAR.vue"
+import { tafAirports, wxAirports } from "@/metcommon"
 import { computed } from "vue"
 
 const props = defineProps<{ id: string }>()
 
 const tafAvailable = computed(() => tafAirports.includes(props.id))
+const useAwos = computed(() => wxAirports.includes(props.id))
 
 </script>
 
