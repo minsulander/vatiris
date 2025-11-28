@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive } from "vue"
+import { ref, reactive, watch } from "vue"
 import { useSettingsStore } from "./settings"
 import { formatTAS } from "@/flightcalc"
 
@@ -38,6 +38,8 @@ function generateClientId(): string {
 }
 
 export const useVatfspStore = defineStore("vatfsp", () => {
+    const settings = useSettingsStore()
+
     const printing = ref(false)
     const lastError = ref<string | null>(null)
     const printedFlights = reactive<Record<string, PrintedFlightInfo>>({})
@@ -67,26 +69,26 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             const response = await fetch(`${backendUrl.value}/fsp/state`)
             if (response.ok) {
                 const state = await response.json()
-                
+
                 // Update printing status
                 printing.value = state.printing
 
                 // Update printed flights - ensure reactivity
                 const currentKeys = Object.keys(printedFlights)
                 const newKeys = Object.keys(state.printedFlights)
-                
+
                 // Remove flights that are no longer in backend state
                 currentKeys.forEach((key) => {
                     if (!newKeys.includes(key)) {
                         delete printedFlights[key]
                     }
                 })
-                
+
                 // Add/update flights from backend state
                 newKeys.forEach((key) => {
                     printedFlights[key] = state.printedFlights[key]
                 })
-                
+
                 savePrintedFlights()
             }
         } catch (error) {
@@ -150,13 +152,13 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                 await fetch(`${backendUrl.value}/fsp/printed`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        callsign, 
+                    body: JSON.stringify({
+                        callsign,
                         timestamp: flightInfo.timestamp,
-                        squawk, 
-                        route, 
-                        rfl, 
-                        type 
+                        squawk,
+                        route,
+                        rfl,
+                        type,
                     }),
                 })
                 // Immediately sync to get latest state to all clients
@@ -176,8 +178,6 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         sid?: string,
         wtc?: string,
     ) {
-        const settings = useSettingsStore()
-
         if (!settings.fspUrl) {
             lastError.value = "FSP URL not configured in settings"
             return false
@@ -231,7 +231,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             }
 
             const result = await response.json()
-            
+
             if (!result.success) {
                 lastError.value = result.error || "Print failed"
                 return false
@@ -264,12 +264,12 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         if (!(callsign in printedFlights)) return false
 
         const printed = printedFlights[callsign]
-        
+
         if (squawk && printed.squawk !== squawk) return true
         if (route && printed.route !== route) return true
         if (rfl && printed.rfl !== rfl) return true
         if (type && printed.type !== type) return true
-        
+
         return false
     }
 
@@ -322,7 +322,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
 
     function startSync(apiBaseUrl?: string) {
         backendUrl.value = apiBaseUrl || backendBaseUrl
-        
+
         // Initial sync
         syncStateFromBackend()
 
@@ -347,7 +347,12 @@ export const useVatfspStore = defineStore("vatfsp", () => {
     clearOldPrintedFlights()
 
     // Auto-start sync with backend
-    startSync()
+    if (settings.fspEnabled) startSync()
+
+    watch(() => settings.fspEnabled, (newValue: boolean) => {
+        if (newValue) startSync()
+            else stopSync()
+    })
 
     return {
         printing,
@@ -364,4 +369,3 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         syncStateFromBackend,
     }
 })
-
