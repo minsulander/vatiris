@@ -1,5 +1,5 @@
 import moment from "moment"
-import { useAirportStore } from "@/stores/airport"
+import { useAirportStore, type Airport } from "@/stores/airport"
 import * as turf from "@turf/turf"
 import { sidManager, type SIDMatch } from "@/sid"
 
@@ -35,6 +35,24 @@ export function distanceToAirport(pilot: any, airport: any) {
     const to = turf.point([airport.longitude, airport.latitude])
     const distance = turf.distance(from, to) / 1.852
     return distance
+}
+
+export function closestAirport(pilot: any) {
+    const from = turf.point([pilot.longitude, pilot.latitude])
+    const airportStore = useAirportStore()
+    if (!airportStore.airports) return undefined
+    let minDistance = Infinity
+    let closestAirport: Airport | undefined = undefined
+    for (const airport of Object.values(airportStore.airports)) {
+        if (!isFinite(airport.longitude) || !isFinite(airport.latitude)) continue
+        const to = turf.point([airport.longitude, airport.latitude])
+        const distance = turf.distance(from, to) / 1.852
+        if (distance < minDistance) {
+            minDistance = distance
+            closestAirport = airport
+        }
+    }
+    return closestAirport
 }
 
 export function flightplanArrivalTime(fp: any, adjustDepartureTime = false) {

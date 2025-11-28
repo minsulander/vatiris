@@ -42,13 +42,36 @@
                     @dblclick="!shouldAllowSingleClick(dep) ? printFlight(dep) : null"
                     :title="getDepartureButtonTitle(dep)"
                     :color="getDepartureButtonColor(dep)"
-                    style="border-radius: 50%; min-width: 24px; width: 24px; height: 24px; cursor: pointer;"
+                    style="
+                        border-radius: 50%;
+                        min-width: 24px;
+                        width: 24px;
+                        height: 24px;
+                        cursor: pointer;
+                    "
                 >
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ dep.callsign }}</td>
             <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(dep.type) }">
-                {{ dep.type }}<v-icon v-if="settings.showSlow && dep.adep?.toUpperCase() === 'ESSA' && isSlowDeparture(dep)" class="slow-icon">mdi-tortoise</v-icon><v-icon v-if="settings.showSlow && dep.adep?.toUpperCase() === 'ESGG' && isPropellerDeparture(dep)" class="propeller-icon">mdi-fan</v-icon>
+                {{ dep.type
+                }}<v-icon
+                    v-if="
+                        settings.showSlow &&
+                        dep.adep?.toUpperCase() === 'ESSA' &&
+                        isSlowDeparture(dep)
+                    "
+                    class="slow-icon"
+                    >mdi-tortoise</v-icon
+                ><v-icon
+                    v-if="
+                        settings.showSlow &&
+                        dep.adep?.toUpperCase() === 'ESGG' &&
+                        isPropellerDeparture(dep)
+                    "
+                    class="propeller-icon"
+                    >mdi-fan</v-icon
+                >
             </td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
@@ -110,7 +133,7 @@ table tr td.type-cell {
 }
 
 table tr td.type-cell.wtc-not-medium {
-    background-color: #FFB933 !important;
+    background-color: #ffb933 !important;
 }
 
 .t1-code {
@@ -119,7 +142,6 @@ table tr td.type-cell.wtc-not-medium {
     margin-left: 3px;
     font-size: 7px;
 }
-
 </style>
 
 <script setup lang="ts">
@@ -132,7 +154,15 @@ import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { useWxStore } from "@/stores/wx"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { flightplanDepartureTime, distanceToAirport, formatRFL, normalizeFlightRules, getSIDName, getCleanedRoute } from "@/flightcalc"
+import {
+    flightplanDepartureTime,
+    distanceToAirport,
+    formatRFL,
+    normalizeFlightRules,
+    getSIDName,
+    getCleanedRoute,
+    closestAirport,
+} from "@/flightcalc"
 import { useFspRunway } from "@/composables/useFspRunway"
 import moment from "moment"
 import constants from "@/constants"
@@ -223,7 +253,10 @@ const departures = computed(() => {
                 squawk: pilot.flight_plan?.assigned_transponder,
                 route: pilot.flight_plan?.route,
                 rfl: pilot.flight_plan?.altitude,
-                flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
+                flightRules: normalizeFlightRules(
+                    pilot.flight_plan?.flight_rules,
+                    pilot.flight_plan?.route,
+                ), // Auto-detect Y/Z from I/V
                 tas: pilot.flight_plan?.cruise_tas,
                 remarks: pilot.flight_plan?.remarks,
             } as Departure
@@ -288,7 +321,9 @@ const departures = computed(() => {
                 remarks: prefile.flight_plan?.remarks,
             } as Departure
         })
-    for (const dep of prefileDeps) departures.push(dep)
+    for (const dep of prefileDeps) {
+        if (!departures.find((d) => d.callsign == dep.callsign)) departures.push(dep)
+    }
 
     // Find invalid/no flightplan pilots at known airports
     const candidatePilots = vatsim.data.pilots.filter(
@@ -308,7 +343,8 @@ const departures = computed(() => {
                 distanceToAirport(p, airport) < constants.atAirportDistance &&
                 (!p.flight_plan ||
                     (p.flight_plan.departure !== airport.icao &&
-                        p.flight_plan.arrival !== airport.icao)),
+                        p.flight_plan.arrival !== airport.icao)) &&
+                closestAirport(p)?.icao == airport.icao,
         )) {
             const dep = {
                 callsign: pilot.callsign,
@@ -331,14 +367,14 @@ const departures = computed(() => {
             // eslint-disable-next-line vue/no-side-effects-in-computed-properties
             if (dep.stand) storedStand[dep.callsign] = dep.stand
             else if (dep.callsign in storedStand) dep.stand = storedStand[dep.callsign]
-            departures.push(dep)
+            if (!departures.find((d) => d.callsign == dep.callsign)) departures.push(dep)
         }
     }
     // Clean up stored stands for flights no longer in the list
     // eslint-disable-next-line vue/no-side-effects-in-computed-properties
     for (const callsign of Object.keys(storedStand)) {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        if (!departures.find(d => d.callsign == callsign)) delete storedStand[callsign]
+        if (!departures.find((d) => d.callsign == callsign)) delete storedStand[callsign]
     }
     return departures
         .filter(
@@ -415,7 +451,7 @@ function saveOptions() {
 function printFlight(dep: Departure) {
     // If route or other data is missing, try to get it from VATSIM data directly
     if (vatsim.data) {
-        const pilot = vatsim.data.pilots.find(p => p.callsign === dep.callsign)
+        const pilot = vatsim.data.pilots.find((p) => p.callsign === dep.callsign)
         if (pilot && pilot.flight_plan) {
             if (!dep.route && pilot.flight_plan.route) {
                 dep.route = pilot.flight_plan.route
@@ -427,13 +463,16 @@ function printFlight(dep: Departure) {
                 dep.squawk = pilot.flight_plan.assigned_transponder
             }
             if (!dep.flightRules && pilot.flight_plan.flight_rules) {
-                dep.flightRules = normalizeFlightRules(pilot.flight_plan.flight_rules, pilot.flight_plan.route)
+                dep.flightRules = normalizeFlightRules(
+                    pilot.flight_plan.flight_rules,
+                    pilot.flight_plan.route,
+                )
             }
             if (!dep.tas && pilot.flight_plan.cruise_tas) {
                 dep.tas = pilot.flight_plan.cruise_tas
             }
         } else {
-            const prefile = vatsim.data.prefiles.find(p => p.callsign === dep.callsign)
+            const prefile = vatsim.data.prefiles.find((p) => p.callsign === dep.callsign)
             if (prefile && prefile.flight_plan) {
                 if (!dep.route && prefile.flight_plan.route) {
                     dep.route = prefile.flight_plan.route
@@ -445,7 +484,10 @@ function printFlight(dep: Departure) {
                     dep.squawk = prefile.flight_plan.assigned_transponder
                 }
                 if (!dep.flightRules && prefile.flight_plan.flight_rules) {
-                    dep.flightRules = normalizeFlightRules(prefile.flight_plan.flight_rules, prefile.flight_plan.route)
+                    dep.flightRules = normalizeFlightRules(
+                        prefile.flight_plan.flight_rules,
+                        prefile.flight_plan.route,
+                    )
                 }
                 if (!dep.tas && prefile.flight_plan.cruise_tas) {
                     dep.tas = prefile.flight_plan.cruise_tas
@@ -453,19 +495,19 @@ function printFlight(dep: Departure) {
             }
         }
     }
-    
+
     // Process SID information for departures
     let sidName: string | undefined
     let cleanedRoute = dep.route
-    
+
     if (dep.adep && dep.route) {
         const metreport = wx.metreport(dep.adep)
-        const isESGG = dep.adep === 'ESGG'
-        
+        const isESGG = dep.adep === "ESGG"
+
         // For ESGG: use manual override if set, otherwise let metreport extract runway from ATIS
         let runwayForSID: string | undefined = undefined
         let metreportForSID: string | undefined = undefined
-        
+
         if (isESGG && manualRunwayOverride.value) {
             // Manual override is set: use it and don't pass metreport (to prevent metreport from overriding)
             runwayForSID = manualRunwayOverride.value
@@ -474,23 +516,17 @@ function printFlight(dep: Departure) {
             // No manual override: pass metreport so it can extract runway from ATIS
             metreportForSID = metreport
         }
-        
+
         // Extract SID and clean route
-        sidName = getSIDName(
-            dep.adep,
-            dep.route,
-            runwayForSID,
-            metreportForSID,
-            dep.flightRules
-        )
-        
+        sidName = getSIDName(dep.adep, dep.route, runwayForSID, metreportForSID, dep.flightRules)
+
         if (sidName) {
             cleanedRoute = getCleanedRoute(
                 dep.adep,
                 dep.route,
                 runwayForSID,
                 metreportForSID,
-                dep.flightRules
+                dep.flightRules,
             )
         }
     }
@@ -518,7 +554,15 @@ function printFlight(dep: Departure) {
 
 function getDepartureButtonColor(dep: Departure): string {
     // Flight plan changed after printing - URGENT
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+    if (
+        vatfsp.hasFlightPlanChanged(
+            dep.callsign,
+            dep.squawk,
+            dep.route,
+            formatRFL(dep.rfl),
+            dep.type,
+        )
+    ) {
         return "red" // Urgent - needs reprint
     }
 
@@ -540,22 +584,38 @@ function getDepartureButtonColor(dep: Departure): string {
 function shouldAllowSingleClick(dep: Departure): boolean {
     // Single click allowed for: red (urgent flight plan changed) or orange (ready to print)
     // Double click required for: grey (already printed) or blue-grey (no squawk)
-    
+
     // Allow single click only if flight plan changed (red) or ready with squawk (orange)
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+    if (
+        vatfsp.hasFlightPlanChanged(
+            dep.callsign,
+            dep.squawk,
+            dep.route,
+            formatRFL(dep.rfl),
+            dep.type,
+        )
+    ) {
         return true // Red - urgent
     }
-    
+
     if (!vatfsp.isPrinted(dep.callsign)) {
         const hasAssignedSquawk = !!(dep.squawk && dep.squawk !== "2000" && dep.squawk !== "0000")
         return hasAssignedSquawk // Orange (true) or Blue-grey (false)
     }
-    
+
     return false // Grey - already printed
 }
 
 function getDepartureButtonTitle(dep: Departure): string {
-    if (vatfsp.hasFlightPlanChanged(dep.callsign, dep.squawk, dep.route, formatRFL(dep.rfl), dep.type)) {
+    if (
+        vatfsp.hasFlightPlanChanged(
+            dep.callsign,
+            dep.squawk,
+            dep.route,
+            formatRFL(dep.rfl),
+            dep.type,
+        )
+    ) {
         return "Click to reprint flight strip (flight plan changed)"
     }
     if (vatfsp.isPrinted(dep.callsign)) {
@@ -583,5 +643,4 @@ function isNotMediumWTC(aircraftType: string | undefined): boolean {
 function isPropellerDeparture(dep: Departure): boolean {
     return aircraftStore.isPropellerDriven(dep.type)
 }
-
 </script>
