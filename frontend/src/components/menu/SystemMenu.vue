@@ -21,7 +21,7 @@
                     <v-menu activator="parent" location="end">
                         <v-list density="compact">
                             <v-list-item
-                                v-for="id in Object.keys(preset.presets)"
+                                v-for="id in Object.keys(preset.presets).sort()"
                                 :key="id"
                                 @click="preset.load(id)"
                             >
