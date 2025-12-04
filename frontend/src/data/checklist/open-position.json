@@ -5,23 +5,22 @@
         "Overview of traffic (VatSpy/Scout/Radar/Glasses)...CHECK", 
         "Weather and NOTAMs...CHECK", 
         "Discord...LOGIN",
-        "EuroScope observer/unprimed...LOGIN",
+        "EuroScope, secondary, active runways...LOGIN, SETUP",
         "Audio client...CONNECT",
-        "EuroScope secondary instance, METAR, runway in use...SETUP",
         "vATIS: Runways, NOTAMs, APT CONDs...PREPARE",
         "Above/below controllers: intent to open...COORDINATE",
         "Traffic in sector...NOTE & PLAN",
-        "EuroScope active controller...LOGIN/PRIME",
+        "EuroScope active frequency...PRIME",
         "Audio client frequency and connection...CHECK",
         "CPDLC...CONNECT",
         "vATIS...CONNECT",
         "Above/below controllers: open, ready for traffic...COORDINATE",
         "ATC channel <tt>/online</tt>...SEND",
-        "Traffic in sector - assign squawk, <tt>.contactme</tt> or coordinate and transfer"
+        "Traffic in sector - <tt>.contactme</tt> or coordinate and transfer"
     ],
     "sections": {
         "0": "Preparation",
-        "10": "Execution"
+        "9": "Execution"
     },
     "width": 600,
     "height": 700

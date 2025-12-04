@@ -253,5 +253,10 @@
         "title": "FPS - Flight Progress Strips",
         "book": "event-procedures",
         "page": "fps-flight-progress-strips"
+    },
+    "bulletins": {
+        "title": "Operational Bulletins",
+        "book": "general",
+        "page": "sweden-fir-atc-operational-bulletins"
     }
 }

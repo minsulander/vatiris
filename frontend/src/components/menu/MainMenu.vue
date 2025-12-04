@@ -104,6 +104,7 @@ const menuItems = reactive({
     },
     Documents: {
         MANUAL: "wiki-vatiris",
+        BULLETINS: "wiki-bulletins",
         CHECKLIST: {
             "Open position": "checklist-open-position",
             "Close position": "checklist-close-position",
@@ -221,7 +222,6 @@ const menuItems = reactive({
         },
         "REGIONAL AD": "regional",
         "TEXT ALIAS": "alias",
-        FPS: "wiki-fps",
         NOTEPAD: "notepad",
     },
     Traffic: {},

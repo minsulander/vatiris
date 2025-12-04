@@ -1,11 +1,9 @@
 {
     "title": "Handover/takeover briefing",
     "items": [
-        "<b>BYTT AV I PLS?</b>",
         "Runway in use", 
         "Open/closed STAR", 
         "Weather - winds, QNH, TRL, LVP, CB",
-        "Discord and AFV PTT",
         "Audio - XC:ed frequencies",
         "CPDLC/DCL",
         "vATIS - NOTAMs/APT CONDs",
