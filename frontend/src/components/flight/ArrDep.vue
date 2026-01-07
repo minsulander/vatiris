@@ -175,14 +175,19 @@ const myEsData = computed(() => {
     return esdataStore.data[controller.callsign] || undefined
 })
 
+const allAd = computed(() => {
+    // from euroscope runway selection dialog:
+    return ["EFKE", "EFMA", "EFRO", "EKCH", "EKRN", "ENGM", "ENRY", "ENTO", ...Object.keys(airportStore.airports).sort()]
+})
+
 const filteredAd = computed(() => {
     if (adFilter.value) {
         const lower = adFilter.value.toLowerCase()
-        return Object.keys(airportStore.airports)
+        return allAd.value
             .filter((id) => id.toLowerCase().includes(lower))
             .sort()
     }
-    return Object.keys(airportStore.airports).sort()
+    return allAd.value
 })
 
 function syncAd() {
@@ -205,7 +210,7 @@ function clickAd(icao: string) {
     if (ad.includes(icao)) {
         ad.splice(ad.indexOf(icao), 1)
     } else if (ad.length == 0) {
-        for (const a of Object.keys(airportStore.airports).sort()) {
+        for (const a of allAd.value) {
             if (a != icao) ad.push(a)
         }
     } else {

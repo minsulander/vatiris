@@ -99,8 +99,8 @@ table td {
     user-select: auto;
 }
 table th .v-icon {
-    margin-left: -5px;
-    margin-right: -5px;
+    margin-left: -8px;
+    margin-right: -10px;
 }
 
 .print-btn-flash {
