@@ -3,7 +3,7 @@
         <div v-if="vatsim.refreshing || fdp.fdp.loading || esdata.loading">Loading...</div>
         <div v-else>No arrivals</div>
     </div>
-    <table v-else style="border-collapse: collapse; width: 100%">
+    <table v-else style="border-collapse: collapse; width: 100%" :class="settings.colorfulArrDep ? 'colorful' : ''">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
                 <th v-if="settings.fspEnabled" style="width: 28px"></th>
@@ -84,6 +84,7 @@ table tr th {
     white-space: nowrap;
     font-size: 12px;
     padding: 0 1px;
+    border-bottom: 1px solid #ccc;
 }
 table tr td {
     font-size: 14px;
@@ -96,12 +97,18 @@ table tr td.type-cell {
 }
 
 table tr td.type-cell.wtc-not-medium {
+    font-weight: bold;
+}
+table.colorful tr td.type-cell.wtc-not-medium {
     background-color: #ffb933 !important;
 }
 table tr:nth-child(even) {
+    background: #f5f5f5;
+}
+table.colorful tr:nth-child(even) {
     background: #ec6;
 }
-table tr:nth-child(odd) {
+table.colorful tr:nth-child(odd) {
     background: #fe8;
 }
 table td {

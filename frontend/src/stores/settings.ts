@@ -19,6 +19,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const fspEnabled = ref(false)
     const showT1 = ref(true)
     const showSlow = ref(true)
+    const colorfulArrDep = ref(true)
 
     // settings stored in localStorage (device specific)
     const customPdfBrowser = ref(localStorage.customPdfBrowser == "true" || !browserHasPDFViewer())
@@ -54,6 +55,7 @@ export const useSettingsStore = defineStore("settings", () => {
             fspEnabled,
             showT1,
             showSlow,
+            colorfulArrDep,
         ],
         () => {
             // PLS logic validation
@@ -95,6 +97,7 @@ export const useSettingsStore = defineStore("settings", () => {
                 fspEnabled: fspEnabled.value,
                 showT1: showT1.value,
                 showSlow: showSlow.value,
+                colorfulArrDep: colorfulArrDep.value,
             }
             localStorage.settings = JSON.stringify(settings)
             if (Date.now() - lastLoadTime > 3000 && auth.user) {
@@ -149,6 +152,7 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("fspEnabled" in settings) fspEnabled.value = settings.fspEnabled
         if ("showT1" in settings) showT1.value = settings.showT1
         if ("showSlow" in settings) showSlow.value = settings.showSlow
+        if ("colorfulArrDep" in settings) colorfulArrDep.value = settings.colorfulArrDep
         // Legacy support: migrate showPropeller to showSlow
         if ("showPropeller" in settings && !("showSlow" in settings)) {
             showSlow.value = settings.showPropeller
@@ -192,6 +196,7 @@ export const useSettingsStore = defineStore("settings", () => {
         fspEnabled,
         showT1,
         showSlow,
+        colorfulArrDep,
         customPdfBrowser,
     }
 })
