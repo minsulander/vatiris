@@ -40,7 +40,19 @@
                 Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
             </p>
 
-            <h2 class="mt-6">Flight List</h2>
+            <h2 class="mt-6">ARR DEP List</h2>
+
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="Colorful list"
+                v-model="settings.colorfulArrDep"
+                class="mt-2"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Show ARR/DEP list with yellow (ARR) and blue (DEP) colors instead of monochrome.
+            </p>
 
             <v-switch
                 color="white"

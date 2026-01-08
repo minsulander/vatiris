@@ -3,7 +3,7 @@
         <div v-if="vatsim.refreshing || fdp.fdp.loading || esdata.loading">Loading...</div>
         <div v-else>No arrivals</div>
     </div>
-    <table v-else style="border-collapse: collapse; width: 100%">
+    <table v-else style="border-collapse: collapse; width: 100%" :class="settings.colorfulArrDep ? 'colorful' : ''">
         <thead>
             <tr style="position: sticky; top: 0; margin-bottom: 20px; background: #ddd">
                 <th v-if="settings.fspEnabled" style="width: 28px"></th>
@@ -48,13 +48,22 @@
                         'print-btn-flash': shouldFlashArrival(arr),
                     }"
                     :color="getArrivalButtonColor(arr)"
-                    style="border-radius: 50%; min-width: 24px; width: 24px; height: 24px; cursor: pointer;"
+                    style="
+                        border-radius: 50%;
+                        min-width: 24px;
+                        width: 24px;
+                        height: 24px;
+                        cursor: pointer;
+                    "
                 >
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ arr.callsign }}</td>
             <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(arr.type) }">
-                {{ arr.type }}<span v-if="settings.showT1 && getT1ForArrival(arr)" class="t1-code">T{{ getT1ForArrival(arr) }}</span>
+                {{ arr.type
+                }}<span v-if="settings.showT1 && getT1ForArrival(arr)" class="t1-code"
+                    >T{{ getT1ForArrival(arr) }}</span
+                >
             </td>
             <td v-if="multipleAirports">{{ arr.ades }}</td>
             <td class="font-weight-medium">{{ arr.stand }}</td>
@@ -75,6 +84,7 @@ table tr th {
     white-space: nowrap;
     font-size: 12px;
     padding: 0 1px;
+    border-bottom: 1px solid #ccc;
 }
 table tr td {
     font-size: 14px;
@@ -87,20 +97,26 @@ table tr td.type-cell {
 }
 
 table tr td.type-cell.wtc-not-medium {
-    background-color: #FFB933 !important;
+    font-weight: bold;
+}
+table.colorful tr td.type-cell.wtc-not-medium {
+    background-color: #ffb933 !important;
 }
 table tr:nth-child(even) {
+    background: #f5f5f5;
+}
+table.colorful tr:nth-child(even) {
     background: #ec6;
 }
-table tr:nth-child(odd) {
+table.colorful tr:nth-child(odd) {
     background: #fe8;
 }
 table td {
     user-select: auto;
 }
 table th .v-icon {
-    margin-left: -5px;
-    margin-right: -5px;
+    margin-left: -8px;
+    margin-right: -10px;
 }
 
 .print-btn-flash {
@@ -123,7 +139,6 @@ table th .v-icon {
     margin-left: 2px;
     font-size: 9px;
 }
-
 </style>
 
 <script setup lang="ts">
@@ -135,7 +150,13 @@ import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, normalizeFlightRules } from "@/flightcalc"
+import {
+    distanceToAirport,
+    flightplanArrivalTime,
+    flightplanDepartureTime,
+    formatRFL,
+    normalizeFlightRules,
+} from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -195,7 +216,9 @@ const arrivals = computed(() => {
         .filter(
             (pilot) =>
                 pilot.flight_plan &&
-                ((props.airports.length == 0 && pilot.flight_plan.arrival.startsWith("ES")) ||
+                ((props.airports.length == 0 &&
+                    (pilot.flight_plan.arrival.startsWith("ES") ||
+                        constants.arrDepExtraAds.includes(pilot.flight_plan.arrival))) ||
                     (props.airports.length > 0 &&
                         props.airports.includes(pilot.flight_plan.arrival))),
         )
@@ -220,7 +243,10 @@ const arrivals = computed(() => {
                 squawk: pilot.flight_plan?.assigned_transponder,
                 route: pilot.flight_plan?.route,
                 rfl: pilot.flight_plan?.altitude,
-                flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
+                flightRules: normalizeFlightRules(
+                    pilot.flight_plan?.flight_rules,
+                    pilot.flight_plan?.route,
+                ), // Auto-detect Y/Z from I/V
                 tas: pilot.flight_plan?.cruise_tas,
                 remarks: pilot.flight_plan?.remarks,
             } as Arrival
