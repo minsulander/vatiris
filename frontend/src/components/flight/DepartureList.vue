@@ -225,7 +225,11 @@ const departures = computed(() => {
         .filter((pilot) => {
             if (!pilot.flight_plan) return false
             if (pilot.groundspeed >= constants.inflightGroundspeed) return false
-            if (props.airports.length == 0 && !pilot.flight_plan.departure.startsWith("ES"))
+            if (
+                props.airports.length == 0 &&
+                !pilot.flight_plan.departure.startsWith("ES") &&
+                !constants.arrDepExtraAds.includes(pilot.flight_plan.departure)
+            )
                 return false
             if (props.airports.length > 0 && !props.airports.includes(pilot.flight_plan.departure))
                 return false
@@ -297,7 +301,11 @@ const departures = computed(() => {
         .filter((prefile) => {
             if (!prefile.flight_plan) return false
             if (departures.find((d) => d.callsign === prefile.callsign)) return false
-            if (props.airports.length == 0 && !prefile.flight_plan.departure.startsWith("ES"))
+            if (
+                props.airports.length == 0 &&
+                !prefile.flight_plan.departure.startsWith("ES") &&
+                !constants.arrDepExtraAds.includes(prefile.flight_plan.departure)
+            )
                 return false
             if (
                 props.airports.length > 0 &&

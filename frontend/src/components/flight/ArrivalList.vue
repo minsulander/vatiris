@@ -48,13 +48,22 @@
                         'print-btn-flash': shouldFlashArrival(arr),
                     }"
                     :color="getArrivalButtonColor(arr)"
-                    style="border-radius: 50%; min-width: 24px; width: 24px; height: 24px; cursor: pointer;"
+                    style="
+                        border-radius: 50%;
+                        min-width: 24px;
+                        width: 24px;
+                        height: 24px;
+                        cursor: pointer;
+                    "
                 >
                 </v-btn>
             </td>
             <td class="font-weight-medium">{{ arr.callsign }}</td>
             <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(arr.type) }">
-                {{ arr.type }}<span v-if="settings.showT1 && getT1ForArrival(arr)" class="t1-code">T{{ getT1ForArrival(arr) }}</span>
+                {{ arr.type
+                }}<span v-if="settings.showT1 && getT1ForArrival(arr)" class="t1-code"
+                    >T{{ getT1ForArrival(arr) }}</span
+                >
             </td>
             <td v-if="multipleAirports">{{ arr.ades }}</td>
             <td class="font-weight-medium">{{ arr.stand }}</td>
@@ -87,7 +96,7 @@ table tr td.type-cell {
 }
 
 table tr td.type-cell.wtc-not-medium {
-    background-color: #FFB933 !important;
+    background-color: #ffb933 !important;
 }
 table tr:nth-child(even) {
     background: #ec6;
@@ -123,7 +132,6 @@ table th .v-icon {
     margin-left: 2px;
     font-size: 9px;
 }
-
 </style>
 
 <script setup lang="ts">
@@ -135,7 +143,13 @@ import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
-import { distanceToAirport, flightplanArrivalTime, flightplanDepartureTime, formatRFL, normalizeFlightRules } from "@/flightcalc"
+import {
+    distanceToAirport,
+    flightplanArrivalTime,
+    flightplanDepartureTime,
+    formatRFL,
+    normalizeFlightRules,
+} from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
 
@@ -195,7 +209,9 @@ const arrivals = computed(() => {
         .filter(
             (pilot) =>
                 pilot.flight_plan &&
-                ((props.airports.length == 0 && pilot.flight_plan.arrival.startsWith("ES")) ||
+                ((props.airports.length == 0 &&
+                    (pilot.flight_plan.arrival.startsWith("ES") ||
+                        constants.arrDepExtraAds.includes(pilot.flight_plan.arrival))) ||
                     (props.airports.length > 0 &&
                         props.airports.includes(pilot.flight_plan.arrival))),
         )
@@ -220,7 +236,10 @@ const arrivals = computed(() => {
                 squawk: pilot.flight_plan?.assigned_transponder,
                 route: pilot.flight_plan?.route,
                 rfl: pilot.flight_plan?.altitude,
-                flightRules: normalizeFlightRules(pilot.flight_plan?.flight_rules, pilot.flight_plan?.route), // Auto-detect Y/Z from I/V
+                flightRules: normalizeFlightRules(
+                    pilot.flight_plan?.flight_rules,
+                    pilot.flight_plan?.route,
+                ), // Auto-detect Y/Z from I/V
                 tas: pilot.flight_plan?.cruise_tas,
                 remarks: pilot.flight_plan?.remarks,
             } as Arrival

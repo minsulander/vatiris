@@ -9,22 +9,6 @@
             white-space: nowrap;
         "
     >
-        <v-btn
-            variant="text"
-            rounded="0"
-            size="small"
-            :color="arr ? 'white' : 'grey-lighten-1'"
-            @click="arr = !arr"
-            >ARR</v-btn
-        >
-        <v-btn
-            variant="text"
-            rounded="0"
-            size="small"
-            :color="dep ? 'white' : 'grey-lighten-1'"
-            @click="dep = !dep"
-            >DEP</v-btn
-        >
         <v-btn variant="text" rounded="0" size="small" color="white" @click="adFilter = ''"
             >Aerodromes
             <v-menu
@@ -33,12 +17,22 @@
                 :close-on-content-click="false"
             >
                 <v-list density="compact">
-                    <v-list-item @click="clickAdAll" :class="ad.length == 0 ? '' : 'text-grey'">
+                    <v-list-item
+                        @click="clickAdAll"
+                        :class="arrAd.length == 0 && depAd.length == 0 ? '' : 'text-grey'"
+                    >
                         <v-list-item-title>ALL</v-list-item-title>
                     </v-list-item>
                     <v-list-item
                         @click="clickAdNone"
-                        :class="ad.length == 1 && ad[0] == 'NONE' ? '' : 'text-grey'"
+                        :class="
+                            arrAd.length == 1 &&
+                            arrAd[0] == 'NONE' &&
+                            depAd.length == 1 &&
+                            depAd[0] == 'NONE'
+                                ? ''
+                                : 'text-grey'
+                        "
                     >
                         <v-list-item-title>NONE</v-list-item-title>
                     </v-list-item>
@@ -61,10 +55,37 @@
                     <v-list-item
                         v-for="id in filteredAd"
                         :key="id"
-                        :class="ad.includes(id) || ad.length == 0 ? '' : 'text-grey'"
+                        :class="
+                            arrAd.includes(id) ||
+                            arrAd.length == 0 ||
+                            depAd.includes(id) ||
+                            depAd.length == 0
+                                ? ''
+                                : 'text-grey'
+                        "
                         @click="clickAd(id)"
                     >
-                        <v-list-item-title>{{ id }}</v-list-item-title>
+                        <v-list-item-title>
+                            {{ id }}
+                            <div class="float-right">
+                                <span
+                                    style="cursor: pointer"
+                                    @click.stop="clickArrAd(id)"
+                                    :class="
+                                        arrAd.includes(id) || arrAd.length == 0 ? '' : 'text-grey'
+                                    "
+                                    >A</span
+                                >
+                                <span
+                                    style="cursor: pointer; margin-left: 5px"
+                                    @click.stop="clickDepAd(id)"
+                                    :class="
+                                        depAd.includes(id) || depAd.length == 0 ? '' : 'text-grey'
+                                    "
+                                    >D</span
+                                >
+                            </div>
+                        </v-list-item-title>
                     </v-list-item>
                 </v-list>
             </v-menu>
@@ -92,7 +113,10 @@
             </v-menu>
         </v-btn>
     </div>
-    <div v-if="ad.length == 1 && ad[0] == 'NONE'" class="ma-1">
+    <div
+        v-if="arrAd.length == 1 && arrAd[0] == 'NONE' && depAd.length == 1 && depAd[0] == 'NONE'"
+        class="ma-1"
+    >
         Select aerodromes in the menu above.
     </div>
     <div v-else class="d-flex" style="height: calc(100% - 20px); overflow: hidden">
@@ -116,7 +140,7 @@
                 Arrivals
             </div>
             -->
-            <arrival-list :airports="ad" :excludeStatus="excludeStatus" />
+            <arrival-list :airports="arrAd" :excludeStatus="excludeStatus" />
         </div>
         <div
             v-if="dep"
@@ -137,7 +161,7 @@
                 Departures
             </div>
             -->
-            <departure-list :airports="ad" :excludeStatus="excludeStatus" />
+            <departure-list :airports="depAd" :excludeStatus="excludeStatus" />
         </div>
     </div>
 </template>
@@ -150,6 +174,7 @@ import { useAirportStore } from "@/stores/airport"
 import { useEsdataStore } from "@/stores/esdata"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useAuthStore } from "@/stores/auth"
+import constants from "@/constants"
 
 const airportStore = useAirportStore()
 const esdataStore = useEsdataStore()
@@ -157,9 +182,10 @@ const vatsimStore = useVatsimStore()
 const auth = useAuthStore()
 
 const div = ref()
-const arr = ref(true)
-const dep = ref(true)
-const ad = reactive([] as string[])
+const arrAd = reactive([] as string[])
+const depAd = reactive([] as string[])
+const arr = computed(() => arrAd.length != 1 || arrAd[0] != "NONE")
+const dep = computed(() => depAd.length != 1 || depAd[0] != "NONE")
 const adFilter = ref("")
 const excludeStatus = reactive([] as string[])
 
@@ -177,55 +203,94 @@ const myEsData = computed(() => {
 
 const allAd = computed(() => {
     // from euroscope runway selection dialog:
-    return ["EFKE", "EFMA", "EFRO", "EKCH", "EKRN", "ENGM", "ENRY", "ENTO", ...Object.keys(airportStore.airports).sort()]
+    return [...constants.arrDepExtraAds, ...Object.keys(airportStore.airports).sort()]
 })
 
 const filteredAd = computed(() => {
     if (adFilter.value) {
         const lower = adFilter.value.toLowerCase()
-        return allAd.value
-            .filter((id) => id.toLowerCase().includes(lower))
-            .sort()
+        return allAd.value.filter((id) => id.toLowerCase().includes(lower)).sort()
     }
     return allAd.value
 })
 
 function syncAd() {
-    ad.splice(0)
-    ad.push("NONE")
+    arrAd.splice(0)
+    depAd.splice(0)
+    arrAd.push("NONE")
+    depAd.push("NONE")
     esdataStore.fetch()
     setTimeout(() => {
         if (myEsData.value && "rwyconfig" in myEsData.value) {
-            ad.splice(0)
+            arrAd.splice(0)
+            depAd.splice(0)
             for (const icao of Object.keys(myEsData.value.rwyconfig)) {
-                if (myEsData.value.rwyconfig[icao].arr || myEsData.value.rwyconfig[icao].dep) {
-                    ad.push(icao)
-                }
+                if (myEsData.value.rwyconfig[icao].arr) arrAd.push(icao)
+                if (myEsData.value.rwyconfig[icao].dep) depAd.push(icao)
             }
         }
     }, 500)
 }
 
 function clickAd(icao: string) {
-    if (ad.includes(icao)) {
-        ad.splice(ad.indexOf(icao), 1)
-    } else if (ad.length == 0) {
+    if (arrAd.includes(icao) || depAd.includes(icao)) {
+        arrAd.splice(arrAd.indexOf(icao), 1)
+        if (arrAd.length == 0) arrAd.push("NONE")
+        depAd.splice(depAd.indexOf(icao), 1)
+        if (depAd.length == 0) depAd.push("NONE")
+    } else if (arrAd.length == 0 && depAd.length == 0) {
         for (const a of allAd.value) {
-            if (a != icao) ad.push(a)
+            if (a != icao) {
+                arrAd.push(a)
+                depAd.push(a)
+            }
         }
     } else {
-        if (ad.includes("NONE")) ad.splice(ad.indexOf("NONE"), 1)
-        ad.push(icao)
+        if (arrAd.includes("NONE")) arrAd.splice(arrAd.indexOf("NONE"), 1)
+        if (depAd.includes("NONE")) depAd.splice(depAd.indexOf("NONE"), 1)
+        arrAd.push(icao)
+        depAd.push(icao)
+    }
+}
+
+function clickArrAd(icao: string) {
+    if (arrAd.includes(icao)) {
+        arrAd.splice(arrAd.indexOf(icao), 1)
+        if (arrAd.length == 0) arrAd.push("NONE")
+    } else if (arrAd.length == 0) {
+        for (const a of allAd.value) {
+            if (a != icao) arrAd.push(a)
+        }
+    } else {
+        if (arrAd.includes("NONE")) arrAd.splice(arrAd.indexOf("NONE"), 1)
+        arrAd.push(icao)
+    }
+}
+
+function clickDepAd(icao: string) {
+    if (depAd.includes(icao)) {
+        depAd.splice(depAd.indexOf(icao), 1)
+        if (depAd.length == 0) depAd.push("NONE")
+    } else if (depAd.length == 0) {
+        for (const a of allAd.value) {
+            if (a != icao) depAd.push(a)
+        }
+    } else {
+        if (depAd.includes("NONE")) depAd.splice(depAd.indexOf("NONE"), 1)
+        depAd.push(icao)
     }
 }
 
 function clickAdAll() {
-    ad.splice(0)
+    arrAd.splice(0)
+    depAd.splice(0)
 }
 
 function clickAdNone() {
-    ad.splice(0)
-    ad.push("NONE")
+    arrAd.splice(0)
+    depAd.splice(0)
+    arrAd.push("NONE")
+    depAd.push("NONE")
 }
 
 function clickStatus(status: string) {
@@ -255,7 +320,7 @@ onMounted(() => {
     loadOptions()
 })
 
-watch([arr, dep, ad, excludeStatus], () => {
+watch([arr, dep, arrAd, depAd, excludeStatus], () => {
     saveOptions()
     updateWindowTitle()
 })
@@ -263,11 +328,32 @@ watch([arr, dep, ad, excludeStatus], () => {
 function loadOptions() {
     if ("arrdepOptions" in localStorage) {
         const options = JSON.parse(localStorage.arrdepOptions)
-        arr.value = options.arr
-        dep.value = options.dep
+
+        // backwards compatibility
         if ("ad" in options) {
-            ad.splice(0)
-            for (const id of options.ad) ad.push(id)
+            arrAd.splice(0)
+            depAd.splice(0)
+            for (const id of options.ad) {
+                arrAd.push(id)
+                depAd.push(id)
+            }
+        }
+        if ("arr" in options && options.arr == false) {
+            arrAd.splice(0)
+            arrAd.push("NONE")
+        }
+        if ("dep" in options && options.dep == false) {
+            depAd.splice(0)
+            depAd.push("NONE")
+        }
+
+        if ("arrAd" in options) {
+            arrAd.splice(0)
+            for (const id of options.arrAd) arrAd.push(id)
+        }
+        if ("depAd" in options) {
+            depAd.splice(0)
+            for (const id of options.depAd) depAd.push(id)
         }
         if ("excludeStatus" in options) {
             excludeStatus.splice(0)
@@ -278,9 +364,8 @@ function loadOptions() {
 
 function saveOptions() {
     localStorage.arrdepOptions = JSON.stringify({
-        arr: arr.value,
-        dep: dep.value,
-        ad,
+        arrAd,
+        depAd,
         excludeStatus,
     })
 }
@@ -290,12 +375,28 @@ function updateWindowTitle() {
         const winbox = div.value.closest(".winbox")
         if (winbox) {
             const title = winbox.querySelector(".wb-title")
-            if (ad.length < 5 && ad.length > 0) {
-                title.innerText = `ARR DEP - ${ad.join(" ")}`
-            } else if (ad.length > 0) {
-                title.innerText = `ARR DEP (${ad.length})`
-            } else {
-                title.innerText = `ARR DEP`
+            title.innerText = ""
+            if (arr.value) title.innerText += " ARR"
+            if (arrAd.join(",") != depAd.join(",") && arrAd.length > 0 && arrAd[0] != "NONE") {
+                if (arrAd.length == 1) {
+                    if (depAd[0] == "NONE") {
+                        title.innerText += ` - ${arrAd[0]}`
+                    } else {
+                        title.innerText += ` (${arrAd[0]})`
+                    }
+                } else {
+                    title.innerText += ` (${arrAd.length})`
+                }
+            }
+            if (dep.value) title.innerText += " DEP"
+            if (depAd.length > 1 && depAd[0] != "NONE") {
+                title.innerText += ` (${depAd.length})`
+            } else if (depAd.length == 1 && depAd[0] != "NONE") {
+                if (depAd[0] == arrAd[0] || arrAd[0] == "NONE") {
+                    title.innerText += ` - ${depAd[0]}`
+                } else {
+                    title.innerText += ` (${depAd[0]})`
+                }
             }
         }
     }
