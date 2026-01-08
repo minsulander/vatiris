@@ -24,6 +24,16 @@
         "title": "38  ",
         "sectors": [ "ESOS3", "ESOS8" ]
     },
+    "ESOS27": {
+        "section": "ESOS",
+        "title": "27  ",
+        "sectors": [ "ESOS2", "ESOS7" ]
+    },
+    "ESOS2": {
+        "section": "ESOS",
+        "title": "2  ",
+        "sectors": [ "ESOS2" ]
+    },
     "ESOS4NFK": {
         "section": "ESOS",
         "title": "4NFK ",
@@ -44,15 +54,45 @@
         "title": "ESMM",
         "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMC", "ESMMK", "ESMML", "ESMMW", "ESMMY" ]
     },
+    "ESMM23W45K": {
+        "section": "ESMM",
+        "title": "23W45K",
+        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW", "ESMMK" ]
+    },
     "ESMM23W45": {
         "section": "ESMM",
         "title": "23W45",
         "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW" ]
     },
+    "ESMM67Y89L": {
+        "section": "ESMM",
+        "title": "67Y89L",
+        "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY", "ESMML" ]
+    },
     "ESMM67Y89": {
         "section": "ESMM",
         "title": "67Y89",
         "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY" ]
+    },
+    "ESMMKL": {
+        "section": "ESMM",
+        "title": "KL",
+        "sectors": [ "ESMMK", "ESMML" ]
+    },
+    "ESMMK": {
+        "section": "ESMM",
+        "title": "K",
+        "sectors": [ "ESMMK" ]
+    },
+    "ESMML": {
+        "section": "ESMM",
+        "title": "L",
+        "sectors": [ "ESMML" ]
+    },
+    "ESMMWY": {
+        "section": "ESMM",
+        "title": "WY  ",
+        "sectors": [ "ESMMW", "ESMMY" ]
     },
     "ESMM23W": {
         "section": "ESMM",
@@ -74,21 +114,7 @@
         "title": "89  ",
         "sectors": [ "ESMM8", "ESMM9" ]
     },
-    "ESMMKL": {
-        "section": "ESMM",
-        "title": "KL",
-        "sectors": [ "ESMMK", "ESMML" ]
-    },
-    "ESMMK": {
-        "section": "ESMM",
-        "title": "K",
-        "sectors": [ "ESMMK" ]
-    },
-    "ESMML": {
-        "section": "ESMM",
-        "title": "L",
-        "sectors": [ "ESMML" ]
-    },
+
     "TMA": {
         "section": "OS",
         "title": "TMA",
