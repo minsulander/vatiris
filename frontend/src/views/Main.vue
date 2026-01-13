@@ -417,7 +417,11 @@ import("@/data/occupancy-sectors.json").then((module) => {
         availableWindows[`occupancy-${id}`] = {
             title: `${entry.title} - Occupancy`,
             component: OccupancyChart,
-            props: { sectors: entry.sectors },
+            props: { 
+                sectors: entry.sectors,
+                yellowThreshold: entry.yellowThreshold,
+                redThreshold: entry.redThreshold,
+            },
             width: 600,
             height: 200,
         }

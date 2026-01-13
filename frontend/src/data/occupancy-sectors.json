@@ -2,152 +2,212 @@
     "ESOS": {
         "section": "ESOS",
         "title": "ESOS",
-        "sectors": [ "ESOS1", "ESOS2", "ESOS3", "ESOS4", "ESOS6", "ESOS7", "ESOS8", "ESOS9", "ESOSN", "ESOSF", "ESOSK" ]
+        "sectors": [ "ESOS1", "ESOS2", "ESOS3", "ESOS4", "ESOS6", "ESOS7", "ESOS8", "ESOS9", "ESOSN", "ESOSF", "ESOSK" ],
+        "yellowThreshold": 14,
+        "redThreshold": 16
     },
     "ESOS12346789": {
         "section": "ESOS",
         "title": "12346789 ",
-        "sectors": [ "ESOS1", "ESOS2", "ESOS3", "ESOS4", "ESOS6", "ESOS7", "ESOS8", "ESOS9" ]
+        "sectors": [ "ESOS1", "ESOS2", "ESOS3", "ESOS4", "ESOS6", "ESOS7", "ESOS8", "ESOS9" ],
+        "yellowThreshold": 14,
+        "redThreshold": 16
     },
     "ESOS12679": {
         "section": "ESOS",
         "title": "12679 ",
-        "sectors": [ "ESOS1", "ESOS2", "ESOS6", "ESOS7", "ESOS9" ]
+        "sectors": [ "ESOS1", "ESOS2", "ESOS6", "ESOS7", "ESOS9" ],
+        "yellowThreshold": 7,
+        "redThreshold": 12
     },
     "ESOS348NFK": {
         "section": "ESOS",
         "title": "348NFK",
-        "sectors": [ "ESOS3", "ESOS4", "ESOS8", "ESOSN", "ESOSF", "ESOSK" ]
+        "sectors": [ "ESOS3", "ESOS4", "ESOS8", "ESOSN", "ESOSF", "ESOSK" ],
+        "yellowThreshold": 8,
+        "redThreshold": 14
     },
     "ESOS38": {
         "section": "ESOS",
         "title": "38  ",
-        "sectors": [ "ESOS3", "ESOS8" ]
+        "sectors": [ "ESOS3", "ESOS8" ],
+        "yellowThreshold": 8,
+        "redThreshold": 14
     },
     "ESOS27": {
         "section": "ESOS",
         "title": "27  ",
-        "sectors": [ "ESOS2", "ESOS7" ]
+        "sectors": [ "ESOS2", "ESOS7" ],
+        "yellowThreshold": 6,
+        "redThreshold": 12
     },
     "ESOS2": {
         "section": "ESOS",
         "title": "2  ",
-        "sectors": [ "ESOS2" ]
+        "sectors": [ "ESOS2" ],
+        "yellowThreshold": 7,
+        "redThreshold": 11
     },
     "ESOS4NFK": {
         "section": "ESOS",
         "title": "4NFK ",
-        "sectors": [ "ESOS4", "ESOSN", "ESOSF", "ESOSK" ]
+        "sectors": [ "ESOS4", "ESOSN", "ESOSF", "ESOSK" ],
+        "yellowThreshold": 9,
+        "redThreshold": 15
     },
     "ESOS4NF": {
         "section": "ESOS",
         "title": "4NF ",
-        "sectors": [ "ESOS4", "ESOSN", "ESOSF" ]
+        "sectors": [ "ESOS4", "ESOSN", "ESOSF" ],
+        "yellowThreshold": 8,
+        "redThreshold": 14
     },
     "ESOSK": {
         "section": "ESOS",
         "title": "K   ",
-        "sectors": [ "ESOSK" ]
+        "sectors": [ "ESOSK" ],
+        "yellowThreshold": 11,
+        "redThreshold": 15
     },
     "ESMM": {
         "section": "ESMM",
         "title": "ESMM",
-        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMC", "ESMMK", "ESMML", "ESMMW", "ESMMY" ]
+        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMC", "ESMMK", "ESMML", "ESMMW", "ESMMY" ],
+        "yellowThreshold": 14,
+        "redThreshold": 16
     },
     "ESMM23W45K": {
         "section": "ESMM",
         "title": "23W45K",
-        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW", "ESMMK" ]
+        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW", "ESMMK" ],
+        "yellowThreshold": 14,
+        "redThreshold": 16
     },
     "ESMM23W45": {
         "section": "ESMM",
         "title": "23W45",
-        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW" ]
+        "sectors": [ "ESMM2", "ESMM3", "ESMM4", "ESMM5", "ESMMC", "ESMMW" ],
+        "yellowThreshold": 17,
+        "redThreshold": 20
     },
     "ESMM67Y89L": {
         "section": "ESMM",
         "title": "67Y89L",
-        "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY", "ESMML" ]
+        "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY", "ESMML" ],
+        "yellowThreshold": 14,
+        "redThreshold": 16
     },
     "ESMM67Y89": {
         "section": "ESMM",
         "title": "67Y89",
-        "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY" ]
+        "sectors": ["ESMM6", "ESMM7", "ESMM8", "ESMM9", "ESMMY" ],
+        "yellowThreshold": 17,
+        "redThreshold": 20
     },
     "ESMMKL": {
         "section": "ESMM",
         "title": "KL",
-        "sectors": [ "ESMMK", "ESMML" ]
+        "sectors": [ "ESMMK", "ESMML" ],
+        "yellowThreshold": 10,
+        "redThreshold": 12
     },
     "ESMMK": {
         "section": "ESMM",
         "title": "K",
-        "sectors": [ "ESMMK" ]
+        "sectors": [ "ESMMK" ],
+        "yellowThreshold": 10,
+        "redThreshold": 12
     },
     "ESMML": {
         "section": "ESMM",
         "title": "L",
-        "sectors": [ "ESMML" ]
+        "sectors": [ "ESMML" ],
+        "yellowThreshold": 10,
+        "redThreshold": 12
     },
     "ESMMWY": {
         "section": "ESMM",
         "title": "WY  ",
-        "sectors": [ "ESMMW", "ESMMY" ]
+        "sectors": [ "ESMMW", "ESMMY" ],
+        "yellowThreshold": 15,
+        "redThreshold": 18
     },
     "ESMM23W": {
         "section": "ESMM",
         "title": "23W  ",
-        "sectors": [ "ESMM2", "ESMM3", "ESMMW" ]
+        "sectors": [ "ESMM2", "ESMM3", "ESMMW" ],
+        "yellowThreshold": 16,
+        "redThreshold": 19
     },
     "ESMM45": {
         "section": "ESMM",
         "title": "45  ",
-        "sectors": [ "ESMM4", "ESMM5", "ESMMC" ]
+        "sectors": [ "ESMM4", "ESMM5", "ESMMC" ],
+        "yellowThreshold": 15,
+        "redThreshold": 18
     },
     "ESMM67": {
         "section": "ESMM",
         "title": "67  ",
-        "sectors": [ "ESMM6", "ESMM7" ]
+        "sectors": [ "ESMM6", "ESMM7" ],
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "ESMM89": {
         "section": "ESMM",
         "title": "89  ",
-        "sectors": [ "ESMM8", "ESMM9" ]
+        "sectors": [ "ESMM8", "ESMM9" ],
+        "yellowThreshold": null,
+        "redThreshold": null
     },
 
     "TMA": {
         "section": "OS",
         "title": "TMA",
-        "sectors": [ "APPE", "APPW", "APPS", "OW_TMA" ]
+        "sectors": [ "APPE", "APPW", "APPS", "OW_TMA" ],
+        "yellowThreshold": 6,
+        "redThreshold": 10
     },
     "E": {
         "section": "OS",
         "title": "E",
-        "sectors": [ "APPE" ]
+        "sectors": [ "APPE" ],
+        "yellowThreshold": 2,
+        "redThreshold": 4
     },
     "W": {
         "section": "OS",
         "title": "W",
-        "sectors": [ "APPW" ]
+        "sectors": [ "APPW" ],
+        "yellowThreshold": 2,
+        "redThreshold": 4
     },
     "S": {
         "section": "OS",
         "title": "S",
-        "sectors": [ "APPS" ]
+        "sectors": [ "APPS" ],
+        "yellowThreshold": 2,
+        "redThreshold": 4
     },
     "SA": {
         "section": "OS",
         "title": "SA",
-        "sectors": [ "SA_TWRE", "SA_TWRW" ]
+        "sectors": [ "SA_TWRE", "SA_TWRW" ],
+        "yellowThreshold": 4,
+        "redThreshold": 7
     },
     "GGTMA": {
         "section": "GG",
         "title": "GG TMA",
-        "sectors": [ "GGAPPE", "GGAPPE21", "GGAPPW03", "GGAPPW", "GGAPPW21", "GGAPPE03", "GGAPPN" ]
+        "sectors": [ "GGAPPE", "GGAPPE21", "GGAPPW03", "GGAPPW", "GGAPPW21", "GGAPPE03", "GGAPPN" ],
+        "yellowThreshold": 5,
+        "redThreshold": 8
     },
     "GG": {
         "section": "GG",
         "title": "GG",
-        "sectors": [ "GG_TWR" ]
+        "sectors": [ "GG_TWR" ],
+        "yellowThreshold": 2,
+        "redThreshold": 4
     }
 }

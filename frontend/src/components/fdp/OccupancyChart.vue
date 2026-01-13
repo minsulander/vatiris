@@ -72,6 +72,14 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    yellowThreshold: {
+        type: Number,
+        default: undefined,
+    },
+    redThreshold: {
+        type: Number,
+        default: undefined,
+    },
 })
 
 if (props.tooltip) ChartJS.register(Tooltip)
@@ -148,7 +156,61 @@ const chartData = computed(() => {
     }
 })
 
+const maxValue = computed(() => {
+    if (slots.value.length === 0) return 0
+    const maxActive = Math.max(...valuesActive.value)
+    const maxInactive = Math.max(...valuesInactive.value)
+    const maxTotal = Math.max(...slots.value.map((slot) => slot.occupants.length))
+    return Math.max(maxActive + maxInactive, maxTotal)
+})
+
+const yAxisMax = computed(() => {
+    if (props.yellowThreshold !== undefined && props.yellowThreshold !== null) {
+        // Show minimum yellow + 2, not necessarily red if traffic is low
+        const minDisplay = props.yellowThreshold + 2
+        if (props.redThreshold !== undefined && props.redThreshold !== null && maxValue.value > props.redThreshold) {
+            return Math.max(minDisplay, props.redThreshold + 1)
+        }
+        return Math.max(minDisplay, maxValue.value + 1)
+    }
+    return Math.max(maxValue.value + 1, 1)
+})
+
 const chartOptions = computed(() => {
+    const annotations: any = {
+        timeline: {
+            type: "line",
+            xMax: nowIndex.value,
+            xMin: nowIndex.value,
+            borderWidth: 1,
+            borderColor: "#666",
+        },
+    }
+
+    // Add yellow threshold line (slightly more orange)
+    if (props.yellowThreshold !== undefined && props.yellowThreshold !== null) {
+        annotations.yellowThreshold = {
+            type: "line",
+            yMin: props.yellowThreshold,
+            yMax: props.yellowThreshold,
+            borderColor: "#ff8c00", // Orange color (slightly more orange than yellow)
+            borderWidth: 2,
+            // borderDash omitted for solid line
+        }
+    }
+
+    // Add red threshold line
+    if (props.redThreshold !== undefined && props.redThreshold !== null) {
+        annotations.redThreshold = {
+            type: "line",
+            yMin: props.redThreshold,
+            yMax: props.redThreshold,
+            borderColor: "#ff0000", // Red color
+            borderWidth: 2,
+            // borderDash omitted for solid line
+        }
+    }
+
     return {
         responsive: true,
         maintainAspectRatio: props.maintainAspectRatio,
@@ -166,15 +228,7 @@ const chartOptions = computed(() => {
                 },
             },
             annotation: {
-                annotations: {
-                    timeline: {
-                        type: "line",
-                        xMax: nowIndex.value,
-                        xMin: nowIndex.value,
-                        borderWidth: 1,
-                        borderColor: "#666",
-                    },
-                },
+                annotations,
             },
         },
         scales: {
@@ -184,7 +238,7 @@ const chartOptions = computed(() => {
                 ticks: {
                     minRotation: 0,
                     maxRotation: 0,
-                    callback: (value: any, index: number, ticks: any) => {
+                    callback: (value: any, index: number) => {
                         const label = labels.value[index]
                         if (!label || !label.endsWith("0")) return undefined
                         return label.endsWith("00") ? label.substring(0, 2) : label.substring(2)
@@ -202,6 +256,7 @@ const chartOptions = computed(() => {
                     stepSize: 1,
                     beginAtZero: true,
                 },
+                max: yAxisMax.value,
             },
         },
     } as any
