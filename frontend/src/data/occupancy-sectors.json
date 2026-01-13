@@ -165,49 +165,49 @@
         "section": "OS",
         "title": "TMA",
         "sectors": [ "APPE", "APPW", "APPS", "OW_TMA" ],
-        "yellowThreshold": 6,
-        "redThreshold": 10
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "E": {
         "section": "OS",
         "title": "E",
         "sectors": [ "APPE" ],
-        "yellowThreshold": 2,
-        "redThreshold": 4
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "W": {
         "section": "OS",
         "title": "W",
         "sectors": [ "APPW" ],
-        "yellowThreshold": 2,
-        "redThreshold": 4
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "S": {
         "section": "OS",
         "title": "S",
         "sectors": [ "APPS" ],
-        "yellowThreshold": 2,
-        "redThreshold": 4
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "SA": {
         "section": "OS",
         "title": "SA",
         "sectors": [ "SA_TWRE", "SA_TWRW" ],
-        "yellowThreshold": 4,
-        "redThreshold": 7
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "GGTMA": {
         "section": "GG",
         "title": "GG TMA",
         "sectors": [ "GGAPPE", "GGAPPE21", "GGAPPW03", "GGAPPW", "GGAPPW21", "GGAPPE03", "GGAPPN" ],
-        "yellowThreshold": 5,
-        "redThreshold": 8
+        "yellowThreshold": null,
+        "redThreshold": null
     },
     "GG": {
         "section": "GG",
         "title": "GG",
         "sectors": [ "GG_TWR" ],
-        "yellowThreshold": 2,
-        "redThreshold": 4
+        "yellowThreshold": null,
+        "redThreshold": null
     }
 }
