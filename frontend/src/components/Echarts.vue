@@ -102,6 +102,12 @@
                         selection.NAMEOFLINE ||
                         selection.NAME
                     }}
+                    <span 
+                        v-if="getSectorCoverage(selection)" 
+                        style="font-weight: bold;"
+                    >
+                        ({{ getSectorCoverage(selection)?.replace(/_/g, '') }})
+                    </span>
                     <div
                         v-if="selection.SCHEDULE"
                         class="text-grey-darken-3"
@@ -157,6 +163,10 @@ import Select, { SelectEvent } from "ol/interaction/Select"
 import type { FeatureLike } from "ol/Feature"
 import useEventBus from "@/eventbus"
 import { useWindowsStore } from "@/stores/windows"
+import { usePositionsStore } from "@/stores/positions"
+import { useSettingsStore } from "@/stores/settings"
+import { useAuthStore } from "@/stores/auth"
+import { useVatsimStore } from "@/stores/vatsim"
 import Layer from "ol/layer/Layer"
 
 const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
@@ -165,6 +175,10 @@ const ECHARTS_URL =
 
 useGeographic()
 const windows = useWindowsStore()
+const positions = usePositionsStore()
+const settings = useSettingsStore()
+const auth = useAuthStore()
+const vatsim = useVatsimStore()
 
 const mapcontainer = ref()
 
@@ -194,8 +208,85 @@ const selectedLayers = reactive(["tma", "tiatizatz", "ctr", "vfr", "arp"])
 const selection = reactive([] as Feature[])
 const selectionProps = reactive([] as any[])
 
-const selectionPropsSorted = computed(() =>
-    Object.values(selectionProps).sort((a, b) => {
+// Mode filter: null = both, "ESMM" = ESMM only, "ESOS" = ESOS only
+const modeFilter = ref<"ESMM" | "ESOS" | null>(null)
+const modeFilterManuallySet = ref(false) // Track if user manually set the mode
+
+// Auto-detect mode from user's position
+function detectUserMode(): "ESMM" | "ESOS" | null {
+    // First check user's positions (for sector coverage highlighting)
+    const myPositions = positions.getMyPositions()
+    if (myPositions.length > 0) {
+        // Check sectors for user's positions to determine mode
+        for (const si of myPositions) {
+            const sectors = positions.getPositionSectors(si)
+            for (const sector of sectors) {
+                if (sector.includes("ESMM")) return "ESMM"
+                if (sector.includes("ESOS")) return "ESOS"
+            }
+        }
+    }
+    
+    // Also check all active positions (for test mode or when user position not set)
+    for (const si of positions.activePositions.keys()) {
+        const sectors = positions.getPositionSectors(si)
+        for (const sector of sectors) {
+            if (sector.includes("ESMM")) return "ESMM"
+            if (sector.includes("ESOS")) return "ESOS"
+        }
+    }
+    
+    // Also check callsign if available
+    let userCallsign = ""
+    if (settings.useVatsimConnect && auth.user?.cid) {
+        const cid = auth.user.cid.toString()
+        const controller = vatsim.data?.controllers?.find((c) => c.cid.toString() === cid)
+        userCallsign = controller?.callsign || ""
+    } else if (settings.cid1) {
+        const controller = vatsim.data?.controllers?.find((c) => c.cid.toString() === settings.cid1)
+        userCallsign = controller?.callsign || ""
+    } else {
+        userCallsign = settings.position1 || ""
+    }
+    
+    if (userCallsign.includes("ESMM")) return "ESMM"
+    if (userCallsign.includes("ESOS")) return "ESOS"
+    
+    return null
+}
+
+// Update mode filter when positions change
+watch(
+    () => positions.activePositions,
+    () => {
+        // Only auto-set if mode filter was not manually set by user
+        if (!modeFilterManuallySet.value) {
+            const detectedMode = detectUserMode()
+            if (detectedMode) {
+                modeFilter.value = detectedMode
+            }
+        }
+    },
+    { deep: true, immediate: true }
+)
+
+
+// Filter and sort selection props based on mode filter
+const selectionPropsSorted = computed(() => {
+    let filtered = Object.values(selectionProps)
+    
+    // Apply mode filter if set
+    if (modeFilter.value) {
+        filtered = filtered.filter((item) => {
+            const desig = item.DESIG?.trim() || ""
+            const location = item.LOCATION?.trim() || ""
+            const sectorText = desig || location
+            return sectorText.startsWith(modeFilter.value!)
+        })
+    }
+    
+    // Sort by altitude
+    return filtered.sort((a, b) => {
         function str2altitude(str: string | undefined | null) {
             if (!str) return 0
             if (str.startsWith("GND")) return 0
@@ -209,12 +300,9 @@ const selectionPropsSorted = computed(() =>
         if (a.LOWER || b.LOWER) {
             return str2altitude(b.LOWER) - str2altitude(a.LOWER)
         }
-        // if (a.LOCATION && b.LOCATION) {
-        //     return a.LOCATION.localeCompare(b.LOCATION)
-        // }
         return 0
-    }),
-)
+    })
+})
 
 const resetCenter = ref(undefined as any)
 const resetZoom = ref(undefined as number | undefined)
@@ -348,6 +436,14 @@ onMounted(() => {
 
     set()
     ;(window as any).map = map
+    
+    // Auto-detect and set mode filter based on user's position (only if not manually set)
+    if (!modeFilterManuallySet.value) {
+        const detectedMode = detectUserMode()
+        if (detectedMode) {
+            modeFilter.value = detectedMode
+        }
+    }
 })
 
 onUnmounted(() => {})
@@ -825,5 +921,50 @@ function reset() {
     if (resetCenter.value) map.getView().setCenter(resetCenter.value)
     if (resetZoom.value) map.getView().setZoom(resetZoom.value)
     setTimeout(() => (resettable.value = false), 500)
+}
+
+// Get sector coverage information for ACC sectors
+function getSectorCoverage(selection: any): string | null {
+    // Only show coverage for ACC sectors - check both DESIG and LOCATION fields
+    const desig = selection.DESIG?.trim() || ""
+    const location = selection.LOCATION?.trim() || ""
+    
+    // Use DESIG if available, otherwise try LOCATION
+    const sectorText = desig || location
+    if (!sectorText) return null
+    
+    // Check if it's an ACC sector (ESMM or ESOS)
+    let mode: string | null = null
+    let sectorId: string | null = null
+    
+    if (sectorText.startsWith("ESMM")) {
+        mode = "ESMM"
+        // Extract sector ID: "ESMM W:1" -> "W", "ESMM 2" -> "2", "ESMM 4:4" -> "4"
+        // Split by colon to get main sector ID
+        const parts = sectorText.substring(4).trim().split(":")
+        if (parts.length > 0 && parts[0]) {
+            sectorId = parts[0].trim()
+        }
+    } else if (sectorText.startsWith("ESOS")) {
+        mode = "ESOS"
+        // Extract sector ID: "ESOS 4:4" -> "4", "ESOS 1" -> "1", "ESOS F" -> "F"
+        // Split by colon to get main sector ID
+        const parts = sectorText.substring(4).trim().split(":")
+        if (parts.length > 0 && parts[0]) {
+            sectorId = parts[0].trim()
+        }
+    }
+    
+    if (!mode || !sectorId) {
+        return null
+    }
+    
+    // Convert to sectors.txt format: "ESAA·ESMM W" or "ESAA·ESOS 4"
+    const sectorName = `ESAA·${mode} ${sectorId}`
+    
+    // Get the covering position SI
+    const controllerSi = positions.getSectorController(sectorName)
+    
+    return controllerSi || null
 }
 </script>

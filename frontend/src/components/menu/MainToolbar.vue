@@ -1,4 +1,5 @@
 <template>
+    <SectorCoverage />
     <v-btn v-if="!auth.pending && !auth.user" class="text-grey" @click="bus.emit('select', 'about')">About</v-btn>
     <PLS v-if="!auth.pending && auth.user"/>
     <FSP v-if="settings.fspEnabled" />
@@ -23,6 +24,7 @@
 import Clock from "@/components/Clock.vue"
 import PLS from "@/components/PLS.vue"
 import FSP from "@/components/FSP.vue"
+import SectorCoverage from "@/components/menu/SectorCoverage.vue"
 import useEventBus from "@/eventbus"
 import { useAuthStore } from "@/stores/auth"
 import { useSettingsStore } from "@/stores/settings"

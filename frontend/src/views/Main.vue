@@ -82,6 +82,7 @@ import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
 import { useEaipStore } from "@/stores/eaip"
+import { usePositionsStore } from "@/stores/positions"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -89,6 +90,7 @@ const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
 const wakelock = useWakeLock()
 const bus = useEventBus()
 const eaip = useEaipStore()
+const positions = usePositionsStore()
 
 export interface WindowSpec {
     title: string
@@ -447,6 +449,43 @@ for (const direct of directsData) {
         height: 700,
     }
 }
+
+// Dynamic occupancy windows based on active positions
+function updatePositionOccupancyWindows() {
+    // Remove old position occupancy windows
+    for (const key in availableWindows) {
+        if (key.startsWith("occupancy-position-")) {
+            delete availableWindows[key]
+        }
+    }
+
+    // Add windows for active positions
+    for (const [si, controller] of positions.activePositions.entries()) {
+        const occupancySectors = positions.getOccupancySectorsForPosition(si)
+        if (occupancySectors.length > 0) {
+            const windowId = `occupancy-position-${si}`
+            availableWindows[windowId] = {
+                title: `${si} - Occupancy`,
+                component: OccupancyChart,
+                props: { sectors: occupancySectors },
+                width: 600,
+                height: 200,
+            }
+        }
+    }
+}
+
+// Watch for changes in active positions
+watch(
+    () => positions.activePositions,
+    () => {
+        updatePositionOccupancyWindows()
+    },
+    { deep: true },
+)
+
+// Initial update
+updatePositionOccupancyWindows()
 
 function select(id: string | object) {
     let ctrl = false

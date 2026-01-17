@@ -40,6 +40,18 @@
                 Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
             </p>
 
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="ACC Sector Coverage"
+                v-model="settings.showSectorCoverage"
+                class="mt-2"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Show/hide the ACC sector coverage display in the menu bar.
+            </p>
+
             <h2 class="mt-6">ARR DEP List</h2>
 
             <v-switch
@@ -165,15 +177,51 @@
                 Configure the URL to your FSP server to enable printing flight strips directly from the ARR/DEP module.
                 Example: http://localhost:3000 or http://192.168.1.100:3000
             </p>
+
+            <h2 class="mt-6">Debug</h2>
+            <div class="text-body-2 mt-2" style="background-color: #1e1e1e; padding: 12px; border-radius: 4px;">
+                <div class="text-grey-lighten-1 mb-2">Sector Coverage Position Detection:</div>
+                <div v-if="myPositions.length > 0">
+                    <div v-for="si in myPositions" :key="si" class="ml-4 mb-1">
+                        <strong>{{ si }}</strong>
+                        <span class="text-grey ml-2">({{ getPositionCallsign(si) }})</span>
+                        <div class="text-caption text-grey ml-4 mt-1">
+                            Covers sectors: {{ getPositionSectorsList(si).join(", ") || "None" }}
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="text-grey">
+                    No position detected.
+                </div>
+                <div class="text-caption text-grey mt-3 pt-3" style="border-top: 1px solid #333">
+                    <strong>How it works:</strong><br>
+                    • Automatic: Uses VATSIM Connect CID when signed in<br>
+                    • Manual override: Use browser console commands (see below)<br>
+                    • Type <code style="background-color: #2b2b2b; padding: 2px 4px; border-radius: 2px">sectorCoverage.help()</code> in console for debug commands
+                </div>
+            </div>
         </v-container>
     </v-main>
 </template>
 
 <script setup lang="ts">
 import { useSettingsStore } from "@/stores/settings"
-import { watch, ref } from "vue"
+import { usePositionsStore } from "@/stores/positions"
+import { watch, ref, computed } from "vue"
 
 const settings = useSettingsStore()
+const positions = usePositionsStore()
+
+const myPositions = computed(() => positions.getMyPositions())
+
+function getPositionCallsign(si: string): string {
+    const callsigns = positions.siToCallsigns.get(si) || []
+    return callsigns.length > 0 ? callsigns[0] : "Unknown"
+}
+
+function getPositionSectorsList(si: string): string[] {
+    return positions.getPositionSectors(si)
+}
 
 const cid1 = ref(settings.cid1)
 const cid2 = ref(settings.cid2)
