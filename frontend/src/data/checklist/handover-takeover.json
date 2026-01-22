@@ -21,8 +21,8 @@
         "0": "<b>W</b>eather",
         "4": "<b>E</b>quipment",
         "8": "<b>S</b>ituation",
-        "14": "<b>T</b>raffic"
+        "12": "<b>T</b>raffic"
     },
     "width": 370,
-    "height": 730
+    "height": 655
 }
