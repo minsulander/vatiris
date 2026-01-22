@@ -293,8 +293,8 @@ for (const icao of metarAirports) {
         title: `METREPORT ${icao}`,
         component: Metreport,
         props: { id: icao },
-        width: 420,
-        height: 380,
+        width: 360,
+        height: 300,
         class: "no-max",
     }
     availableWindows[`windrose${icao}`] = {
