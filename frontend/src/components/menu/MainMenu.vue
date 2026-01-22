@@ -112,8 +112,6 @@ const menuItems = reactive({
             "Runway change": "checklist-rwy-change",
         },
         QUICKREF: {
-            "ESOS ACC": "wiki-quickref-esos-acc",
-            "ESMM ACC": "wiki-quickref-esmm-acc",
             "ESSA TWR": "quickref-essa-twr",
             "ESSA APP": "quickref-essa-app",
             "ESSB TWR": "quickref-essb-twr",
@@ -198,8 +196,6 @@ const menuItems = reactive({
             EPWW: "wikipdf-loa-epww",
         },
         // QuickRef: {
-        //     "ESOS ACC": "wiki-quickref-esos-acc",
-        //     "ESMM ACC": "wiki-quickref-esmm-acc",
         //     "ESGG TWR/APP": "wikipdf-quickref-esgg-twr-app",
         //     "ESSA TWR": "wikipdf-quickref-essa-twr",
         //     "ESSA APP": "wikipdf-quickref-essa-app",

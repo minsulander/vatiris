@@ -1,14 +1,4 @@
 {
-    "quickref-esos-acc": {
-        "title": "ESOS ACC Appendix B",
-        "book": "lop",
-        "page": "esos-acc-appendix-b"
-    },
-    "quickref-esmm-acc": {
-        "title": "ESMM ACC Appendix B",
-        "book": "lop",
-        "page": "esmm-acc-appendix-b"
-    },
     "gop-mil": {
         "title": "GOP MIL",
         "book": "gop",
