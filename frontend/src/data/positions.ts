@@ -29,7 +29,6 @@ export const positionNames: PositionMapping = {
     ESGG_TWR: "ESGG TWR",
     ESGG_W_APP: "ESGG APP-W",
     ESGJ_TWR: "ESGJ TWR",
-    ESGP_TWR: "ESGP TWR",
     ESGT_TWR: "ESGT TWR",
     ESIA_APP: "ESIA APP",
     ESIA_TWR: "ESIA TWR",

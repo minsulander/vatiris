@@ -12,7 +12,6 @@ const viewIdByIcao: { [key: string]: string } = {
     ESUP: "pajala-overview.html",
     ESMX: "vaxjo-overview.html",
     ESND: "sveg-overview.html",
-    ESGP: "save-overview.html",
     ESGT: "trollhattan-overview.html",
     ESGG: "landvetter-overview.html",
     ESSL: "saab-overview.html",

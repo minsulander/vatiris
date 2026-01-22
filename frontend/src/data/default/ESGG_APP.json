@@ -11,13 +11,6 @@
                     "height": 350,
                     "enabled": true
                 },
-                "metrepESGP": {
-                    "x": 300,
-                    "y": 30,
-                    "width": 300,
-                    "height": 350,
-                    "enabled": true
-                },
                 "airportESGG": {
                     "x": 600,
                     "y": 30,
@@ -49,7 +42,7 @@
     "metartafOptions": {
         "metar": true,
         "taf": true,
-        "ad": ["ESGG", "ESGP", "ESGT", "ESIB"]
+        "ad": ["ESGG", "ESGT", "ESIB"]
     },
     "arrdepOptions": {
         "arr": true,
