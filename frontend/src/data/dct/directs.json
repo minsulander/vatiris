@@ -3,40 +3,33 @@
     "id": "MM 2/3",
     "groups": [
       {
-        "group": "4/5",
+        "group": "K",
         "items": [
-          "XENTA"
-        ]
-      },
-      {
-        "group": "6/7",
-        "items": [
-          "MOTAD",
-          "PENOR"
-        ]
-      },
-      {
-        "group": "8/9",
-        "items": [
-          "AMROR",
-          "SALLO"
+          "ESMS 17: NORVI",
+          "ESMS 35 via RASMU: MS500",
+          "ESMS 35 via ERNOV: BABSI",
+          "ESGG: ARQUS"
         ]
       },
       {
         "group": "W",
         "items": [
-          "ALAMI",
           "MIKNA",
-          "NEREN",
           "NILUG",
-          "TRS"
+          "INWIQ"
         ]
       },
       {
         "group": "EKDK",
         "items": [
           "MICOS",
-          "ALS"
+          "ALS",
+          "OLPIB",
+          "ODDON",
+          "BAVTA",
+          "KOPEX",
+          "MICOS",
+          "AAL"
         ]
       }
     ]
@@ -45,50 +38,44 @@
     "id": "MM 4/5",
     "groups": [
       {
-        "group": "2/3",
+        "group": "K",
         "items": [
-          "AMROR",
-          "PENOR",
-          "SALLO",
-          "ROE"
+          "ERNOV",
+          "ESMS 17: NORVI",
+          "ESMS 35: BABSI"
         ]
       },
       {
         "group": "ESOS 3",
         "items": [
-          "LINSA",
-          "TORVA",
-          "TUSNI",
-          "UXETI (must enter EFIN S of KELAS)"
+          "ESSA/SB: TORVA"
         ]
       },
       {
         "group": "EKDK",
         "items": [
-          "BAVTA",
-          "AAL",
-          "ALS"
+          "195+: BAVTA",
+          "195+: AAL",
+          "195+: ALS"
         ]
       }
     ]
   },
   {
-    "id": "MM 6/7/Y",
+    "id": "MM 6/7",
     "groups": [
       {
-        "group": "2/3",
+        "group": "2/3/W/Y",
         "items": [
-          "XENTA"
+          "ESSA: NILUG",
+          "ESSB: INWIQ"
         ]
       },
       {
-        "group": "W/Y",
+        "group": "8/9/L",
         "items": [
-          "ALAMI",
-          "EVONA",
-          "NEREN",
-          "NILUG",
-          "TRS"
+          "EKCH/RK: TIDVU",
+          "ESMS: EKRAL"
         ]
       }
     ]
@@ -97,33 +84,36 @@
     "id": "MM 8/9",
     "groups": [
       {
-        "group": "2/3",
-        "items": [
-          "XENTA"
-        ]
-      },
-      {
-        "group": "6/7/Y",
+        "group": "2/3/6/7",
         "items": [
           "ALAMI",
           "EVONA",
           "IVGOR",
           "LATMI",
           "NEREN",
-          "NILUG",
           "NINTA",
           "VADRU",
-          "TRS"
+          "ESSA: NILUG",
+          "ESSB: INWIQ",
+          "ESGG: ARQUS"
+        ]
+      },
+      {
+        "group": "L",
+        "items": [
+          "EKCH/RK: TIDVU",
+          "ESMS 17: MS540",
+          "ESMS 35: MS614"
         ]
       },
       {
         "group": "EKDK",
         "items": [
-          "KOPEX",
-          "MICOS",
-          "BAVTA",
           "OLPIB",
-          "ODDEN"
+          "ODDON",
+          "BAVTA",
+          "KOPEX",
+          "MICOS"
         ]
       },
       {
@@ -132,6 +122,7 @@
           "PEROM",
           "ARGAD",
           "CIPPI",
+          "BINKA",
           "ROSOK",
           "BERIM",
           "BUMIL",
@@ -147,7 +138,6 @@
           "TOPDI",
           "TADUV",
           "BKD",
-          "BINKA",
           "HLZ",
           "EDDF: POVEL",
           "EDDL/EDLV: DENOL",
@@ -166,25 +156,28 @@
       {
         "group": "2/ESOS",
         "items": [
-          "MIKNA",
-          "NILUG",
-          "TRS"
+          "ESSA: NILUG",
+          "ESSB: INWIQ",
+          "MIKNA"
         ]
       },
       {
         "group": "L",
         "items": [
-          "AMROR",
-          "SALLO",
-          "ROE"
+          "ESMS 17: NORVI",
+          "ESMS 35: MS500"
         ]
       },
       {
         "group": "EKDK",
         "items": [
-          "BAVTA",
-          "AAL",
-          "ALS"
+          "195+: AAL",
+          "195+: BAVTA",
+          "195+: ALS",
+          "195+: MICOS",
+          "195+: KOPEX",
+          "195+: ODDON",
+          "195+: OLPIB"
         ]
       }
     ]
@@ -195,32 +188,20 @@
       {
         "group": "K",
         "items": [
-          "NILUG",
-          "TRS"
-        ]
-      },
-      {
-        "group": "7/8",
-        "items": [
-          "NILUG",
-          "TRS",
-          "ALAMI",
-          "EVONA",
-          "IVGOR",
-          "LATMI",
-          "NEREN",
-          "NINTA",
-          "VADRU"
+          "DEP ESMS: NEXIL",
+          "DEP ESMS: ETPIG",
+          "DEP ESMS: BABSI",
+          "ESGG: ARQUS"
         ]
       },
       {
         "group": "EKDK",
         "items": [
-          "KOPEX",
-          "MICOS",
-          "BAVTA",
-          "OLPIB",
-          "ODDEN"
+          "195+: BAVTA",
+          "195+: MICOS",
+          "195+: KOPEX",
+          "195+: ODDON",
+          "195+: OLPIB"
         ]
       },
       {
@@ -242,15 +223,18 @@
       {
         "group": "ESOS",
         "items": [
-          "NILUG",
-          "TRS"
+          "ESSA: NILUG",
+          "ESSB: INWIQ",
+          "ESDF 19: EKLOV",
+          "ESDF 01: SUXEM"
         ]
       },
       {
-        "group": "EKDK",
+        "group": "2/3",
         "items": [
-          "MICOS",
-          "ALS"
+          "GOLMI",
+          "ERNOV",
+          "TOKSI"
         ]
       }
     ]
@@ -258,6 +242,57 @@
   {
     "id": "OS ACC",
     "groups": [
+      {
+        "group": "1/7->MM W",
+        "items": [
+          "DEP ÖKC/SA/SB: ERNOV",
+          "DEP ÖKC/SA/SB: GOLMI",
+          "DEP ÖKC/SA/SB: MICOS",
+          "DEP ÖKC: PENOR",
+          "MS 17: NORVI",
+          "MS 35: MS500",
+          "DEP ÖKC/ESSA/SB: ELPAX",
+          "DEP ÖKC/ESSA/SB: ABAMA"
+        ]
+      },
+      {
+        "group": "1/7->MM K",
+        "items": [
+          "MS 17: NORVI",
+          "MS 35: MS500",
+          "MT 01: MF",
+          "MT 19: LT",
+          "TA 14: GOKPU",
+          "TA 32: DITVA",
+          "MK: OEB",
+          "EKCH: ERNOV"
+        ]
+      },
+      {
+        "group": "2->E",
+        "items": [
+          "SA: SA630"
+        ]
+      },
+      {
+        "group": "2->S",
+        "items": [
+          "DEP SV: DUXNO"
+        ]
+      },
+      {
+        "group": "3->MM",
+        "items": [
+          "ERNOV",
+          "NEGIL",
+          "LAPSI",
+          "MOXAM",
+          "AAL",
+          "285+: NIVUN",
+          "285+: ALOTI",
+          "285+: KLONN"
+        ]
+      },
       {
         "group": "3->ENOR",
         "items": [
@@ -277,15 +312,9 @@
         ]
       },
       {
-        "group": "2->E",
+        "group": "6->MM",
         "items": [
-          "ESSA: SA630"
-        ]
-      },
-      {
-        "group": "2->S",
-        "items": [
-          "DUXNO (ADEP ESSV)"
+          "ALS"
         ]
       },
       {
@@ -302,7 +331,7 @@
       {
         "group": "2",
         "items": [
-          "ESSB 12-ESSV: VSB"
+          "SB 12-SV: VSB"
         ]
       },
       {

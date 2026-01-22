@@ -1,7 +1,7 @@
 import json
 
 def parse_txt_to_json(input_file, output_file):
-    with open(input_file, 'r') as f:
+    with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
 
     coordinations = []
@@ -21,8 +21,8 @@ def parse_txt_to_json(input_file, output_file):
                 raise ValueError("Item encountered before any group was specified")
             current_id["groups"][-1]["items"].append(line)
 
-    with open(output_file, 'w') as f:
-        json.dump(coordinations, f, indent=2)
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(coordinations, f, indent=2, ensure_ascii=False)
 
     print(f"JSON file '{output_file}' has been generated successfully.")
 
