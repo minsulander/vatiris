@@ -186,6 +186,7 @@ const matchedController1 = ref(null as any)
 const matchedController2 = ref(null as any)
 const sessionStartTime1 = ref(null as Date | null)
 const sessionStartTime2 = ref(null as Date | null)
+const currentTime = ref(new Date()) // Reactive timestamp for timer updates
 
 const controllerStatus1 = ref("")
 const controllerStatus2 = ref("")
@@ -270,6 +271,31 @@ const matchControllers = (controllers: any) => {
         // Set controller status based on callsign in simple mode
         controllerStatus1.value = vatsimController1?.callsign?.includes("_OBS") ? "O" : ""
         controllerStatus2.value = vatsimController2?.callsign?.includes("_OBS") ? "O" : ""
+        
+        // Update session start times from logon_time (which is a string timestamp)
+        if (matchedController1.value && matchedController1.value.timestamp) {
+            const logonDate = new Date(matchedController1.value.timestamp)
+            if (!isNaN(logonDate.getTime())) {
+                sessionStartTime1.value = logonDate
+            } else {
+                sessionStartTime1.value = null
+            }
+        } else {
+            sessionStartTime1.value = null
+        }
+        
+        if (matchedController2.value && matchedController2.value.timestamp) {
+            const logonDate = new Date(matchedController2.value.timestamp)
+            if (!isNaN(logonDate.getTime())) {
+                sessionStartTime2.value = logonDate
+            } else {
+                sessionStartTime2.value = null
+            }
+        } else {
+            sessionStartTime2.value = null
+        }
+        
+        return // Early return to avoid setting session times again below
     } else if (settings.plsLogic === "Position") {
         // Only look in activeControllers for position logic
         matchedController1.value = settings.position1
@@ -287,12 +313,15 @@ const matchControllers = (controllers: any) => {
         controllerStatus2.value = ""
     }
 
-    sessionStartTime1.value = matchedController1.value
-        ? new Date(matchedController1.value.timestamp)
-        : null
-    sessionStartTime2.value = matchedController2.value
-        ? new Date(matchedController2.value.timestamp)
-        : null
+    // Set session start times (only for CID and Position modes, simple mode handles it above)
+    if (settings.plsLogic !== "simple") {
+        sessionStartTime1.value = matchedController1.value
+            ? new Date(matchedController1.value.timestamp)
+            : null
+        sessionStartTime2.value = matchedController2.value
+            ? new Date(matchedController2.value.timestamp)
+            : null
+    }
 }
 
 const getControllerStatus = (
@@ -311,18 +340,19 @@ const getControllerStatus = (
 const formatSessionTime = (startTime: Date | null) => {
     if (!startTime) return "00:00:00"
 
-    const now = new Date()
+    // Use currentTime to ensure reactivity
+    const now = currentTime.value
     const diff = now.getTime() - startTime.getTime()
     const hours = Math.floor(diff / 3600000)
     const minutes = Math.floor((diff % 3600000) / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
 
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
 }
 
 const sessionTimeClass1 = computed(() => {
     if (canGoOnBreak(matchedController1.value)) {
-        const minutes = moment().diff(sessionStartTime1.value, "minute")
+        const minutes = moment(currentTime.value).diff(sessionStartTime1.value, "minute")
         if (minutes >= 120) return "text-red-darken-1 cursor-pointer"
         else if (minutes >= 90) return "text-yellow-darken-2 cursor-pointer"
         else return "text-grey cursor-pointer"
@@ -332,7 +362,7 @@ const sessionTimeClass1 = computed(() => {
 
 const sessionTimeClass2 = computed(() => {
     if (canGoOnBreak(matchedController2.value)) {
-        const minutes = moment().diff(sessionStartTime2.value, "minute")
+        const minutes = moment(currentTime.value).diff(sessionStartTime2.value, "minute")
         if (minutes >= 120) return "text-red-darken-1 cursor-pointer"
         else if (minutes >= 90) return "text-yellow-darken-2 cursor-pointer"
         else return "text-grey cursor-pointer"
@@ -495,14 +525,9 @@ onMounted(() => {
         if (auth.user && fetchControllersTryCount.value < 3) fetchControllers()
     }, 10000)
 
-    // Set up interval for updating the computed properties every second
+    // Set up interval for updating the current time every second to trigger reactivity
     const updateInterval = setInterval(() => {
-        if (sessionStartTime1.value) {
-            sessionStartTime1.value = new Date(sessionStartTime1.value)
-        }
-        if (sessionStartTime2.value) {
-            sessionStartTime2.value = new Date(sessionStartTime2.value)
-        }
+        currentTime.value = new Date()
     }, 1000)
 
     // Clean up intervals on component unmount
