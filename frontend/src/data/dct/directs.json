@@ -240,6 +240,30 @@
     ]
   },
   {
+    "id": "MM Y",
+    "groups": [
+      {
+        "group": "W",
+        "items": [
+          "ESSA: NILUG",
+          "ESSB: INWIQ"
+        ]
+      },
+      {
+        "group": "6/7",
+        "items": [
+          "EKCH/RK: TIDVU"
+        ]
+      },
+      {
+        "group": "ESOS",
+        "items": [
+          "ESSA/SB: XILAN"
+        ]
+      }
+    ]
+  },
+  {
     "id": "OS ACC",
     "groups": [
       {
