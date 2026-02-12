@@ -41,6 +41,22 @@
                 </v-list>
             </v-menu>
         </v-btn>
+        <template v-if="pages">
+            <v-btn
+                v-for="p in pages"
+                :key="p.page"
+                variant="text"
+                rounded="0"
+                size="small"
+                color="white"
+                class="wiki-page-tab"
+                :class="effectivePage !== p.page ? 'text-grey' : ''"
+                @click="currentPage = p.page"
+            >
+                {{ p.label }}
+            </v-btn>
+        </template>
+        <slot v-else name="header-extra" />
         <span class="float-right mr-1 pt-1 text-caption text-grey-lighten-2">
             {{ updatedBy }}
             {{ updatedTime }}
@@ -81,8 +97,22 @@ import { useEaipStore } from "@/stores/eaip"
 
 const eaip = useEaipStore()
 
-const props = defineProps<{ book: string; page: string; src?: string }>()
+const props = defineProps<{
+    book: string
+    page?: string
+    pages?: { page: string; label: string }[]
+    src?: string
+}>()
 const auth = useAuthStore()
+const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
+const currentPage = ref("")
+const effectivePage = computed(() =>
+    props.pages ? currentPage.value : (props.page ?? ""),
+)
+const effectiveSrc = computed(() =>
+    props.src ?? `${wikiBaseUrl}/books/${props.book}/page/${effectivePage.value}`,
+)
+if (props.pages) currentPage.value = props.pages[0].page
 const div = ref()
 const content = ref("Loading...")
 const loading = ref(true)
@@ -99,7 +129,7 @@ bus.on("refresh", () => {
 const aipItems = reactive({} as any)
 
 function fillAip() {
-    const ad = props.page.toUpperCase()
+    const ad = effectivePage.value.toUpperCase()
     const aip = eaip.aipIndex
     if (aip && aip.airports && aip.airports.find((a: any) => a.icao == ad)) {
         for (const document of aip.airports.find((a: any) => a.icao == ad).documents) {
@@ -108,7 +138,7 @@ function fillAip() {
     }
 }
 
-if (props.book == "lop") {
+if (props.book == "lop" && effectivePage.value) {
     fillAip()
     watch(eaip.aipIndex, fillAip, { deep: true })
 }
@@ -124,12 +154,12 @@ onBeforeUnmount(() => {
 watch(div, (newValue, oldValue) => {
     if (div.value && !oldValue) {
         div.value.addEventListener("scroll", onScroll)
-        if (props.src && div.value) {
+        if (effectiveSrc.value && div.value) {
             const winbox = div.value.closest(".winbox")
             if (winbox) {
                 const title = winbox.querySelector(".wb-title")
                 if (title && !title.innerHTML.includes("mdi-open-in-new")) {
-                    title.innerHTML += ` <a href="${props.src}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
+                    title.innerHTML += ` <a href="${effectiveSrc.value}" target="_blank" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
                 }
             }
         }
@@ -139,6 +169,7 @@ watch(div, (newValue, oldValue) => {
 watch(content, () => {
     // Extract bookmarks
     setTimeout(() => {
+        if (!div.value) return
         bookmarks.splice(0)
         const bookmarkEls = div.value.querySelectorAll(
             "h1[id^='bkmrk-'], h2[id^='bkmrk-'], h3[id^='bkmrk-']",
@@ -159,29 +190,31 @@ function clickBookmark(bookmark: any) {
 }
 
 function onScroll(e: any) {
-    localStorage[`wikiPage_scroll_${props.book}_${props.page}`] = e.target.scrollTop
+    localStorage[`wikiPage_scroll_${props.book}_${effectivePage.value}`] = e.target.scrollTop
 }
 
 watch(() => auth.user, fetch)
+watch(() => [props.book, effectivePage.value], fetch, { deep: true })
 
 async function fetch() {
-    if (!auth.user) return
+    if (!auth.user || !effectivePage.value) return
+    loading.value = true
     try {
+        const headers = { Authorization: `Bearer ${auth.token.access_token}` }
         const page = (
-            await axios.get(`${backendBaseUrl}/wiki/book/${props.book}/page/${props.page}`, {
-                headers: { Authorization: `Bearer ${auth.token.access_token}` },
+            await axios.get(`${backendBaseUrl}/wiki/book/${props.book}/page/${effectivePage.value}`, {
+                headers,
             })
         ).data
         loading.value = false
         content.value = `<h1 class='page-name'>${page.name}</h1>\n${page.html}`
         revision.value = page.revision
-        updatedTime.value = moment(page.updated).utc().format("YYYY-MM-DD HH:mm")
+        updatedTime.value = moment(page.updatedTime || page.updated).utc().format("YYYY-MM-DD HH:mm")
         updatedBy.value = page.updatedBy
-        if (div.value && `wikiPage_scroll_${props.book}_${props.page}` in localStorage) {
-            //console.log("set scroll", localStorage[`wikiPage_scroll_${props.book}_${props.page}`])
+        if (div.value && `wikiPage_scroll_${props.book}_${effectivePage.value}` in localStorage) {
             setTimeout(() => {
                 div.value.scrollTop = parseInt(
-                    localStorage[`wikiPage_scroll_${props.book}_${props.page}`],
+                    localStorage[`wikiPage_scroll_${props.book}_${effectivePage.value}`],
                 )
             }, 10)
         } else {
@@ -198,6 +231,11 @@ async function fetch() {
 
 <style lang="scss">
 /* Additional fixes added in hindsight... */
+.wiki-page-tab {
+    min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+}
 .wiki-div {
     tr.mainposition td {
         font-weight: bold;
