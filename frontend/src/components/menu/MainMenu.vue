@@ -124,14 +124,14 @@ const menuItems = reactive({
         GOP: {
             //Index: "https://wiki.vatsim-scandinavia.org/books/gop",
             "TWR/APP/AFIS": "wikipdf-gop-twr",
-            ACC: "wikipdf-gop-acc",
+            ACC: "wiki-gop-acc",
             MIL: "wiki-gop-mil",
             "ATS-STRI": "wikipdf-gop-ats-stri",
         },
         LOP: {
             //Index: "https://wiki.vatsim-scandinavia.org/books/lop",
             RTC: "wiki-lop-rtc",
-            "ESMM ACC": "wikipdf-lop-esmm-acc",
+            "ESMM ACC": "wiki-lop-esmm-acc",
             "ESOS ACC": "wikipdf-lop-esos-acc",
             ESCF: "wiki-lop-escf",
             // ESCM // See Stockholm LPM
