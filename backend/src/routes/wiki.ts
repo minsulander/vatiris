@@ -13,8 +13,11 @@ const wikiAxios = axios.create({ headers: { Authorization: `Token ${wikiToken}:$
 
 const wiki = Router()
 
+const CACHE_TTL_MS = 10 * 60 * 1000 // 10 minutes
+
 let bookIdCache = {} as { [key: string]: number }
 let pageIdCache = {} as { [key: string]: number }
+const pageContentCache = {} as { [key: string]: { data: any; expires: number } }
 
 wiki.get("/attachment/:id", async (req: Request, res: Response) => {
     if (!(await authorize(req, res))) return
@@ -59,6 +62,10 @@ wiki.get("/book/:book/page/:page/html", async (req: Request, res: Response) => {
 })
 
 async function getPage(bookName: string, pageName: string) {
+    const cacheKey = `${bookName}-${pageName}`
+    const cached = pageContentCache[cacheKey]
+    if (cached && cached.expires > Date.now()) return cached.data
+
     let bookId = bookIdCache[bookName]
     if (!bookId) {
         const booksResponse = await wikiAxios.get(`${wikiBaseUrl}/books`, { params: { "filter[slug]": bookName } })
@@ -83,7 +90,9 @@ async function getPage(bookName: string, pageName: string) {
         pageId = pageIdCache[`${bookId}-${pageName}`] = page.id
     }
     const pageResponse = await wikiAxios.get(`${wikiBaseUrl}/pages/${pageId}`)
-    return pageResponse.data
+    const data = pageResponse.data
+    pageContentCache[cacheKey] = { data, expires: Date.now() + CACHE_TTL_MS }
+    return data
 }
 
 async function authorize(req: Request, res: Response) {
