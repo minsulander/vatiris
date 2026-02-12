@@ -3,10 +3,6 @@
         "title": "LOP ESOS ACC",
         "attachmentId": 311
     },
-    "lop-esmm-acc": {
-        "title": "LOP ESMM ACC",
-        "attachmentId": 312
-    },
     "lpm-esos": {
         "title": "LPM Stockholm TMA",
         "attachmentId": 327
@@ -46,10 +42,6 @@
     "gop-twr": {
         "title": "GOP TWR/APP/AFIS",
         "attachmentId": 333
-    },
-    "gop-acc": {
-        "title": "GOP ACC",
-        "attachmentId": 334
     },
     "gop-ats-stri": {
         "title": "GOP ATS-STRI",

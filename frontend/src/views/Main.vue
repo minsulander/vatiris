@@ -398,14 +398,17 @@ import("@/data/wiki-pdfs.json").then((module) => {
 import("@/data/wiki-pages.json").then((module) => {
     for (const id in module.default) {
         const page = (module.default as any)[id]
+        const props = page.pages
+            ? { book: page.book, pages: page.pages, ...(page.src && { src: page.src }) }
+            : {
+                  book: page.book,
+                  page: page.page,
+                  src: `${wikiBaseUrl}/books/${page.book}/page/${page.page}`,
+              }
         availableWindows[`wiki-${id}`] = {
             title: page.title,
             component: WikiPage,
-            props: {
-                book: page.book,
-                page: page.page,
-                src: `${wikiBaseUrl}/books/${page.book}/page/${page.page}`,
-            },
+            props,
             width: 800,
             height: 600,
         }

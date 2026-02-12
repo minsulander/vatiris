@@ -1,4 +1,37 @@
 {
+    "gop-acc": {
+        "title": "GOP ACC",
+        "book": "gop",
+        "src": "https://wiki.vatsim-scandinavia.org/books/gop/chapter/gop-acc",
+        "pages": [
+            {"page": "1-general", "label": "1 General"},
+            {"page": "2-separation", "label": "2 Separation"},
+            {"page": "3-transfer-of-control-release-procedures", "label": "3 Transfer"},
+            {"page": "4-coordination", "label": "4 Coordination"}
+        ]
+    },
+    "lop-esmm-acc": {
+        "title": "LOP ESMM ACC",
+        "book": "lop",
+        "src": "https://wiki.vatsim-scandinavia.org/books/lop/chapter/esmm-acc",
+        "pages": [
+            {"page": "esmm-acc-overview", "label": "O"},
+            {"page": "esmm-acc-general-procedures", "label": "GEN"},
+            {"page": "esmm-acc-sector-2", "label": "2"},
+            {"page": "esmm-acc-sector-3", "label": "3"},
+            {"page": "esmm-acc-sector-4", "label": "4"},
+            {"page": "esmm-acc-sector-5", "label": "5"},
+            {"page": "esmm-acc-sector-6", "label": "6"},
+            {"page": "esmm-acc-sector-7", "label": "7"},
+            {"page": "esmm-acc-sector-8", "label": "8"},
+            {"page": "esmm-acc-sector-9", "label": "9"},
+            {"page": "esmm-acc-sector-k", "label": "K"},
+            {"page": "esmm-acc-sector-l", "label": "L"},
+            {"page": "esmm-acc-sector-w", "label": "W"},
+            {"page": "esmm-acc-sector-y", "label": "Y"},
+            {"page": "esmm-acc-appendix-a-sector-splits", "label": "SPLITS"}
+        ]
+    },
     "gop-mil": {
         "title": "GOP MIL",
         "book": "gop",
