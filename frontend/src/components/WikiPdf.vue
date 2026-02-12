@@ -5,10 +5,10 @@
 
 <script setup lang="ts">
 import { backendBaseUrl, useAuthStore } from "@/stores/auth";
-import { computed, ref } from "vue"
+import { computed } from "vue"
 import Pdf from "@/components/Pdf.vue"
 
 const props = defineProps<{ id: number, src?: string }>()
 const auth = useAuthStore()
-const src = computed(() => `${backendBaseUrl}/wiki/attachment/${props.id}?token=${auth.token.access_token}`) // #toolbar=0&page=7
+const src = computed(() => `${backendBaseUrl}/wiki/attachment/${props.id}?token=${auth.token.access_token}`)
 </script>
