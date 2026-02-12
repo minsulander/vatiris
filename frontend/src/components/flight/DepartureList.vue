@@ -136,8 +136,8 @@ table tr td.type-cell {
     padding: 0 1px;
 }
 
-table tr td.type-cell.wtc-not-medium {
-    font-weight: bold;
+table:not(.colorful) tr td.type-cell.wtc-not-medium {
+    font-weight: 500;
 }
 table.colorful tr td.type-cell.wtc-not-medium {
     background-color: #ffb933 !important;
