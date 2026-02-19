@@ -77,6 +77,14 @@
           "EKCH/RK: TIDVU",
           "ESMS: EKRAL"
         ]
+      },
+      {
+        "group": "EPWW",
+        "items": [
+          "EPWA: SORIX",
+          "EPGD: OGDAV",
+          "Any FPL point within EPWW"
+        ]
       }
     ]
   },
@@ -114,6 +122,14 @@
           "BAVTA",
           "KOPEX",
           "MICOS"
+        ]
+      },
+      {
+        "group": "EPWW",
+        "items": [
+          "EPWA: SORIX",
+          "EPGD: OGDAV",
+          "Any FPL point within EPWW"
         ]
       },
       {
@@ -213,6 +229,14 @@
           "HDO",
           "MAREM",
           "EDDB: KETAP"
+        ]
+      },
+      {
+        "group": "EPWW",
+        "items": [
+          "EPWA: SORIX",
+          "EPGD: OGDAV",
+          "Any FPL point within EPWW"
         ]
       }
     ]
