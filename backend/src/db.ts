@@ -80,6 +80,63 @@ export async function deleteAllUserData(cid: number) {
     }
 }
 
+function todayUTC(): string {
+    const d = new Date()
+    const y = d.getUTCFullYear()
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0")
+    const day = String(d.getUTCDate()).padStart(2, "0")
+    return `${y}-${m}-${day}`
+}
+
+export async function getAupOverrides(fir: string): Promise<Record<string, boolean>> {
+    try {
+        const client = await pool.connect()
+        try {
+            const result = await client.query(
+                `SELECT overrides, date FROM aup_overrides WHERE fir = $1`,
+                [fir]
+            )
+            const row = result.rows[0]
+            if (!row || row.date !== todayUTC()) return {}
+            return (row.overrides as Record<string, boolean>) || {}
+        } finally {
+            await client.release()
+        }
+    } catch (e) {
+        console.warn("[db] getAupOverrides failed (table may not exist):", (e as Error).message)
+        return {}
+    }
+}
+
+export async function setAupOverrides(
+    fir: string,
+    overrides: Record<string, boolean>
+): Promise<void> {
+    try {
+        const client = await pool.connect()
+        try {
+            const date = todayUTC()
+            await client.query(
+                `INSERT INTO aup_overrides (fir, overrides, date, updated_at)
+                 VALUES ($1, $2, $3, NOW())
+                 ON CONFLICT (fir) DO UPDATE SET overrides = $2, date = $3, updated_at = NOW()`,
+                [fir, JSON.stringify(overrides), date]
+            )
+        } finally {
+            await client.release()
+        }
+    } catch (e) {
+        console.warn("[db] setAupOverrides failed (table may not exist):", (e as Error).message)
+        throw e
+    }
+}
+
+export async function setAupOverride(fir: string, area: string, active: boolean): Promise<void> {
+    const current = await getAupOverrides(fir)
+    current[area] = active
+    await setAupOverrides(fir, current)
+}
+
 export default {
     testQuery,
     upsertUserAtLogin,
@@ -87,4 +144,7 @@ export default {
     getUserData,
     deleteUserData,
     deleteAllUserData,
+    getAupOverrides,
+    setAupOverrides,
+    setAupOverride,
 }

@@ -18,15 +18,20 @@ Contributions of any kind are most welcome.
 
 It's a fairly straight-forward [Vue3](https://vuejs.org) + [Vuetify](https://vuetifyjs.com) + [Winbox](https://nextapps-de.github.io/winbox/) + [Express](https://expressjs.com/) (for the backend) project.
 
-To run the frontend:
+To run both frontend and backend together:
+
+```sh
+npm install
+npm run dev
+```
+
+Or run them separately:
 
 ```sh
 cd frontend
 npm install
 npm start
 ```
-
-To run the backend:
 
 ```sh
 cd backend

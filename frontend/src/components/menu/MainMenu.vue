@@ -206,6 +206,7 @@ const menuItems = reactive({
         AIP: {
             // filled in code
         },
+        "Area activation": "vlara",
         OTHER: {
             "ESSA PUSH": "SApush",
             "ESGG PUSH": "GGpush",

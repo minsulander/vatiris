@@ -74,6 +74,7 @@ import QuickRef from "@/components/QuickRef.vue"
 import Pdf from "@/components/Pdf.vue"
 import About from "@/components/About.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
+import Vlara from "@/components/Vlara.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
 import useEventBus from "@/eventbus"
 import AircraftTypes from "@/components/icao/AircraftTypes.vue"
@@ -241,6 +242,12 @@ const availableWindows = shallowReactive({
         props: { id: "regional", src: `${apiBaseUrl}/regional.pdf`, externalLink: true },
         width: 800,
         height: 600,
+    },
+    vlara: {
+        title: "Area activation",
+        component: Vlara,
+        width: 400,
+        height: 500,
     },
     atcbookings: {
         title: "ATC Bookings",
