@@ -22,6 +22,9 @@
                 <th @click="clickHeader('std')">
                     STD <v-icon>{{ sortIcon("std") }}</v-icon>
                 </th>
+                <th v-if="hasCtot">
+                    CTOT
+                </th>
                 <th @click="clickHeader('status')">
                     Status <v-icon>{{ sortIcon("status") }}</v-icon>
                 </th>
@@ -75,7 +78,19 @@
             </td>
             <td v-if="multipleAirports">{{ dep.adep }}</td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
-            <td :class="dep.sortTime < 0 ? 'text-grey-darken-2' : ''">{{ dep.std }}</td>
+            <td
+                :class="[
+                    dep.sortTime < 0 ? 'text-grey-darken-2' : '',
+                    isFls(dep) ? 'text-red-darken-2' : '',
+                ]"
+                :style="{ cursor: isFls(dep) ? 'pointer' : 'default' }"
+                @click="handleStdClick(dep)"
+            >
+                {{ dep.std }}
+            </td>
+            <td v-if="hasCtot" :class="getCtot(dep) ? 'ctot-cell' : ''" :title="getCtotTitle(dep)">
+                {{ getCtot(dep) }}
+            </td>
             <td>{{ esdata.statusLabel[dep.status] || dep.status }}</td>
             <td>{{ dep.ades }}</td>
         </tr>
@@ -107,6 +122,11 @@ table.colorful tr:nth-child(odd) {
 }
 table td {
     user-select: auto;
+}
+
+.ctot-cell {
+    font-weight: 700;
+    color: #f9a825;
 }
 table th .v-icon {
     margin-left: -8px;
@@ -158,6 +178,7 @@ import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
 import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
+import { useIfpsStore } from "@/stores/ifps"
 import { useSettingsStore } from "@/stores/settings"
 import { useWxStore } from "@/stores/wx"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
@@ -173,6 +194,7 @@ import {
 import { useFspRunway } from "@/composables/useFspRunway"
 import moment from "moment"
 import constants from "@/constants"
+import useEventBus from "@/eventbus"
 
 const props = defineProps({
     airports: {
@@ -194,6 +216,8 @@ const vatfsp = useVatfspStore()
 const settings = useSettingsStore()
 const wx = useWxStore()
 const { manualRunwayOverride } = useFspRunway()
+const ifps = useIfpsStore()
+const bus = useEventBus()
 
 const sortBy = ref("status")
 const sortDescending = ref(false)
@@ -425,6 +449,17 @@ const departures = computed(() => {
         })
 })
 
+const ifpsDepAirports = computed(() => {
+    if (props.airports.length > 0) return props.airports
+    const unique = new Set<string>()
+    for (const dep of departures.value) {
+        if (dep.adep) unique.add(dep.adep)
+    }
+    return Array.from(unique)
+})
+
+const hasCtot = computed(() => departures.value.some((dep) => !!getCtot(dep)))
+
 function clickHeader(name: string) {
     if (sortBy.value === name) {
         sortDescending.value = !sortDescending.value
@@ -447,6 +482,16 @@ onUnmounted(() => {
 watch([sortBy, sortDescending], () => {
     saveOptions()
 })
+
+watch(
+    ifpsDepAirports,
+    (airports) => {
+        for (const airport of airports) {
+            ifps.fetchByDepAirport(airport)
+        }
+    },
+    { immediate: true },
+)
 
 function loadOptions() {
     if ("depOptions" in localStorage) {
@@ -565,6 +610,65 @@ function printFlight(dep: Departure) {
         sidName, // pass SID name if found
         undefined, // wtc - not available in dep object yet
     )
+}
+
+function getIfpsFlight(dep: Departure) {
+    return ifps.findFlight(dep.callsign)
+}
+
+function getCtotReason(flight: any) {
+    return (
+        flight?.ctot_reason ||
+        flight?.ctotReason ||
+        flight?.reason ||
+        flight?.reason_ctot ||
+        flight?.slot?.reason
+    )
+}
+
+function formatTimeValue(value: any) {
+    if (value === undefined || value === null) return undefined
+    const digits = String(value).replace(/\D/g, "")
+    if (digits.length === 3) return `0${digits}`
+    if (digits.length >= 4) return digits.slice(0, 4)
+    return digits || String(value)
+}
+
+function getCtot(dep: Departure) {
+    const flight = getIfpsFlight(dep)
+    const raw =
+        flight?.ctot ||
+        flight?.CTOT ||
+        flight?.slot?.ctot ||
+        flight?.slot?.CTOT ||
+        flight?.ctot_time ||
+        flight?.ctotTime
+    return formatTimeValue(raw)
+}
+
+function getCtotTitle(dep: Departure) {
+    const ctot = getCtot(dep)
+    if (!ctot) return ""
+    const flight = getIfpsFlight(dep)
+    const reason = getCtotReason(flight)
+    const reasonText = reason ? `\nReason: ${reason}` : ""
+    return `CTOT: ${ctot}\nEOBT: ${dep.std || "----"}${reasonText}`
+}
+
+function getCdmStatus(dep: Departure) {
+    const flight = getIfpsFlight(dep)
+    const status = flight?.cdmSts || flight?.cdm_status || flight?.cdmStatus
+    return typeof status === "string" ? status : ""
+}
+
+function isFls(dep: Departure) {
+    return getCdmStatus(dep).startsWith("FLS")
+}
+
+function handleStdClick(dep: Departure) {
+    if (!isFls(dep)) return
+    bus.emit("select", "cdm-actions")
+    bus.emit("cdm-actions:prefill", dep.callsign)
 }
 
 function getDepartureButtonColor(dep: Departure): string {
