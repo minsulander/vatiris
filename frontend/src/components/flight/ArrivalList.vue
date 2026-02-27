@@ -65,12 +65,139 @@
                     >T{{ getT1ForArrival(arr) }}</span
                 >
             </td>
-            <td v-if="multipleAirports">{{ arr.ades }}</td>
+            <td
+                v-if="multipleAirports"
+                class="airport-cell"
+                :class="{
+                    pinned: isPinned(arr, 'ades'),
+                    'has-actions': hasAirportActions(arr.ades, 'ades'),
+                }"
+            >
+                <span class="airport-code" @click.stop="togglePinned(arr, 'ades')">
+                    {{ arr.ades }}
+                </span>
+                <span
+                    v-if="hasAirportActions(arr.ades, 'ades')"
+                    class="airport-actions"
+                    @click.stop
+                >
+                    <v-btn
+                        v-if="getMetreportId(arr.ades, 'ades')"
+                        icon
+                        variant="text"
+                        size="x-small"
+                        density="compact"
+                        @click.stop="openWindow(getMetreportId(arr.ades, 'ades')!)"
+                    >
+                        <v-icon size="14">mdi-cloud</v-icon>
+                    </v-btn>
+                    <v-btn
+                        v-if="getLopId(arr.ades)"
+                        icon
+                        variant="text"
+                        size="x-small"
+                        density="compact"
+                        @click.stop="openWindow(getLopId(arr.ades)!)"
+                    >
+                        <v-icon size="14">mdi-map-marker</v-icon>
+                    </v-btn>
+                    <template v-if="getAipDocs(arr.ades).length === 1">
+                        <v-btn
+                            icon
+                            variant="text"
+                            size="x-small"
+                            density="compact"
+                            @click.stop="openWindow(getAipDocs(arr.ades)[0].id)"
+                        >
+                            <v-icon size="14">mdi-map</v-icon>
+                        </v-btn>
+                    </template>
+                    <template v-else-if="getAipDocs(arr.ades).length > 1">
+                        <v-btn icon variant="text" size="x-small" density="compact">
+                            <v-icon size="14">mdi-map</v-icon>
+                        </v-btn>
+                        <v-menu activator="parent" location="bottom" :close-on-content-click="true">
+                            <v-list density="compact">
+                                <v-list-item
+                                    v-for="doc in getAipDocs(arr.ades)"
+                                    :key="doc.id"
+                                    @click="openWindow(doc.id)"
+                                >
+                                    <v-list-item-title>{{ doc.label }}</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </template>
+                </span>
+            </td>
             <td class="font-weight-medium">{{ arr.stand }}</td>
             <td>{{ arr.sta }}</td>
             <td>{{ arr.eta }}</td>
             <td>{{ esdata.statusLabel[arr.status] || arr.status }}</td>
-            <td>{{ arr.adep }}</td>
+            <td
+                class="airport-cell"
+                :class="{
+                    pinned: isPinned(arr, 'adep'),
+                    'has-actions': hasAirportActions(arr.adep, 'adep'),
+                }"
+            >
+                <span class="airport-code" @click.stop="togglePinned(arr, 'adep')">
+                    {{ arr.adep }}
+                </span>
+                <span
+                    v-if="hasAirportActions(arr.adep, 'adep')"
+                    class="airport-actions"
+                    @click.stop
+                >
+                    <v-btn
+                        v-if="getMetreportId(arr.adep, 'adep')"
+                        icon
+                        variant="text"
+                        size="x-small"
+                        density="compact"
+                        @click.stop="openWindow(getMetreportId(arr.adep, 'adep')!)"
+                    >
+                        <v-icon size="14">mdi-cloud</v-icon>
+                    </v-btn>
+                    <v-btn
+                        v-if="getLopId(arr.adep)"
+                        icon
+                        variant="text"
+                        size="x-small"
+                        density="compact"
+                        @click.stop="openWindow(getLopId(arr.adep)!)"
+                    >
+                        <v-icon size="14">mdi-map-marker</v-icon>
+                    </v-btn>
+                    <template v-if="getAipDocs(arr.adep).length === 1">
+                        <v-btn
+                            icon
+                            variant="text"
+                            size="x-small"
+                            density="compact"
+                            @click.stop="openWindow(getAipDocs(arr.adep)[0].id)"
+                        >
+                            <v-icon size="14">mdi-map</v-icon>
+                        </v-btn>
+                    </template>
+                    <template v-else-if="getAipDocs(arr.adep).length > 1">
+                        <v-btn icon variant="text" size="x-small" density="compact">
+                            <v-icon size="14">mdi-map</v-icon>
+                        </v-btn>
+                        <v-menu activator="parent" location="bottom" :close-on-content-click="true">
+                            <v-list density="compact">
+                                <v-list-item
+                                    v-for="doc in getAipDocs(arr.adep)"
+                                    :key="doc.id"
+                                    @click="openWindow(doc.id)"
+                                >
+                                    <v-list-item-title>{{ doc.label }}</v-list-item-title>
+                                </v-list-item>
+                            </v-list>
+                        </v-menu>
+                    </template>
+                </span>
+            </td>
         </tr>
     </table>
 </template>
@@ -114,6 +241,46 @@ table.colorful tr:nth-child(odd) {
 table td {
     user-select: auto;
 }
+table td.airport-cell {
+    position: relative;
+    white-space: nowrap;
+}
+.airport-code {
+    display: inline-block;
+    transition: opacity 0.1s ease-in-out;
+}
+.airport-cell.has-actions .airport-code {
+    cursor: pointer;
+}
+.airport-actions {
+    display: inline-flex;
+    gap: 0px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s ease-in-out;
+}
+.airport-cell.has-actions:hover .airport-code,
+.airport-cell.has-actions.pinned .airport-code {
+    opacity: 0;
+}
+.airport-cell:hover .airport-actions,
+.airport-cell.pinned .airport-actions {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+.airport-actions .v-btn {
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0;
+}
 table th .v-icon {
     margin-left: -8px;
     margin-right: -10px;
@@ -149,6 +316,8 @@ import { useAirportStore } from "@/stores/airport"
 import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
 import { useSettingsStore } from "@/stores/settings"
+import { useEaipStore } from "@/stores/eaip"
+import useEventBus from "@/eventbus"
 import { computed, onMounted, onUnmounted, ref, watch, type PropType } from "vue"
 import {
     distanceToAirport,
@@ -159,6 +328,8 @@ import {
 } from "@/flightcalc"
 import moment from "moment"
 import constants from "@/constants"
+import { metarAirports } from "@/metcommon"
+import lopPages from "@/data/wiki-pages.json"
 
 const props = defineProps({
     airports: {
@@ -178,6 +349,8 @@ const airportStore = useAirportStore()
 const aircraftStore = useAircraftStore()
 const vatfsp = useVatfspStore()
 const settings = useSettingsStore()
+const eaip = useEaipStore()
+const bus = useEventBus()
 
 const sortBy = ref("eta")
 const sortDescending = ref(false)
@@ -189,6 +362,7 @@ const sortIcon = (key: string) =>
           : "mdi-triangle-small-up"
 
 const multipleAirports = computed(() => props.airports.length == 0 || props.airports.length > 1)
+const pinnedAirport = ref<{ callsign: string; field: "adep" | "ades" } | null>(null)
 
 interface Arrival {
     callsign: string
@@ -358,6 +532,66 @@ function clickHeader(name: string) {
         sortBy.value = name
         sortDescending.value = false
     }
+}
+
+function normalizeIcao(icao?: string) {
+    return (icao || "").toUpperCase()
+}
+
+function openWindow(id: string) {
+    bus.emit("select", id)
+}
+
+function isPinned(arr: Arrival, field: "adep" | "ades") {
+    return pinnedAirport.value?.callsign === arr.callsign && pinnedAirport.value?.field === field
+}
+
+function togglePinned(arr: Arrival, field: "adep" | "ades") {
+    if (isPinned(arr, field)) {
+        pinnedAirport.value = null
+    } else {
+        pinnedAirport.value = { callsign: arr.callsign, field }
+    }
+}
+
+function getMetreportId(icao?: string, field?: "adep" | "ades") {
+    const normalized = normalizeIcao(icao)
+    if (!normalized || !metarAirports.includes(normalized)) return undefined
+    if (normalized === "ESSA") {
+        if (field === "adep") return "metrepESSAdep"
+        if (field === "ades") return "metrepESSAarr"
+    }
+    return `metrep${normalized}`
+}
+
+function getLopId(icao?: string) {
+    const normalized = normalizeIcao(icao)
+    if (!normalized) return undefined
+    const lopKey = `lop-${normalized.toLowerCase()}`
+    if (lopKey in lopPages) return `wiki-${lopKey}`
+    if (["ESSA", "ESSB", "ESOW", "ESOS"].includes(normalized)) return "wikipdf-lpm-esos"
+    return undefined
+}
+
+function getAipDocs(icao?: string) {
+    const normalized = normalizeIcao(icao)
+    if (!normalized || !("airports" in eaip.aipIndex)) return []
+    const airport = (eaip.aipIndex.airports as any[]).find(
+        (entry) => entry.icao === normalized,
+    )
+    if (!airport || !airport.documents) return []
+    return airport.documents.map((document: any) => ({
+        id: `aip${document.prefix}`,
+        label: document.name,
+    }))
+}
+
+function hasAirportActions(icao?: string, field?: "adep" | "ades") {
+    return !!(
+        getMetreportId(icao, field) ||
+        getLopId(icao) ||
+        getAipDocs(icao).length
+    )
 }
 
 onMounted(() => {
