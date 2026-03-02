@@ -213,6 +213,12 @@ table tr th {
     padding: 0 1px;
     border-bottom: 1px solid #ccc;
 }
+table thead tr {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #ddd;
+}
 table tr td {
     font-size: 14px;
     padding: 0 2px;
