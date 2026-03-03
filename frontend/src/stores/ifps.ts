@@ -126,16 +126,22 @@ export const useIfpsStore = defineStore("ifps", () => {
 
     function findFlightInResult(result: any, callsign: string) {
         if (!result || !callsign) return undefined
-        if (Array.isArray(result)) return result.find((r) => r.callsign === callsign)
-        if (Array.isArray(result.data)) return result.data.find((r) => r.callsign === callsign)
-        if (Array.isArray(result.flights)) return result.flights.find((r) => r.callsign === callsign)
-        if (typeof result === "object" && result.callsign === callsign) return result
+        const cs = String(callsign).toUpperCase()
+        const match = (r: any) => String(r?.callsign ?? "").toUpperCase() === cs
+        if (Array.isArray(result)) return result.find(match)
+        if (Array.isArray(result.data)) return result.data.find(match)
+        if (Array.isArray(result.flights)) return result.flights.find(match)
+        if (typeof result === "object" && match(result)) return result
         return undefined
     }
 
     function findFlight(callsign: string) {
         if (!callsign) return undefined
+        const cs = String(callsign).toUpperCase()
         if (callsign in byCallsign) return byCallsign[callsign]
+        for (const key of Object.keys(byCallsign)) {
+            if (String(key).toUpperCase() === cs) return byCallsign[key]
+        }
         for (const key in byDepAirport) {
             const found = findFlightInResult(byDepAirport[key], callsign)
             if (found) return found

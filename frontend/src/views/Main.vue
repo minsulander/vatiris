@@ -143,7 +143,7 @@ const availableWindows = shallowReactive({
         height: 300,
     },
     "cdm-actions": {
-        title: "CDM Actions",
+        title: "ETFMS Actions",
         component: CdmActions,
         width: 520,
         height: 220,

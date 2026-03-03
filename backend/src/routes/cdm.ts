@@ -10,13 +10,14 @@ const baseUrl = (process.env.CDM_BASE_URL || "https://cdm-server-production.up.r
 const apiKey = process.env.CDM_API_KEY || ""
 
 cdm.use(async (req: Request, res: Response) => {
-    if (!apiKey) {
-        res.status(401).send("CDM API key not configured")
+    const requiresKey = req.method !== "GET" || req.path.includes("/dpi")
+    if (requiresKey && !apiKey) {
+        res.status(401).send("CDM API key not configured (required for DPI)")
         return
     }
     const url = `${baseUrl}${req.path}`
     const headers: Record<string, string> = {}
-    headers["x-api-key"] = apiKey
+    if (apiKey) headers["x-api-key"] = apiKey
 
     try {
         const response = await axios({
