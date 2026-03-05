@@ -99,7 +99,7 @@ const menuItems = reactive({
     Flight: {
         "ARR DEP": "arrdep",
     },
-    ATFM: {
+    ATFCM: {
         ECFMP: "ECFMP",
         "ETFMS Actions": "cdm-actions",
     },
