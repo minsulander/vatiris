@@ -160,10 +160,15 @@ export const useIfpsStore = defineStore("ifps", () => {
     }, 60000)
 
     bus.on("refresh", () => {
+        const airportsToRefetch = [...trackedDepAirports]
         for (const key in byCallsign) delete byCallsign[key]
         for (const key in byDepAirport) delete byDepAirport[key]
         for (const key in byArrAirport) delete byArrAirport[key]
+        for (const key in lastFetchByDepAirport) delete lastFetchByDepAirport[key]
         trackedDepAirports.splice(0)
+        for (const airport of airportsToRefetch) {
+            fetchByDepAirport(airport, 0)
+        }
     })
 
     return {
