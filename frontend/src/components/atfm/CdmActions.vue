@@ -31,7 +31,7 @@
                         color="grey"
                         :disabled="!reaCallsign || !reaSirDataLoaded"
                         :loading="loading"
-                        @click="sendRea(false)"
+                        @click="onClearReaClick"
                     >
                         Clear REA
                     </v-btn>
@@ -131,13 +131,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import moment from "moment"
-import useEventBus from "@/eventbus"
 import { useIfpsStore } from "@/stores/ifps"
 import { useDeparturesForCdmStore } from "@/stores/departuresForCdm"
+import {
+    cdmPrefillReady,
+    cdmPrefillDelay,
+    clearCdmPrefill,
+} from "@/cdmPrefill"
 
 const ifps = useIfpsStore()
 const departuresForCdm = useDeparturesForCdmStore()
-const bus = useEventBus()
 
 const reaCallsign = ref("")
 const dlaCallsign = ref("")
@@ -267,6 +270,14 @@ function onSendReaClick(e: MouseEvent) {
         showSirConfirm.value = true
     } else {
         sendRea(true)
+    }
+}
+
+function onClearReaClick(e: MouseEvent) {
+    if (e.ctrlKey && !sirSet.value) {
+        showSirConfirm.value = true
+    } else {
+        sendRea(false)
     }
 }
 
@@ -411,8 +422,22 @@ async function sendDla() {
     }
 }
 
+function applyPrefill() {
+    const ready = cdmPrefillReady.value?.trim()
+    const delay = cdmPrefillDelay.value?.trim()
+    if (ready) {
+        reaCallsign.value = normalizeCallsign(ready)
+        refreshReaSirState()
+    }
+    if (delay) {
+        dlaCallsign.value = normalizeCallsign(delay)
+    }
+    clearCdmPrefill()
+}
+
 let eobtTickInterval: ReturnType<typeof setInterval>
 onMounted(() => {
+    applyPrefill()
     eobtTickInterval = setInterval(() => {
         nowTick.value++
     }, 60000)
@@ -421,13 +446,14 @@ onUnmounted(() => {
     clearInterval(eobtTickInterval)
 })
 
-bus.on("cdm-actions:prefill", async (callsign?: string) => {
-    if (!callsign) return
-    const normalized = normalizeCallsign(callsign)
-    reaCallsign.value = normalized
-    dlaCallsign.value = normalized
-    await refreshReaSirState()
-})
+watch(
+    () => [cdmPrefillReady.value, cdmPrefillDelay.value],
+    () => {
+        if (cdmPrefillReady.value || cdmPrefillDelay.value) {
+            applyPrefill()
+        }
+    },
+)
 </script>
 
 <style scoped>
