@@ -3,7 +3,7 @@ import axios, { AxiosError } from "axios"
 
 const cdm = Router()
 
-const baseUrl = (process.env.CDM_BASE_URL || "https://cdm-server-production.up.railway.app").replace(
+const baseUrl = (process.env.VIFF_BASE_URL || "https://viff-system.network").replace(
     /\/+$/,
     "",
 )
