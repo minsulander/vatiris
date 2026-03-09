@@ -101,7 +101,7 @@ const menuItems = reactive({
     },
     ATFCM: {
         ECFMP: "ECFMP",
-        "ETFMS Actions": "cdm-actions",
+        "IFF Actions": "cdm-actions",
     },
     Documents: {
         MANUAL: "wiki-vatiris",
