@@ -22,6 +22,9 @@
                 <th @click="clickHeader('std')">
                     STD <v-icon>{{ sortIcon("std") }}</v-icon>
                 </th>
+                <th v-if="hasCtot" @click="clickHeader('ctot')">
+                    CTOT <v-icon>{{ sortIcon("ctot") }}</v-icon>
+                </th>
                 <th @click="clickHeader('status')">
                     Status <v-icon>{{ sortIcon("status") }}</v-icon>
                 </th>
@@ -139,7 +142,26 @@
                 </span>
             </td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
-            <td :class="dep.sortTime < 0 ? 'text-grey-darken-2' : ''">{{ dep.std }}</td>
+            <td
+                :class="[
+                    dep.sortTime < 0 ? 'text-grey-darken-2' : '',
+                    isFls(dep) ? 'text-red-darken-2' : '',
+                ]"
+                :style="{ cursor: isFls(dep) ? 'pointer' : 'default' }"
+                :title="isFls(dep) ? 'FLS - Flight Suspended, update EOBT' : undefined"
+                @click="handleStdClick(dep)"
+            >
+                {{ dep.std }}
+            </td>
+            <td
+                v-if="hasCtot"
+                :class="getCtot(dep) ? 'ctot-cell' : ''"
+                :style="{ cursor: getCtot(dep) ? 'pointer' : 'default' }"
+                :title="getCtotTitle(dep)"
+                @click="handleCtotClick(dep)"
+            >
+                {{ getCtot(dep) }}<span v-if="getCtot(dep) && (isReaSet(dep) || isSirSet(dep))" class="ctot-indicators"><span v-if="isReaSet(dep)" class="ctot-r">R</span><span v-if="isSirSet(dep)" class="ctot-s">S</span></span>
+            </td>
             <td>{{ esdata.statusLabel[dep.status] || dep.status }}</td>
             <td
                 class="airport-cell"
@@ -281,10 +303,28 @@ table td.airport-cell {
     height: 18px;
     padding: 0;
 }
+
+table:not(.colorful) tr td.ctot-cell {
+    font-weight: 500;
+}
+table.colorful tr td.ctot-cell {
+    background-color: #ffb933 !important;
+}
+.ctot-indicators {
+    margin-left: 2px;
+    font-size: 0.7em;
+    vertical-align: super;
+    opacity: 0.85;
+}
+.ctot-r,
+.ctot-s {
+    font-weight: 600;
+}
 table th .v-icon {
     margin-left: -8px;
     margin-right: -10px;
 }
+
 
 .slow-icon {
     margin-left: 2px;
@@ -331,6 +371,9 @@ import { useEsdataStore } from "@/stores/esdata"
 import { useAirportStore } from "@/stores/airport"
 import { useAircraftStore } from "@/stores/aircraft"
 import { useVatfspStore } from "@/stores/vatfsp"
+import { useIfpsStore } from "@/stores/ifps"
+import { useDeparturesForCdmStore } from "@/stores/departuresForCdm"
+import { setCdmPrefill } from "@/cdmPrefill"
 import { useSettingsStore } from "@/stores/settings"
 import { useWxStore } from "@/stores/wx"
 import { useEaipStore } from "@/stores/eaip"
@@ -372,6 +415,8 @@ const settings = useSettingsStore()
 const wx = useWxStore()
 const eaip = useEaipStore()
 const { manualRunwayOverride } = useFspRunway()
+const ifps = useIfpsStore()
+const departuresForCdm = useDeparturesForCdmStore()
 const bus = useEventBus()
 
 const sortBy = ref("status")
@@ -596,6 +641,11 @@ const departures = computed(() => {
                     return order * (a.stand || "").localeCompare(b.stand || "")
                 case "std":
                     return order * a.std.localeCompare(b.std)
+                case "ctot": {
+                    const ctotA = getCtot(a) || "9999"
+                    const ctotB = getCtot(b) || "9999"
+                    return order * ctotA.localeCompare(ctotB)
+                }
                 default:
                     return (
                         order *
@@ -603,6 +653,31 @@ const departures = computed(() => {
                     )
             }
         })
+})
+
+const ifpsDepAirports = computed(() => {
+    if (props.airports.length > 0) return props.airports
+    const unique = new Set<string>()
+    for (const dep of departures.value) {
+        if (dep.adep) unique.add(dep.adep)
+    }
+    return Array.from(unique)
+})
+
+const hasCtot = computed(() => {
+    for (const dep of departures.value) {
+        const flight = ifps.findFlight(dep.callsign)
+        const raw =
+            flight?.ctot ||
+            flight?.CTOT ||
+            flight?.cdmData?.ctot ||
+            flight?.slot?.ctot ||
+            flight?.slot?.CTOT ||
+            flight?.ctot_time ||
+            flight?.ctotTime
+        if (raw != null && raw !== "") return true
+    }
+    return false
 })
 
 function clickHeader(name: string) {
@@ -690,6 +765,24 @@ onUnmounted(() => {
 watch([sortBy, sortDescending], () => {
     saveOptions()
 })
+
+watch(
+    ifpsDepAirports,
+    (airports) => {
+        for (const airport of airports) {
+            ifps.fetchByDepAirport(airport)
+        }
+    },
+    { immediate: true },
+)
+
+watch(
+    departures,
+    (deps) => {
+        departuresForCdm.setCallsigns(deps.map((d) => d.callsign))
+    },
+    { immediate: true, deep: true },
+)
 
 function loadOptions() {
     if ("depOptions" in localStorage) {
@@ -808,6 +901,120 @@ function printFlight(dep: Departure) {
         sidName, // pass SID name if found
         undefined, // wtc - not available in dep object yet
     )
+}
+
+function getIfpsFlight(dep: Departure) {
+    return ifps.findFlight(dep.callsign)
+}
+
+function getCtotReason(flight: any): string {
+    if (!flight || typeof flight !== "object") return ""
+    const check = (v: any) => (v != null && v !== "" ? String(v).trim() : "")
+    return (
+        check(flight.cdmData?.reason) ||
+        check(flight.mostPenalizingAirspace) ||
+        check(flight.flow_reason) ||
+        check(flight.flowReason) ||
+        check(flight.ctot_reason) ||
+        check(flight.ctotReason) ||
+        check(flight.reason) ||
+        check(flight.reason_ctot) ||
+        check(flight.slot?.reason) ||
+        check(flight.slot?.flow_reason)
+    )
+}
+
+function formatTimeValue(value: any) {
+    if (value === undefined || value === null) return undefined
+    const digits = String(value).replace(/\D/g, "")
+    if (digits.length === 3) return `0${digits}`
+    if (digits.length >= 4) return digits.slice(0, 4)
+    return digits || String(value)
+}
+
+function getCtot(dep: Departure) {
+    const flight = getIfpsFlight(dep)
+    const raw =
+        flight?.ctot ||
+        flight?.CTOT ||
+        flight?.cdmData?.ctot ||
+        flight?.slot?.ctot ||
+        flight?.slot?.CTOT ||
+        flight?.ctot_time ||
+        flight?.ctotTime
+    return formatTimeValue(raw)
+}
+
+function getCtotTitle(dep: Departure) {
+    const ctot = getCtot(dep)
+    if (!ctot) return ""
+    const flight = getIfpsFlight(dep)
+    const reason = getCtotReason(flight)
+    const reasonText = reason ? `\nFlow reason: ${reason}` : ""
+    const reaSir = [
+        isReaSet(dep) && "R=REA - Ready message sent",
+        isSirSet(dep) && "S=SIR - Slot Improvement Request sent",
+    ].filter(Boolean).join("\n")
+    const reaSirText = reaSir ? `\n${reaSir}` : ""
+    return `CTOT: ${ctot}\nEOBT: ${dep.std || "----"}${reasonText}${reaSirText}`
+}
+
+function getCdmStatus(dep: Departure) {
+    const flight = getIfpsFlight(dep)
+    const status = flight?.cdmSts || flight?.cdm_status || flight?.cdmStatus
+    return typeof status === "string" ? status : ""
+}
+
+function isReaSet(dep: Departure): boolean {
+    const flight = getIfpsFlight(dep)
+    if (!flight) return false
+    const v = flight.rea ?? flight.REA ?? flight.ready_for_improvement ?? flight.atfcmData?.isRea
+    if (typeof v === "boolean") return v
+    if (typeof v === "number") return v === 1
+    const sts = String(flight.cdmSts ?? flight.cdm_status ?? flight.cdmStatus ?? "").toUpperCase()
+    return sts.includes("REA")
+}
+
+function isSirSet(dep: Departure): boolean {
+    const flight = getIfpsFlight(dep)
+    if (!flight) return false
+    const v = flight.sir ?? flight.SIR ?? flight.slot_improvement_request ?? flight.atfcmData?.SIR
+    if (typeof v === "boolean") return v
+    if (typeof v === "number") return v === 1
+    const sts = String(flight.cdmSts ?? flight.cdm_status ?? flight.cdmStatus ?? "").toUpperCase()
+    return sts.includes("SIR")
+}
+
+function hasFlsStatus(flight: any): boolean {
+    if (!flight) return false
+    const sts = String(flight.cdmSts ?? flight.cdm_status ?? flight.cdmStatus ?? "").toUpperCase()
+    const atfcm = String(flight.atfcmStatus ?? flight.atfcm_status ?? "").toUpperCase()
+    return sts.includes("FLS") || atfcm.includes("FLS")
+}
+
+const flsCallsigns = computed(() => {
+    const set = new Set<string>()
+    for (const dep of departures.value) {
+        const flight = ifps.findFlight(dep.callsign)
+        if (hasFlsStatus(flight)) set.add(dep.callsign)
+    }
+    return set
+})
+
+function isFls(dep: Departure) {
+    return flsCallsigns.value.has(dep.callsign)
+}
+
+function handleStdClick(dep: Departure) {
+    if (!isFls(dep)) return
+    setCdmPrefill(undefined, dep.callsign)
+    bus.emit("select", "cdm-actions")
+}
+
+function handleCtotClick(dep: Departure) {
+    if (!getCtot(dep)) return
+    setCdmPrefill(dep.callsign, undefined)
+    bus.emit("select", "cdm-actions")
 }
 
 function getDepartureButtonColor(dep: Departure): string {

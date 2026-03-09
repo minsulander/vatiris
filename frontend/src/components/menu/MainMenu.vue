@@ -99,8 +99,9 @@ const menuItems = reactive({
     Flight: {
         "ARR DEP": "arrdep",
     },
-    ATFM: {
+    ATFCM: {
         ECFMP: "ECFMP",
+        "IFF Actions": "cdm-actions",
     },
     Documents: {
         MANUAL: "wiki-vatiris",

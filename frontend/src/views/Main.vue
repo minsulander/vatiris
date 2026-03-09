@@ -82,6 +82,7 @@ import Aerodromes from "@/components/icao/Aerodromes.vue"
 import Iframe from "@/components/Iframe.vue"
 import Windrose from "@/components/met/Windrose.vue"
 import { useEaipStore } from "@/stores/eaip"
+import CdmActions from "@/components/atfcm/IFFActions.vue"
 
 const apiBaseUrl = "https://api.vatiris.se"
 const wikiBaseUrl = "https://wiki.vatsim-scandinavia.org"
@@ -140,6 +141,12 @@ const availableWindows = shallowReactive({
         component: ECFMP,
         width: 700,
         height: 300,
+    },
+    "cdm-actions": {
+        title: "IFF Actions",
+        component: CdmActions,
+        width: 450,
+        height: 275,
     },
     SApush: {
         title: "ESSA Pushback",
