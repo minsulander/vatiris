@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div ref="root">
     <!-- Filter Input and Toggle Buttons -->
     <div style="background-color: #9E9E9E; padding: 2px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center;">
@@ -230,6 +230,15 @@ export default {
         if (fieldA > fieldB) return 1 * this.sortOrder;
         return 0;
       });
+    }
+  },
+  mounted() {
+    const winbox = this.$refs.root?.closest?.(".winbox");
+    if (winbox) {
+      const title = winbox.querySelector(".wb-title");
+      if (title && !title.innerHTML.includes("mdi-open-in-new")) {
+        title.innerHTML += ` <a href="https://ecfmp.vatsim.net/dashboard/flow-measures" target="_blank" rel="noopener noreferrer" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `;
+      }
     }
   },
   created() {
