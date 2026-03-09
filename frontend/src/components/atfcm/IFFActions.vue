@@ -1,5 +1,5 @@
 <template>
-    <div class="cdm-actions">
+    <div ref="root" class="cdm-actions">
         <div class="section departure-section">
             <div class="section-title">Ready</div>
             <div class="section-row">
@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue"
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import moment from "moment"
 import { useIfpsStore } from "@/stores/ifps"
 import { useDeparturesForCdmStore } from "@/stores/departuresForCdm"
@@ -142,6 +142,7 @@ import {
 const ifps = useIfpsStore()
 const departuresForCdm = useDeparturesForCdmStore()
 
+const root = ref<HTMLElement | null>(null)
 const reaCallsign = ref("")
 const dlaCallsign = ref("")
 const dlaTime = ref("")
@@ -435,12 +436,23 @@ function applyPrefill() {
     clearCdmPrefill()
 }
 
+const VIFF_URL = "https://vats.im/viff"
+
 let eobtTickInterval: ReturnType<typeof setInterval>
 onMounted(() => {
     applyPrefill()
     eobtTickInterval = setInterval(() => {
         nowTick.value++
     }, 60000)
+    nextTick(() => {
+        const winbox = root.value?.closest(".winbox")
+        if (winbox) {
+            const title = winbox.querySelector(".wb-title")
+            if (title && !title.innerHTML.includes("mdi-open-in-new")) {
+                title.innerHTML += ` <a href="${VIFF_URL}" target="_blank" rel="noopener noreferrer" style="color: #ddd"><span class="mdi mdi-open-in-new"></span></a> `
+            }
+        }
+    })
 })
 onUnmounted(() => {
     clearInterval(eobtTickInterval)
