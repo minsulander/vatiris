@@ -19,7 +19,7 @@
                         v-if="sirSet"
                         size="small"
                         color="grey"
-                        :disabled="!reaCallsign || !reaSirDataLoaded"
+                        :disabled="!auth.user || !reaCallsign || !reaSirDataLoaded"
                         :loading="loading"
                         @click="sendSir(false)"
                     >
@@ -29,7 +29,7 @@
                         v-if="reaSet"
                         size="small"
                         color="grey"
-                        :disabled="!reaCallsign || !reaSirDataLoaded"
+                        :disabled="!auth.user || !reaCallsign || !reaSirDataLoaded"
                         :loading="loading"
                         @click="onClearReaClick"
                     >
@@ -39,7 +39,7 @@
                         v-else
                         size="small"
                         color="primary"
-                        :disabled="!reaCallsign || !reaSirDataLoaded"
+                        :disabled="!auth.user || !reaCallsign || !reaSirDataLoaded"
                         :loading="loading"
                         @click="onSendReaClick"
                     >
@@ -112,7 +112,7 @@
                     />
                 </div>
                 <div class="section-actions">
-                    <v-btn size="small" color="primary" :disabled="!canSendDla" @click="onSendDlaClick">
+                    <v-btn size="small" color="primary" :disabled="!auth.user || !canSendDla" @click="onSendDlaClick">
                         Send DLA
                     </v-btn>
                 </div>
@@ -131,6 +131,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import moment from "moment"
+import { useAuthStore } from "@/stores/auth"
 import { useIfpsStore } from "@/stores/ifps"
 import { useDeparturesForCdmStore } from "@/stores/departuresForCdm"
 import {
@@ -139,6 +140,7 @@ import {
     clearCdmPrefill,
 } from "@/cdmPrefill"
 
+const auth = useAuthStore()
 const ifps = useIfpsStore()
 const departuresForCdm = useDeparturesForCdmStore()
 
