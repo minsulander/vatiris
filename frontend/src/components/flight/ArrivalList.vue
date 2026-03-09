@@ -89,7 +89,7 @@
                         density="compact"
                         @click.stop="openWindow(getMetreportId(arr.ades, 'ades')!)"
                     >
-                        <v-icon size="14">mdi-cloud</v-icon>
+                        <v-icon size="12">mdi-cloud</v-icon>
                     </v-btn>
                     <v-btn
                         v-if="getLopId(arr.ades)"
@@ -99,7 +99,7 @@
                         density="compact"
                         @click.stop="openWindow(getLopId(arr.ades)!)"
                     >
-                        <v-icon size="14">mdi-map-marker</v-icon>
+                        <v-icon size="12">mdi-map-marker</v-icon>
                     </v-btn>
                     <template v-if="getAipDocs(arr.ades).length === 1">
                         <v-btn
@@ -109,12 +109,12 @@
                             density="compact"
                             @click.stop="openWindow(getAipDocs(arr.ades)[0].id)"
                         >
-                            <v-icon size="14">mdi-map</v-icon>
+                            <v-icon size="12">mdi-map</v-icon>
                         </v-btn>
                     </template>
                     <template v-else-if="getAipDocs(arr.ades).length > 1">
                         <v-btn icon variant="text" size="x-small" density="compact">
-                            <v-icon size="14">mdi-map</v-icon>
+                            <v-icon size="12">mdi-map</v-icon>
                         </v-btn>
                         <v-menu activator="parent" location="bottom" :close-on-content-click="true">
                             <v-list density="compact">
@@ -157,7 +157,7 @@
                         density="compact"
                         @click.stop="openWindow(getMetreportId(arr.adep, 'adep')!)"
                     >
-                        <v-icon size="14">mdi-cloud</v-icon>
+                        <v-icon size="12">mdi-cloud</v-icon>
                     </v-btn>
                     <v-btn
                         v-if="getLopId(arr.adep)"
@@ -167,7 +167,7 @@
                         density="compact"
                         @click.stop="openWindow(getLopId(arr.adep)!)"
                     >
-                        <v-icon size="14">mdi-map-marker</v-icon>
+                        <v-icon size="12">mdi-map-marker</v-icon>
                     </v-btn>
                     <template v-if="getAipDocs(arr.adep).length === 1">
                         <v-btn
@@ -177,12 +177,12 @@
                             density="compact"
                             @click.stop="openWindow(getAipDocs(arr.adep)[0].id)"
                         >
-                            <v-icon size="14">mdi-map</v-icon>
+                            <v-icon size="12">mdi-map</v-icon>
                         </v-btn>
                     </template>
                     <template v-else-if="getAipDocs(arr.adep).length > 1">
                         <v-btn icon variant="text" size="x-small" density="compact">
-                            <v-icon size="14">mdi-map</v-icon>
+                            <v-icon size="12">mdi-map</v-icon>
                         </v-btn>
                         <v-menu activator="parent" location="bottom" :close-on-content-click="true">
                             <v-list density="compact">
@@ -282,10 +282,15 @@ table td.airport-cell {
     pointer-events: auto;
 }
 .airport-actions .v-btn {
-    width: 18px;
-    min-width: 18px;
-    height: 18px;
+    width: 14px;
+    min-width: 14px;
+    height: 14px;
     padding: 0;
+}
+.airport-actions .v-btn .v-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
 }
 table th .v-icon {
     margin-left: -8px;
