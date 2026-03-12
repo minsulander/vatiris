@@ -146,7 +146,8 @@ const availableWindows = shallowReactive({
         title: "IFF Actions",
         component: CdmActions,
         width: 450,
-        height: 275,
+        height: 277,
+        class: "no-max",
     },
     SApush: {
         title: "ESSA Pushback",
