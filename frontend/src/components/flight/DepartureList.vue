@@ -143,10 +143,10 @@
             </td>
             <td class="font-weight-medium">{{ dep.stand }}</td>
             <td
-                :class="[
-                    dep.sortTime < 0 ? 'text-grey-darken-2' : '',
-                    isFls(dep) ? 'text-red-darken-2' : '',
-                ]"
+                :class="{
+                    'std-cell--overdue': dep.sortTime < 0 && !isFls(dep),
+                    'std-cell--suspended': isFls(dep),
+                }"
                 :style="{ cursor: isFls(dep) ? 'pointer' : 'default' }"
                 :title="isFls(dep) ? 'FLS - Flight Suspended, update EOBT' : undefined"
                 @click="handleStdClick(dep)"
@@ -359,6 +359,15 @@ table:not(.colorful) tr td.type-cell.wtc-not-medium {
 }
 table.colorful tr td.type-cell.wtc-not-medium {
     background-color: #ffb933 !important;
+}
+
+table td.std-cell--overdue {
+    color: #616161;
+}
+
+table td.std-cell--suspended {
+    color: #c62828 !important;
+    font-weight: 700;
 }
 
 .t1-code {
