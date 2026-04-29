@@ -67,6 +67,11 @@
         "book": "lop",
         "page": "escf"
     },
+    "lop-escm": {
+        "title": "LOP ESCM",
+        "book": "lop",
+        "page": "escm"
+    },
     "lop-esdf": {
         "title": "LOP ESDF",
         "book": "lop",
@@ -197,6 +202,11 @@
         "book": "lop",
         "page": "esok"
     },
+    "lop-esow": {
+        "title": "LOP ESOW",
+        "book": "lop",
+        "page": "esow"
+    },
     "lop-espa": {
         "title": "LOP ESPA",
         "book": "lop",
@@ -206,6 +216,11 @@
         "title": "LOP ESPE",
         "book": "lop",
         "page": "espe"
+    },
+    "lop-essb": {
+        "title": "LOP ESSB",
+        "book": "lop",
+        "page": "essb"
     },
     "lop-essd": {
         "title": "LOP ESSD",
@@ -226,6 +241,11 @@
         "title": "LOP ESST",
         "book": "lop",
         "page": "esst"
+    },
+    "lop-essu": {
+        "title": "LOP ESSU",
+        "book": "lop",
+        "page": "essu"
     },
     "lop-essv": {
         "title": "LOP ESSV",
