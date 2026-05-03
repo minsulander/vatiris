@@ -161,7 +161,7 @@ import Layer from "ol/layer/Layer"
 
 const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
 const ECHARTS_URL =
-    "https://daim.lfv.se/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
+    "https://api.vatiris.se/echarts-wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
 
 useGeographic()
 const windows = useWindowsStore()
