@@ -31,7 +31,7 @@ import useEventBus from "@/eventbus"
 const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
 const SMHI_URL = "https://api.vatiris.se/smhi-tile2" // "https://wts.smhi.se/tile/"
 const ECHARTS_URL =
-    "https://daim.lfv.se/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
+    "https://api.vatiris.se/echarts-wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
 const AIRPORTS = [
     "SA",
     "SB",
