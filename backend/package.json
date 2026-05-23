@@ -5,7 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "tsx watch src/server.ts",
-    "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js"
+    "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:pdfjs-dist --external:pdf-parse"
   },
   "author": "",
   "license": "ISC",
