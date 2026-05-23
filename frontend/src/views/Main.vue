@@ -243,13 +243,6 @@ const availableWindows = shallowReactive({
         width: 575,
         height: 872,
     },
-    regional: {
-        title: `Regional Aerodromes`,
-        component: Pdf,
-        props: { id: "regional", src: `${apiBaseUrl}/regional.pdf`, externalLink: true },
-        width: 800,
-        height: 600,
-    },
     atcbookings: {
         title: "ATC Bookings",
         component: ATCBookings,

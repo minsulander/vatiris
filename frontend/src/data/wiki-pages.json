@@ -1,14 +1,42 @@
 {
+    "gop-general": {
+        "title": "GOP GENERAL",
+        "book": "gop",
+        "pages": [
+            {"page": "abbreviationsglossary", "label": "ABR"},
+            {"page": "definitions", "label": "DEF"},
+            {"page": "airspace", "label": "AIRSPACE"},
+            {"page": "air-traffic-services", "label": "ATS"},
+            {"page": "ats-surveillance-services", "label": "SURVEILLANCE"},
+            {"page": "separation", "label": "SEPARATION"},
+            {"page": "coordination", "label": "COORDINATION"},
+            {"page": "operational-procedures", "label": "OPERATIONAL"}
+        ]
+    },
     "gop-acc": {
         "title": "GOP ACC",
         "book": "gop",
-        "src": "https://wiki.vatsim-scandinavia.org/books/gop/chapter/gop-acc",
-        "pages": [
-            {"page": "1-general", "label": "1 General"},
-            {"page": "2-separation", "label": "2 Separation"},
-            {"page": "3-transfer-of-control-release-procedures", "label": "3 Transfer"},
-            {"page": "4-coordination", "label": "4 Coordination"}
-        ]
+        "page": "acc"
+    },
+    "gop-app": {
+        "title": "GOP APP",
+        "book": "gop",
+        "page": "app"
+    },
+    "gop-twr": {
+        "title": "GOP TWR",
+        "book": "gop",
+        "page": "twr"
+    },
+    "gop-afis": {
+        "title": "GOP AFIS",
+        "book": "gop",
+        "page": "afis"
+    },
+    "gop-mil": {
+        "title": "GOP MIL",
+        "book": "gop",
+        "page": "rules-and-procedures-for-military-aviation"
     },
     "lop-esmm-acc": {
         "title": "LOP ESMM ACC",
@@ -31,11 +59,6 @@
             {"page": "esmm-acc-sector-y", "label": "Y"},
             {"page": "esmm-acc-appendix-a-sector-splits", "label": "SPLITS"}
         ]
-    },
-    "gop-mil": {
-        "title": "GOP MIL",
-        "book": "gop",
-        "page": "rules-and-procedures-for-military-aviation"
     },
     "lop-rtc": {
         "title": "LOP RTC",
