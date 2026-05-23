@@ -82,6 +82,10 @@ app.use("/fsp", fspRoutes)
 import cdmRoutes from "./routes/cdm"
 app.use("/cdm", cdmRoutes)
 
+import aupRoutes from "./routes/aup"
+app.use("/aup", aupRoutes)
+app.use("/lara", aupRoutes)
+
 app.use(express.static("public"))
 app.get(/.*/, (req, res) => {
     res.status(404).send()
