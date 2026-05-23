@@ -271,6 +271,21 @@ function formatTopSkyAltitude(r: Restriction): string {
     return `0:${r.altitude}`
 }
 
+function formatTopSkyManualActLine(r: Restriction): string {
+    let altPart: string
+    if (r.altitudeType === "FL") {
+        const fl = r.altitudeUpper || r.altitude
+        altPart = `${fl}00:`
+    } else {
+        altPart = `${r.altitude}:`
+    }
+    let line = `${r.name}:${formatYmd(r.from)}:${formatYmd(r.to)}:0:${formatHi(r.from)}:${formatHi(r.to)}:0:${altPart}`
+    if (r.comment) {
+        line += r.comment
+    }
+    return line
+}
+
 export function serializeTopSky(restrictions: Restriction[]): string {
     const lines: string[] = ["REFRESH_INTERVAL:3600"]
     for (const r of restrictions) {
@@ -279,6 +294,15 @@ export function serializeTopSky(restrictions: Restriction[]): string {
             line += `:${r.comment}`
         }
         lines.push(line)
+    }
+    return lines.join("\n")
+}
+
+export function serializeTopSkyManualAct(restrictions: Restriction[]): string {
+    const lines: string[] = []
+    for (const r of restrictions) {
+        lines.push(formatTopSkyManualActLine(r))
+        lines.push(`${r.name}:MANUAL`)
     }
     return lines.join("\n")
 }

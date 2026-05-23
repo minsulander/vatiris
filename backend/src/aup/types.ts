@@ -48,6 +48,8 @@ export interface UsePlanResponse {
     mode: UsePlanMode
     sourcePageUrl: string
     pdfUrl: string
+    /** Plan dates merged into this response (one before 12:00 UTC, today+tomorrow from 12:00 UTC). */
+    planDates: string[]
     areasCache: AreasCacheMeta
     restrictions: RestrictionJson[]
     struckAreaIds: string[]
