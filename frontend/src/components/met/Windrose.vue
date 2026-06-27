@@ -128,7 +128,7 @@
                 <!-- Update centered wind information -->
                 <text
                     :x="center"
-                    :y="center + topMargin - size / 20 - (shouldReadVariable ? size / 30 : 0)"
+                    :y="center + topMargin - size / 20 - variableLayoutOffset"
                     text-anchor="middle"
                     dominant-baseline="central"
                     :fill="colors.text"
@@ -136,19 +136,11 @@
                     font-weight="bold"
                     v-if="windData.direction !== undefined"
                 >
-                    {{
-                        isLargeVrbRange
-                            ? "VRB"
-                            : windData.speed !== undefined &&
-                                windData.speed >= 1 &&
-                                windData.direction !== 0
-                              ? formatHeading(windData.direction)
-                              : "- - -"
-                    }}
+                    {{ centerTopText }}
                 </text>
                 <text
                     :x="center - (shouldReadMin || shouldReadMax ? size / 20 : 0)"
-                    :y="center + topMargin + size / 12 - (shouldReadVariable ? size / 30 : 0)"
+                    :y="center + topMargin + size / 12 - variableLayoutOffset"
                     text-anchor="middle"
                     dominant-baseline="central"
                     :fill="colors.text"
@@ -176,7 +168,7 @@
                         center +
                         topMargin +
                         size / 12 -
-                        (shouldReadVariable ? size / 30 : 0) -
+                        variableLayoutOffset -
                         (shouldReadMax ? size / 35 : 0)
                     "
                     text-anchor="middle"
@@ -195,7 +187,7 @@
                         center +
                         topMargin +
                         size / 12 -
-                        (shouldReadVariable ? size / 30 : 0) +
+                        variableLayoutOffset +
                         (shouldReadMin ? size / 35 : 0)
                     "
                     text-anchor="middle"
@@ -215,10 +207,21 @@
                     :fill="colors.text"
                     :font-size="size / 22"
                     font-weight="bold"
-                    v-if="shouldReadVariable && !isLargeVrbRange"
+                    v-if="showVrbRangeText"
                 >
                     {{ formatHeading(windData.vrbFrom) }} - {{ formatHeading(windData.vrbTo) }}
                 </text>
+
+                <!-- Transparent hit target on top of center text — toggles runway offset mode -->
+                <circle
+                    :cx="center"
+                    :cy="center + topMargin"
+                    :r="radius * 0.5"
+                    fill="rgba(0, 0, 0, 0.001)"
+                    stroke="none"
+                    class="center-circle-hit"
+                    @click="runwayOffsetMode = !runwayOffsetMode"
+                />
             </svg>
 
             <!-- Update overlay to show wind information -->
@@ -359,6 +362,7 @@ let changeTimeouts: any[] = []
 let checkOutdatedInterval: any = undefined
 
 const selectedRunway = ref("")
+const runwayOffsetMode = ref(false)
 
 const currentRunway = computed(() => {
     if (selectedRunway.value) return selectedRunway.value
@@ -425,6 +429,50 @@ const computedSize = computed(() => {
 const topMargin = computed(() => 35)
 const center = computed(() => props.size / 2)
 const radius = computed(() => (props.size / 2) * 0.9)
+
+const currentRunwayHeading = computed(() => {
+    if (!props.id || !windStore.windData[props.id]) return undefined
+    const rwy = windStore.windData[props.id].runways.find((r) => r.name === currentRunway.value)
+    return rwy?.heading
+})
+
+const runwayWindOffset = computed(() => {
+    if (!windData.value || typeof windData.value.direction !== "number") return undefined
+    if (windData.value.speed === undefined || windData.value.speed < 1) return undefined
+    const heading = currentRunwayHeading.value
+    if (heading === undefined) return undefined
+
+    const diff = ((windData.value.direction - heading + 540) % 360) - 180
+    const degrees = Math.round(Math.abs(diff) / 10) * 10
+    if (degrees === 0) return { dir: undefined, degrees: 0 }
+    return { dir: diff >= 0 ? "R" : "L", degrees }
+})
+
+const centerTopText = computed(() => {
+    if (runwayOffsetMode.value) {
+        const offset = runwayWindOffset.value
+        if (!offset) return "- - -"
+        if (offset.degrees === 0) return "0"
+        return `${offset.dir} ${offset.degrees}`
+    }
+    if (isLargeVrbRange.value) return "VRB"
+    if (
+        windData.value?.speed !== undefined &&
+        windData.value.speed >= 1 &&
+        windData.value.direction !== 0
+    ) {
+        return formatHeading(windData.value.direction)
+    }
+    return "- - -"
+})
+
+const showVrbRangeText = computed(
+    () => shouldReadVariable.value && !runwayOffsetMode.value && !isLargeVrbRange.value,
+)
+
+const variableLayoutOffset = computed(() =>
+    shouldReadVariable.value && !runwayOffsetMode.value ? props.size / 30 : 0,
+)
 
 const shouldReadVariable = computed(() => {
     if (!windData.value) return false
@@ -736,6 +784,11 @@ svg {
 
 .wind-components > div {
     margin: 0.3em 0;
+}
+
+.center-circle-hit {
+    cursor: pointer;
+    pointer-events: all;
 }
 
 .clickable {
