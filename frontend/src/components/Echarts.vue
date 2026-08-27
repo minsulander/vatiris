@@ -158,8 +158,9 @@ import type { FeatureLike } from "ol/Feature"
 import useEventBus from "@/eventbus"
 import { useWindowsStore } from "@/stores/windows"
 import Layer from "ol/layer/Layer"
+import { CARTO_LIGHT_NOLABELS_URL } from "@/basemap"
 
-const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
+const BASE_URL = CARTO_LIGHT_NOLABELS_URL
 const ECHARTS_URL =
     "https://api.vatiris.se/echarts-wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
 

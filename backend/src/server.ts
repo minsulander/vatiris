@@ -1,4 +1,4 @@
-import "dotenv/config"
+import "./env"
 import express, { Request, Response } from "express"
 import cors from "cors"
 import bodyparser from "body-parser"
@@ -7,7 +7,7 @@ import auth from "./auth"
 
 const vatsimAuthBaseUri = process.env.VATSIM_AUTH_BASE_URI || "https://auth-dev.vatsim.net/"
 const clientId = process.env.CLIENT_ID || "682"
-const clientSecret = process.env.CLIENT_SECRET || "cXrGCBzSezuc0Ud12bGgWdX45H5EjJgMDCvscKib"
+const clientSecret = process.env.CLIENT_SECRET || ""
 const redirectUri = process.env.REDIRECT_URI || "http://localhost:5173/login"
 
 const app = express()
@@ -21,6 +21,7 @@ app.listen(port, async () => {
     console.log("  Using VATSIM Auth Base URI:", vatsimAuthBaseUri)
     console.log("  Using Client ID:", clientId)
     console.log("  Using Redirect URI:", redirectUri)
+    if (!clientSecret) console.warn("  No CLIENT_SECRET set - VATSIM auth (/token) will fail")
     try {
         console.log("  DB Time:", await db.testQuery())
     } catch (e) {

@@ -66,6 +66,7 @@ import Select, { SelectEvent } from "ol/interaction/Select"
 import { useFdpStore } from "@/stores/fdp"
 import type { Geometry } from "ol/geom"
 import type { FeatureLike } from "ol/Feature"
+import { CARTO_DARK_NOLABELS_URL } from "@/basemap"
 
 const props = defineProps<{ filter?: string }>()
 
@@ -160,7 +161,7 @@ onMounted(() => {
             new TileLayer({
                 source: new XYZ({
                     //url: "//tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png"
-                    url: "https://basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}.png",
+                    url: CARTO_DARK_NOLABELS_URL,
                 }),
                 visible: true,
                 opacity: 1,

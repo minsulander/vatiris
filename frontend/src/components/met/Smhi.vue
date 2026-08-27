@@ -27,8 +27,9 @@ import { bbox } from "ol/loadingstrategy"
 import { Style, Stroke, Fill, RegularShape, Text } from "ol/style"
 import moment from "moment"
 import useEventBus from "@/eventbus"
+import { CARTO_LIGHT_NOLABELS_URL } from "@/basemap"
 
-const BASE_URL = "https://s.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
+const BASE_URL = CARTO_LIGHT_NOLABELS_URL
 const SMHI_URL = "https://api.vatiris.se/smhi-tile2" // "https://wts.smhi.se/tile/"
 const ECHARTS_URL =
     "https://api.vatiris.se/echarts-wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:3857"
