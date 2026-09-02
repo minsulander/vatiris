@@ -17,6 +17,7 @@ export interface FlightData {
     status?: string
     flightRules?: string
     tas?: string
+    ctot?: string
 }
 
 interface PrintedFlightInfo {
@@ -25,6 +26,7 @@ interface PrintedFlightInfo {
     route?: string
     rfl?: string
     type?: string
+    ctot?: string
 }
 
 // Generate unique client ID
@@ -133,6 +135,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         route?: string,
         rfl?: string,
         type?: string,
+        ctot?: string,
     ) {
         const flightInfo = {
             timestamp: Date.now(),
@@ -140,6 +143,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             route,
             rfl,
             type,
+            ctot,
         }
 
         // Update local state
@@ -159,6 +163,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
                         route,
                         rfl,
                         type,
+                        ctot,
                     }),
                 })
                 // Immediately sync to get latest state to all clients
@@ -210,6 +215,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             if (route) fspData.route = route
             if (rfl) fspData.rfl = rfl
             if (flight.std) fspData.eobt = flight.std
+            if (!isArrival && flight.ctot) fspData.ctot = flight.ctot
             if (flight.eta) fspData.eta = flight.eta
             if (flight.tas) {
                 const formattedTas = formatTAS(flight.tas)
@@ -238,7 +244,14 @@ export const useVatfspStore = defineStore("vatfsp", () => {
             }
 
             // Mark flight as printed
-            await markAsPrinted(flight.callsign, squawk, route, rfl, flight.type)
+            await markAsPrinted(
+                flight.callsign,
+                squawk,
+                route,
+                rfl,
+                flight.type,
+                !isArrival ? flight.ctot : undefined,
+            )
 
             return true
         } catch (error: any) {
@@ -260,6 +273,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         route?: string,
         rfl?: string,
         type?: string,
+        ctot?: string,
     ): boolean {
         if (!(callsign in printedFlights)) return false
 
@@ -269,6 +283,7 @@ export const useVatfspStore = defineStore("vatfsp", () => {
         if (route && printed.route !== route) return true
         if (rfl && printed.rfl !== rfl) return true
         if (type && printed.type !== type) return true
+        if ((ctot ?? "") !== (printed.ctot ?? "")) return true
 
         return false
     }

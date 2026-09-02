@@ -9,6 +9,7 @@ interface PrintedFlightInfo {
     route?: string
     rfl?: string
     type?: string
+    ctot?: string
 }
 
 interface FspState {
@@ -47,7 +48,7 @@ router.get("/state", (req: Request, res: Response) => {
 
 // Mark flight as printed
 router.post("/printed", (req: Request, res: Response) => {
-    const { callsign, timestamp, squawk, route, rfl, type } = req.body
+    const { callsign, timestamp, squawk, route, rfl, type, ctot } = req.body
 
     if (!callsign) {
         return res.status(400).json({ error: "Callsign is required" })
@@ -59,6 +60,7 @@ router.post("/printed", (req: Request, res: Response) => {
         route,
         rfl,
         type,
+        ctot,
     }
     fspState.lastUpdate = Date.now()
 

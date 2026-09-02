@@ -907,6 +907,7 @@ function printFlight(dep: Departure) {
             status: dep.status,
             flightRules: dep.flightRules,
             tas: dep.tas,
+            ctot: getCtot(dep) || undefined,
         },
         false, // isArrival
         dep.squawk,
@@ -1040,6 +1041,7 @@ function getDepartureButtonColor(dep: Departure): string {
             dep.route,
             formatRFL(dep.rfl),
             dep.type,
+            getCtot(dep) || undefined,
         )
     ) {
         return "red" // Urgent - needs reprint
@@ -1072,6 +1074,7 @@ function shouldAllowSingleClick(dep: Departure): boolean {
             dep.route,
             formatRFL(dep.rfl),
             dep.type,
+            getCtot(dep) || undefined,
         )
     ) {
         return true // Red - urgent
@@ -1093,9 +1096,10 @@ function getDepartureButtonTitle(dep: Departure): string {
             dep.route,
             formatRFL(dep.rfl),
             dep.type,
+            getCtot(dep) || undefined,
         )
     ) {
-        return "Click to reprint flight strip (flight plan changed)"
+        return "Click to reprint flight strip (flight plan or CTOT changed)"
     }
     if (vatfsp.isPrinted(dep.callsign)) {
         return "Double-click to reprint flight strip"
