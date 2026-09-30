@@ -221,6 +221,7 @@ const menuItems = reactive({
         },
         "TEXT ALIAS": "alias",
         NOTEPAD: "notepad",
+        "PILOT FEEDBACK": "https://pilot-feedback.vatsim.net/new",
     },
     Traffic: {},
     ATS: "atcbookings",
