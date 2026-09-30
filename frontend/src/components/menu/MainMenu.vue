@@ -214,6 +214,10 @@ const menuItems = reactive({
             "ESSA PUSH": "SApush",
             "ESGG PUSH": "GGpush",
         },
+        PROFILES: {
+            "TWR": "wiki-twr-cdm-profile",
+            "APP ACC": "wiki-app-acc-profile",
+        },
         "CODES (ICAO)": {
             "AIRCRAFT TYPES": "aircrafttypes",
             CALLSIGNS: "callsigns",

@@ -319,5 +319,15 @@
         "title": "Operational Bulletins",
         "book": "general",
         "page": "sweden-fir-atc-operational-bulletins"
+    },
+    "twr-cdm-profile": {
+        "title": "TWR / TWR CDM Profile",
+        "book": "general",
+        "page": "twr-twr-cdm-profile"
+    },
+    "app-acc-profile": {
+        "title": "APP ACC Profile",
+        "book": "general",
+        "page": "app-acc-profile"
     }
 }
