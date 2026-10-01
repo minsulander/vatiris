@@ -32,7 +32,7 @@
             >
         </p>
         <p class="text-grey-darken-1">
-            Copyright &copy; 2025 Martin Insulander and contributors
+            Copyright &copy; 2026 Martin Insulander and contributors
         </p>
     </div>
 </template>

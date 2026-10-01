@@ -62,7 +62,7 @@ const authorizedMenuItems = computed(() => {
     const items = { ...menuItems }
     if (!auth.user) {
         delete items.Flight
-        delete items.ATFM
+        delete items.ATFCM
         delete items.Documents
         delete items.Traffic
         delete items.ATS
