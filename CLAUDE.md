@@ -42,7 +42,7 @@ Euroscope plugin: standard CMake build (`CMakeLists.txt`, `CMakeSettings.json`).
 
 ### Backend
 
-- Entry: `src/server.ts` wires Express with CORS, JSON body parser, the auth/token endpoints, and mounts feature routers under `/data`, `/wiki`, `/esdata`, `/eaip`, `/fsp`, `/cdm`, `/aup` (and `/lara` aliased to the AUP router). Static files served from `public/`.
+- Entry: `src/server.ts` wires Express with CORS, JSON body parser, the auth/token endpoints, and mounts feature routers under `/data`, `/wiki`, `/esdata`, `/aman`, `/eaip`, `/fsp`, `/cdm`, `/aup` (and `/lara` aliased to the AUP router). Static files served from `public/`.
 - `src/auth.ts` validates the VATSIM bearer token on incoming requests (`requireUser`); `src/db.ts` is the Postgres pool. Schema lives in `backend/migrations/*.sql` and must be applied manually to a database named `vatiris`.
 - Feature areas in `src/routes/`:
   - `wiki.ts` — proxies VATSIM Scandinavia BookStack wiki (needs `WIKI_TOKEN`/`WIKI_SECRET`)
@@ -50,6 +50,7 @@ Euroscope plugin: standard CMake build (`CMakeLists.txt`, `CMakeSettings.json`).
   - `cdm.ts` — vIFF/CDM proxy (`VIFF_BASE_URL`, optional `CDM_API_KEY` for DPI; CTOT works without)
   - `fsp.ts` — flight strip / FSP integration
   - `esdata.ts` — data posted by the EuroScope plugin
+  - `aman.ts` — AMAN sequence sharing (`/aman/MAESTRO_sequence_data_<ICAO>.json`), uploaded by the AMAN EuroScope plugin master, read by slaves and TopSky (`AMAN_URL`); in memory only, uploads protected by `AMAN_UPLOAD_PASSWORD`
   - `aup/` — AUP/LARA airspace activation parsing. `parser.ts` (with `parser-layout.ts` and `parser-modern.ts`) parses two distinct PDF layouts; `fetcher.ts` pulls source PDFs; `service.ts` orchestrates and caches; `topsky-areas-loader.ts` resolves area names against TopSky data; `strikethrough.ts` detects struck-out lines in PDFs.
 - Backend runs degraded without DB / wiki / CDM credentials — most features still respond but with reduced data.
 
@@ -59,6 +60,6 @@ C++ plugin compiled with CMake (Windows). Posts controller/session data to the b
 
 ## Environment / external services
 
-Backend env vars (see README for full setup): `PORT`, `VATSIM_AUTH_BASE_URI`, `CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`, `WIKI_TOKEN`, `WIKI_SECRET`, `VIFF_BASE_URL`, `CDM_API_KEY`, plus Postgres connection (`db.ts`). The defaults in `server.ts` point at VATSIM **dev** auth — production deployment overrides them.
+Backend env vars (see README for full setup): `PORT`, `VATSIM_AUTH_BASE_URI`, `CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`, `WIKI_TOKEN`, `WIKI_SECRET`, `VIFF_BASE_URL`, `CDM_API_KEY`, `AMAN_UPLOAD_PASSWORD`, plus Postgres connection (`db.ts`). The defaults in `server.ts` point at VATSIM **dev** auth — production deployment overrides them.
 
 Deployment is via the scripts in `scripts/` (`deploy-frontend.sh`, `deploy-backend.sh`, `vatiris-backend.service` systemd unit).

@@ -86,6 +86,9 @@ app.use("/fsp", fspRoutes)
 import cdmRoutes from "./routes/cdm"
 app.use("/cdm", cdmRoutes)
 
+import amanRoutes from "./routes/aman"
+app.use("/aman", amanRoutes)
+
 import aupRoutes from "./routes/aup"
 app.use("/aup", aupRoutes)
 app.use("/lara", aupRoutes)
