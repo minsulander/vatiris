@@ -77,6 +77,9 @@ app.use("/esdata", esdataRoutes)
 import eaipRoutes from "./routes/eaip"
 app.use("/eaip", eaipRoutes)
 
+import notamRoutes from "./routes/notam"
+app.use("/notam", notamRoutes)
+
 import fspRoutes from "./routes/fsp"
 app.use("/fsp", fspRoutes)
 

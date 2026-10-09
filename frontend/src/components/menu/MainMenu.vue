@@ -68,6 +68,7 @@ const authorizedMenuItems = computed(() => {
         delete items.ATS
         delete items.SECTORS
         delete items.DCT
+        delete items.NOTAM
     }
     return items
 })
@@ -94,7 +95,7 @@ const menuItems = reactive({
             // This will be filled in with ICAO codes
         } as { [key: string]: string },
     },
-    // NOTAM: "notam", // disabled because broken
+    NOTAM: "notam",
     eCharts: "echarts",
     Flight: {
         "ARR DEP": "arrdep",
