@@ -14,7 +14,7 @@ const app = express()
 const port = process.env.PORT || 5172
 
 app.use(cors())
-app.use(bodyparser.json())
+app.use(bodyparser.json({ limit: "2mb" })) // AMAN sequences can exceed the 100 kB default
 
 app.listen(port, async () => {
     console.log(`Server running at http://localhost:${port}`)

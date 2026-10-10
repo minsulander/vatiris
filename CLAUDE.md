@@ -50,7 +50,7 @@ Euroscope plugin: standard CMake build (`CMakeLists.txt`, `CMakeSettings.json`).
   - `cdm.ts` — vIFF/CDM proxy (`VIFF_BASE_URL`, optional `CDM_API_KEY` for DPI; CTOT works without)
   - `fsp.ts` — flight strip / FSP integration
   - `esdata.ts` — data posted by the EuroScope plugin
-  - `aman.ts` — AMAN sequence sharing (`/aman/MAESTRO_sequence_data_<ICAO>.json`), uploaded by the AMAN EuroScope plugin master, read by slaves and TopSky (`AMAN_URL`); in memory only, uploads protected by `AMAN_UPLOAD_PASSWORD`
+  - `aman.ts` — shared AMAN sequence for the ESAA AMAN EuroScope plugin, per network room (`live`, `sweatbox1`, `sweatbox2`) and airport. One plugin instance (the "sequencer", leased automatically) computes the sequence; all others send commands that it applies; everyone long-polls `/aman/:net/:icao/poll`. Live writers must be connected ATC per the VATSIM data feed. TopSky reads `/aman/MAESTRO_sequence_data_<ICAO>.json` (live room). In memory only
   - `aup/` — AUP/LARA airspace activation parsing. `parser.ts` (with `parser-layout.ts` and `parser-modern.ts`) parses two distinct PDF layouts; `fetcher.ts` pulls source PDFs; `service.ts` orchestrates and caches; `topsky-areas-loader.ts` resolves area names against TopSky data; `strikethrough.ts` detects struck-out lines in PDFs.
 - Backend runs degraded without DB / wiki / CDM credentials — most features still respond but with reduced data.
 
@@ -60,6 +60,6 @@ C++ plugin compiled with CMake (Windows). Posts controller/session data to the b
 
 ## Environment / external services
 
-Backend env vars (see README for full setup): `PORT`, `VATSIM_AUTH_BASE_URI`, `CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`, `WIKI_TOKEN`, `WIKI_SECRET`, `VIFF_BASE_URL`, `CDM_API_KEY`, `AMAN_UPLOAD_PASSWORD`, plus Postgres connection (`db.ts`). The defaults in `server.ts` point at VATSIM **dev** auth — production deployment overrides them.
+Backend env vars (see README for full setup): `PORT`, `VATSIM_AUTH_BASE_URI`, `CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`, `WIKI_TOKEN`, `WIKI_SECRET`, `VIFF_BASE_URL`, `CDM_API_KEY`, `AMAN_REQUIRE_ATC` (0 = skip the live ATC check, development), `AMAN_SWEATBOX_KEY` (optional), plus Postgres connection (`db.ts`). The defaults in `server.ts` point at VATSIM **dev** auth — production deployment overrides them.
 
 Deployment is via the scripts in `scripts/` (`deploy-frontend.sh`, `deploy-backend.sh`, `vatiris-backend.service` systemd unit).
