@@ -220,6 +220,12 @@ function answer(r: Room, w: Omit<Waiter, "res" | "timer">, force: boolean): any 
 
 function wake(r: Room) {
     for (const w of [...r.waiters]) {
+        if (w.res.writableEnded || w.res.destroyed) {
+            // connection already gone: must not claim the sequencer role
+            clearTimeout(w.timer)
+            r.waiters.delete(w)
+            continue
+        }
         const out = answer(r, w, false)
         if (out) {
             clearTimeout(w.timer)
@@ -296,7 +302,9 @@ aman.post("/:net/:icao/poll", async (req: Request, res: Response) => {
         }, POLL_TIMEOUT_MS),
     }
     r.waiters.add(waiter)
-    req.on("close", () => {
+    // The client gave up (plugin stopped, connection lost): forget the waiting request. (The response's close
+    // event: the request's fires as soon as its body has been read.)
+    res.on("close", () => {
         if (r.waiters.delete(waiter)) clearTimeout(waiter.timer)
     })
 })
@@ -360,6 +368,13 @@ aman.post("/:net/:icao/leave", async (req: Request, res: Response) => {
     if (!r) return
     const callsign = callsignOf(req)
     r.clients.delete(callsign)
+    // Answer its waiting request at once: the plugin is stopping and waits for it.
+    for (const w of [...r.waiters])
+        if (w.callsign === callsign) {
+            clearTimeout(w.timer)
+            r.waiters.delete(w)
+            if (!w.res.writableEnded) w.res.send({ role: "", left: true })
+        }
     if (r.sequencer === callsign) {
         console.log(`AMAN ${r.net}/${r.icao}: sequencer ${callsign} left`)
         r.sequencer = null
