@@ -28,7 +28,7 @@ const POLL_TIMEOUT_MS = 20_000
 const LEASE_MS = 8_000 // sequencer considered gone after this long without a request
 const CLIENT_TIMEOUT_MS = 60_000
 const COMMAND_TTL_MS = 60_000
-const MAX_AGE_MS = 10 * 60_000 // sequence served to TopSky/readers while younger than this
+const MAX_AGE_MS = 30_000 // do not serve abandoned guidance for ten minutes
 const NETWORKS = ["live", "sweatbox1", "sweatbox2"] as const
 type Network = (typeof NETWORKS)[number]
 
@@ -142,8 +142,11 @@ async function authorize(req: Request, res: Response, r: Room, callsign: string)
     if (r.net === "live") {
         if (process.env.AMAN_REQUIRE_ATC === "0") return true
         await refreshAtc()
-        // Without any data feed (VATSIM outage) nobody could work: then it is not checked.
-        if (atcFetchedAt === 0) return true
+        // Do not permit writes on an unavailable or stale controller feed.
+        if (atcFetchedAt === 0 || Date.now() - atcFetchedAt > 60_000) {
+            res.status(503).send("VATSIM controller feed unavailable")
+            return false
+        }
         if (!atcCallsigns.has(callsign)) {
             res.status(403).send(`${callsign} is not connected as ATC on VATSIM (the network data is updated every 15 s)`)
             return false
@@ -367,6 +370,7 @@ aman.post("/:net/:icao/leave", async (req: Request, res: Response) => {
     const r = parseRoom(req, res)
     if (!r) return
     const callsign = callsignOf(req)
+    if (!(await authorize(req, res, r, callsign))) return
     r.clients.delete(callsign)
     // Answer its waiting request at once: the plugin is stopping and waits for it.
     for (const w of [...r.waiters])
@@ -384,3 +388,4 @@ aman.post("/:net/:icao/leave", async (req: Request, res: Response) => {
 })
 
 export default aman
+

@@ -24,6 +24,8 @@ Frontend (`cd frontend`):
 Backend (`cd backend`):
 - `npm start` — `tsx watch src/server.ts` (default port 5172)
 - `npm run build` — esbuild bundle to `dist/server.js`
+- `npm run test:aman` — scoped EuroScope AMAN relay and HTTP route tests
+- `npm run type-check:aman` — focused strict type check for the relay
 - Tests: run individually with `tsx`, e.g. `npx tsx src/aup/parser.test.ts` (no test runner configured)
 
 Euroscope plugin: standard CMake build (`CMakeLists.txt`, `CMakeSettings.json`).
@@ -51,6 +53,7 @@ Euroscope plugin: standard CMake build (`CMakeLists.txt`, `CMakeSettings.json`).
   - `fsp.ts` — flight strip / FSP integration
   - `esdata.ts` — data posted by the EuroScope plugin
   - `aman.ts` — shared AMAN sequence for the ESAA AMAN EuroScope plugin, per network room (`live`, `sweatbox1`, `sweatbox2`) and airport. One plugin instance (the "sequencer", leased automatically) computes the sequence; all others send commands that it applies; everyone long-polls `/aman/:net/:icao/poll`. Live writers must be connected ATC per the VATSIM data feed. TopSky reads `/aman/MAESTRO_sequence_data_<ICAO>.json` (live room). In memory only
+  - `aman-rooms.ts` and `aman/rooms.ts` — additive scoped plugin relay under `/aman/rooms/:net/:icao/:session/:channel`. Separates AMAN implementations on one simulator exercise, fences sequencer leases, relays opaque recovery state and restricts shared settings/diagnostics to supervisors. Calculations stay inside EuroScope plugins. No AMAN frontend or database migration. See `AMAN-BACKEND.md` for protocol, authentication and staging checks.
   - `aup/` — AUP/LARA airspace activation parsing. `parser.ts` (with `parser-layout.ts` and `parser-modern.ts`) parses two distinct PDF layouts; `fetcher.ts` pulls source PDFs; `service.ts` orchestrates and caches; `topsky-areas-loader.ts` resolves area names against TopSky data; `strikethrough.ts` detects struck-out lines in PDFs.
 - Backend runs degraded without DB / wiki / CDM credentials — most features still respond but with reduced data.
 
@@ -63,3 +66,6 @@ C++ plugin compiled with CMake (Windows). Posts controller/session data to the b
 Backend env vars (see README for full setup): `PORT`, `VATSIM_AUTH_BASE_URI`, `CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`, `WIKI_TOKEN`, `WIKI_SECRET`, `VIFF_BASE_URL`, `CDM_API_KEY`, `AMAN_REQUIRE_ATC` (0 = skip the live ATC check, development), `AMAN_SWEATBOX_KEY` (optional), plus Postgres connection (`db.ts`). The defaults in `server.ts` point at VATSIM **dev** auth — production deployment overrides them.
 
 Deployment is via the scripts in `scripts/` (`deploy-frontend.sh`, `deploy-backend.sh`, `vatiris-backend.service` systemd unit).
+
+Scoped AMAN relay settings: `AMAN_SUPERVISOR_CIDS` (default `1396125`; empty denies all), `AMAN_ALLOW_OPEN_SWEATBOX=1` (anonymous training for development only). New rooms accept VATSIM bearer authentication or `X-AMAN-Key` for SweatBox, with `AMAN_SWEATBOX_KEY`. A training key never grants supervisory access. Live CID and callsign must match the ATC feed unless the development connection-check override is set. These rules apply to the scoped API; the original callsign-based API remains separate for compatibility.
+
