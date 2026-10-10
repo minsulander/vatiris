@@ -1,8 +1,14 @@
 import { Router, type Request, type Response } from 'express'
 import auth from '../auth'
-import { getMaestroPlan, claimMaestroMaster, processMaestroTelemetry, saveMaestroEnginePlan } from '../db'
+import { getMaestroPlan, claimMaestroMaster, processMaestroTelemetry, saveMaestroEnginePlan, saveMaestroSettings } from '../db'
+import {supervisorAllowed} from '../maestro-access'
 import { DEFAULT_CONFIG, validateConfig, validateEdits, validateTelemetry, toJuhaSequence } from '../../../frontend/src/maestro-engine'
 const router = Router()
+async function supervisor(req:Request,res:Response){
+    const cid=await auth.requireCid(req,res);if(!cid)return undefined
+    if(!supervisorAllowed(Number(cid))){res.status(403).json({error:'AMAN supervisor access required'});return undefined}
+    return Number(cid)
+}
 async function editor(req: Request, res: Response) {
     const user = await auth.requireUser(req, res)
     if (!user) return undefined
@@ -19,6 +25,23 @@ function snapshot(row: any) {
         snapshot: row.engine_snapshot || null, masterCid: new Date(row.master_expires_at).getTime() > now ? row.master_cid : null,
         updatedBy: row.updated_by, updatedAt: row.updated_at, stale: !row.engine_snapshot || now - row.engine_snapshot.timestamp > 30000 }
 }
+router.get('/ESSA/supervision',async(req,res)=>{
+    try{
+        if(!await supervisor(req,res))return
+        const row=await getMaestroPlan()
+        if(!row){res.status(503).json({error:'Apply AMAN migrations 002 and 003'});return}
+        res.setHeader('Cache-Control','no-store');res.json(snapshot(row))
+    }catch{if(!res.headersSent)res.status(503).json({error:'Supervision unavailable'})}
+})
+router.put('/ESSA/settings',async(req,res)=>{
+    try{
+        const cid=await supervisor(req,res);if(!cid)return
+        if(!Number.isInteger(req.body.revision)||req.body.revision<0){res.status(400).json({error:'Invalid revision'});return}
+        const result=await saveMaestroSettings(cid,req.body.revision,req.body.settings)
+        if(result.error){res.status(result.error==='revision'?409:400).json({error:result.error==='revision'?'Shared settings changed; reload and retry':result.error});return}
+        res.json(snapshot(result.row))
+    }catch{if(!res.headersSent)res.status(503).json({error:'Shared settings save failed'})}
+})
 router.get('/ESSA', async (req, res) => {
     try {
         if (!await auth.requireCid(req, res)) return

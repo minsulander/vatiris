@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
+    "test:maestro": "node tests/maestro-supervision.mjs",
     "start": "tsx watch src/server.ts",
     "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:pdfjs-dist --external:pdf-parse"
   },

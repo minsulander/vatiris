@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import axios from 'axios'
-import MaestroSupervision from './MaestroSupervision.vue'
+import {sharedSettings} from '@/maestro-settings'
+
 import {STAR_PROFILES,STAR_SOURCE} from '@/maestro-star-prediction'
 import {scrollingLabelPositions} from '@/maestro-label-layout'
 import { useAuthStore, backendBaseUrl } from '@/stores/auth'
 import { DEFAULT_CONFIG, RUNWAYS, STATE_NAMES, STATE_COLORS, delayLabel, runEngine, toJuhaSequence, effectiveConfig, rateDistanceNm, validateLockedEdits, windConfig, reorderEdits, retimeEdits, euroscopeInstruction,
     type EngineConfig, type EngineSnapshot, type EngineFlight, type FlightEdit, type Telemetry } from '@/maestro-engine'
 const auth = useAuthStore()
-const applicationBuild='v4.30'
+const applicationBuild='v4.31'
 const engineMismatch=ref(false)
 const localPreview = ['localhost', '127.0.0.1'].includes(location.hostname) && (window as any).__AMAN_LOCAL_TEST__ === true
 const apiBase = localPreview ? location.origin : backendBaseUrl
 const config = ref<EngineConfig>(structuredClone(DEFAULT_CONFIG))
 const edits = ref<Record<string, FlightEdit>>({})
 const sequence = ref<EngineSnapshot | null>(null)
-const supervision=ref<InstanceType<typeof MaestroSupervision>>()
+
 const now = ref(Date.now())
 const demo = ref(false)
 const view = ref('Runway')
@@ -104,9 +105,9 @@ const dragGuide = ref<number | null>(null)
 function dragTime(moving:NonNullable<typeof drag.value>,clientY:number){return Math.round((moving.time-(clientY-moving.startY)/moving.scale*60000)/15000)*15000}
 const dragHint=computed(()=>drag.value&&all.value.find(f=>f.callsign===drag.value!.callsign)?.state===1?`${utc(dragTime(drag.value,drag.value.pointerY),true)} UTC`:'Insert here')
 let resizeObserver: ResizeObserver
-const labels = reactive({ type: false, feeder: false, totalDelay: false, currentDelay: true, runway: false })
+const labels = computed(()=>config.value.displayPreferences?.labels??{ type: false, feeder: false, totalDelay: false, currentDelay: true, runway: false })
 const columnWidth = computed(() => Math.max(view.value === 'Runway' ? 360 : 320, plotWidth.value / 3))
-const panels = reactive({ winds: false, rates: false, tracks: true })
+const panels = computed(()=>config.value.displayPreferences?.panels??{ winds: false, rates: false, tracks: true })
 const draft = ref<EngineConfig>(structuredClone(DEFAULT_CONFIG))
 const draftArrival = computed({get:()=>draft.value.active.find(r=>r.startsWith('ESSA/'))||'ESSA/19R',set:(r:string)=>draft.value.active=[...draft.value.active.filter(a=>!a.startsWith('ESSA/')),r]})
 const listSelection = ref<string[]>([])
@@ -228,6 +229,7 @@ async function poll() {
     if (bridge.value) await publishTiming()
 }
 async function commit(nextEdits = edits.value, nextConfig = config.value) {
+    nextConfig={...nextConfig,...sharedSettings(config.value)}
     if (!editable.value) { error.value='Only the active MASTER can edit a fresh sequence'; return }
     try { validateLockedEdits(sequence.value,edits.value,nextEdits,nextConfig) } catch(e:any) {error.value=e.message;return}
     if (demo.value) { edits.value = clone(nextEdits); config.value = clone(nextConfig); refreshDemo(true); error.value='';return }
@@ -557,11 +559,10 @@ onUnmounted(() => { clearTimeout(scrollAnimationTimer);clearInterval(timer); cle
     </div>
     <nav class="view-buttons">
         <button @click="menu=menu==='maestro'?'':'maestro'">MAESTRO▼</button>
-        <button data-action="supervision" @click="supervision?.open()">Supervision</button>
         <button v-for="v in ['ACC','Runway','FLOW']" :key="v" :class="{active:view===v}" @click="view=v;menu='';horizontalPosition=0;scrollHorizontal()">{{v}}</button>
         <button data-action="desequenced" @click="dialog='desequenced';menu=''">Desequenced {{unsequenced.length}}</button><button @click="dialog='missed';menu=''">Missed Approach {{all.filter(f=>f.mode==='missed').length}}</button>
     </nav>
-    <div v-if="menu==='maestro'" class="popup global-menu" @mouseleave="closeFieldMenu"><button @click="openDialog('setup')">ESSA · Operation mode</button><button @click="openDialog('wind')">Surface wind</button><button @click="openDialog('prediction')">Sequence settings</button><button @click="openDialog('star-model')">STAR timing model</button><button @click="dialog='labels';menu=''">Label options</button><button @click="panels.winds=!panels.winds">{{panels.winds?'☑':'☐'}} Winds</button><button @click="panels.rates=!panels.rates">{{panels.rates?'☑':'☐'}} Actual rates</button><button @click="panels.tracks=!panels.tracks">{{panels.tracks?'☑':'☐'}} TMA / TOT</button></div>
+    <div v-if="menu==='maestro'" class="popup global-menu" @mouseleave="closeFieldMenu"><button @click="openDialog('setup')">ESSA · Operation mode</button></div>
     <div class="display" ref="displayElement">
         <div class="time-overview" role="scrollbar" aria-label="Arrival overview — scroll timeline in time" aria-orientation="vertical" aria-controls="aman-timeline" :aria-valuemin="-60" :aria-valuemax="120" :aria-valuenow="clockOffset" :aria-valuetext="`${clockOffset} minutes from now`" tabindex="0" @pointerdown="startTimeScroll" @keydown="scrollTimeKey" @dblclick="clockOffset=0">
             <div class="overview-window" :style="overviewWindow" title="Visible time window — drag to scroll"></div>
@@ -616,10 +617,7 @@ onUnmounted(() => { clearTimeout(scrollAnimationTimer);clearInterval(timer); cle
                 <div class="rate-row"><label>Arrival rate<br>{{rateRunway.split('/')[1]}}</label><input type="range" min="30" max="600" step="1" v-model.number="draftRateSeconds" @input="draftApplyRate=true" :aria-label="`${rateRunway} landing interval`"><output>{{Math.round(3600/draftRateSeconds)}} / h<br>{{draftRateSeconds}} s · {{rateDistanceNm(draftRateSeconds,rateRunway,draft).toFixed(1)}} NM</output></div>
                 <div class="apply-row"><label for="aman-apply-slider">{{applyMinutes===0?'Apply now':`Apply at ${utc(applyAt)} UTC`}}</label><input id="aman-apply-slider" data-input="apply-time-slider" aria-label="Change application time" type="range" min="0" max="60" step="1" v-model.number="applyMinutes"><span class="apply-range"><span>Now</span><span>+60 min</span></span></div><p v-if="dialog==='configuration'">Arrival first, departure second. The rate applies to arrivals only.</p><button v-if="dialog==='configuration'?nextConfiguration:config.pendingRate&&config.pendingRate.at>now" data-action="cancel-planned-change" :disabled="!editable" @click="cancelPlannedChange">Cancel scheduled change</button><button data-action="save-rates" :disabled="!editable" @click="saveRates">{{(dialog==='configuration'?nextConfiguration:config.pendingRate&&config.pendingRate.at>now)?'Update change':'Apply'}}</button><button @click="dialog=''">Close</button>
             </template>
-            <template v-else-if="dialog==='star-model'"><p>Arrival times use the STAR distance workbook. These speeds and descent rates are planning assumptions.</p><label>Distance <select v-model="draft.starDistanceMethod"><option value="vectors">Vectors</option><option value="ese">ESE</option><option value="shortest">Shortest</option></select></label><label>Approach IAS (kt) <input v-model.number="draft.starApproachSpeed" type="number" min="100" max="350"></label><label>Base IAS (kt) <input v-model.number="draft.starBaseSpeed" type="number" min="80" max="250"></label><label>Final IAS (kt) <input v-model.number="draft.landingSpeedKnots" type="number" min="50" max="200"></label><label>Base begins (NM to go) <input v-model.number="draft.starBaseNm" type="number" min="2" max="40"></label><label>Final begins (NM to go) <input v-model.number="draft.starFinalNm" type="number" min="1" max="20"></label><label>Feeder altitude (ft) <input v-model.number="draft.starEntryAltitude" type="number" min="3000" max="25000"></label><label>Descent rate (ft/min) <input v-model.number="draft.starDescentRate" type="number" min="500" max="5000"></label><label>Climb rate (ft/min) <input v-model.number="draft.starClimbRate" type="number" min="500" max="5000"></label><label>Jet cruise ground speed (kt) <input v-model.number="draft.starCruiseSpeed" type="number" min="250" max="600"></label><button :disabled="!editable" @click="commit(edits,draft);dialog=''">Apply</button></template>
             <template v-else-if="dialog==='arrival-profile'&&current"><label>Arrival route <select data-input="arrival-profile" v-model="arrivalProfileDraft"><option value="">Auto from filed STAR / feeder</option><option v-for="profile in STAR_PROFILES.filter(p=>p.runway===rwy(current!).split('/')[1])" :key="profile.id" :value="profile.id">{{profile.procedure}} · {{profile.feeder}}</option></select></label><button data-action="save-arrival-profile" @click="editFlight({arrivalProfile:arrivalProfileDraft||undefined,recomputeAt:now,target:undefined});dialog=''">Apply and recompute</button></template>
-            <template v-else-if="dialog==='wind'"><label><input type="checkbox" v-model="draft.surfaceWindAuto">Auto surface wind from EuroScope METAR</label><label>Surface direction <input v-model.number="draft.surfaceWindDirection" type="number" min="0" max="360"></label><label>Surface speed <input v-model.number="draft.surfaceWindSpeed" type="number" min="0" max="100"></label><label>Final airspeed <input v-model.number="draft.landingSpeedKnots" type="number" min="50" max="200"></label><button :disabled="!editable" @click="commit(edits,draft);dialog=''">Apply</button></template>
-            <template v-else-if="dialog==='prediction'"><label>Stable: minutes to feeder <input v-model.number="draft.stableMinutes" type="number" min="0" max="60"></label><label>SuperStable: minutes to feeder <input v-model.number="draft.superStableMinutes" type="number" min="0" max="60"></label><label>Frozen: minutes to runway <input v-model.number="draft.frozenMinutes" type="number" min="0" max="30"></label><label>Minimum time for new arrivals (seconds) <input v-model.number="draft.minimumNewSeconds" type="number" min="0" max="3600"></label><label>Vectoring <select v-model.number="draft.vectoringMode"><option :value="0">Off</option><option :value="1">After feeder</option><option :value="2">All SuperStable</option></select></label><button :disabled="!editable" @click="commit(edits,draft);dialog=''">Apply</button></template><template v-else-if="dialog==='labels'"><label v-for="(_,key) in labels" :key="key"><input v-model="labels[key]" type="checkbox">{{key}}</label></template>
             <template v-else-if="dialog==='information'&&current"><table><tbody><tr><th>Flight</th><td>{{current.callsign}} {{current.aircraft}}/{{current.wake}}</td></tr><tr><th>Route</th><td>{{current.departure}} → {{current.arrival}} {{rwy(current)}}{{current.runwaySource==='active'?' · active runway (not filed)':''}}</td></tr><tr><th>Entry point</th><td>{{current.ff}}</td></tr><tr><th>Initial / current ETA</th><td>{{utc(current.initialEta,true)}} / {{utc(current.eta,true)}}</td></tr><tr><th>Current ETA FF / STA FF</th><td>{{utc(current.etaFf,true)}} / {{current.state===0?'—':utc(current.staFf,true)}}</td></tr><tr><th>STA RWY</th><td>{{current.state===0?'No stable time':utc(current.sta,true)}}</td></tr><tr><th>Total / remaining delay</th><td>{{Math.round(current.totalDelay/60)}} / {{Math.round(current.delay/60)}} min</td></tr><tr v-if="current.separation"><th>Spacing behind {{current.separation.leader}}</th><td>{{current.separation.wakeNm}} NM wake · {{Math.round(current.separation.wakeSeconds)}}s required · {{Math.round(current.separation.scheduledSeconds)}}s planned</td></tr><tr v-if="current.feederDelayMs"><th>Feeder spacing</th><td>{{Math.round(current.feederDelayMs/60/1000)}} min required before {{current.ff}}</td></tr><tr><th>Route time difference</th><td>{{Math.round((current.runwayDelay??current.delay)/60)}} min</td></tr><tr v-if="current.state===4&&current.scheduledBeforeLanding"><th>Assigned time before landing</th><td>{{utc(current.scheduledBeforeLanding,true)}}</td></tr><tr v-if="current.state===4"><th>Confirmed landing</th><td>{{utc(current.sta,true)}}</td></tr><tr><th>Initial ETA FF</th><td>{{utc(current.initialEtaFf ?? current.etaFf,true)}}</td></tr><tr><th>Prediction</th><td>{{current.predictionSource || 'route'}}{{current.vectorDetection?` · ${current.vectorDetection}`:''}}</td></tr><tr v-if="current.distanceProfile"><th>Workbook path</th><td>{{current.distanceProfile.procedure}} · {{current.distanceProfile.runway}}<br>{{current.distanceProfile.method}}: {{current.distanceProfile.fullNm}} NM · {{current.distanceProfile.sourceRange}}</td></tr><tr v-if="current.distanceProfile"><th>Remaining distance</th><td>{{current.distanceProfile.beforeFeederNm.toFixed(1)}} NM to feeder + {{current.distanceProfile.remainingNm.toFixed(1)}} NM to runway{{current.distanceProfile.shortcut?' · direct-to':''}}</td></tr><tr v-if="current.distanceProfile"><th>STAR source</th><td>{{STAR_SOURCE.file}}</td></tr><tr><th>State</th><td>{{STATE_NAMES[current.state]}}</td></tr><tr v-if="current.spacingConflict"><th>Spacing</th><td>Check spacing after the sequence change</td></tr></tbody></table></template>
             <template v-else-if="dialog==='runway'&&current"><button v-for="r in RUNWAYS.filter(r=>r.startsWith(current!.arrival+'/'))" :key="r" :disabled="!editable" @click="editFlight({runway:r,arrivalProfile:undefined,recomputeAt:now,target:undefined});dialog=''">{{r.split('/')[1]}}</button></template>
             <template v-else-if="dialog==='flight-slots'"><label>Before flight (min) <input v-model.number="flightSlots.before" type="number" min="0" max="999"></label><label>After flight (min) <input v-model.number="flightSlots.after" type="number" min="0" max="999"></label><button @click="editFlight({slotBefore:flightSlots.before,slotAfter:flightSlots.after});dialog=''">Apply</button><button @click="openFlightGap">Runway closure gap</button></template>
@@ -629,7 +627,6 @@ onUnmounted(() => { clearTimeout(scrollAnimationTimer);clearInterval(timer); cle
             <template v-else-if="dialog==='diagnostics'"><p v-for="f in diagnosticFlights" :key="f.callsign">{{f.callsign}} — {{f.issue}} <button :disabled="!editable" @click="recomputeFlights([f.callsign])">Recompute</button></p></template>
         </div>
     </div>
-    <MaestroSupervision ref="supervision" :snapshot="sequence" :config="config" :edits="edits" :now="now" :revision="revision" :master-cid="masterCid" :error="error" />
 </section>
 </template>
 

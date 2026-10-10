@@ -1,5 +1,6 @@
 import { Pool } from "pg"
 import { DEFAULT_CONFIG, runEngine, validateLockedEdits, type Telemetry, type EngineConfig, type FlightEdit } from '../../frontend/src/maestro-engine'
+import {settingsUnchanged,mergeSharedSettings} from '../../frontend/src/maestro-settings'
 
 const pool = new Pool()
 
@@ -39,6 +40,7 @@ export async function saveMaestroEnginePlan(cid: number, revision: number, confi
             await client.query('ROLLBACK'); return { error: 'master' }
         }
         if (row.revision !== revision) { await client.query('ROLLBACK'); return { error: 'revision' } }
+        if(!settingsUnchanged(row.engine_config||structuredClone(DEFAULT_CONFIG),config)){await client.query('ROLLBACK');return {error:'Shared settings require supervisor access'}}
         try { validateLockedEdits(row.engine_snapshot,row.engine_edits || {},edits,config) }
         catch (error) { await client.query('ROLLBACK'); return { error: (error as Error).message } }
         // Re-run the same raw prediction on an edit, without adding elapsed time to its ETA.
@@ -49,6 +51,23 @@ export async function saveMaestroEnginePlan(cid: number, revision: number, confi
         await client.query('COMMIT'); return { row: result }
     } catch (error) { await client.query('ROLLBACK'); throw error }
     finally { client.release() }
+}
+export async function saveMaestroSettings(cid:number,revision:number,settings:Record<string,unknown>){
+    const client=await pool.connect()
+    try{
+        await client.query('BEGIN')
+        const row=(await client.query("SELECT * FROM maestro_plan WHERE airport='ESSA' FOR UPDATE")).rows[0]
+        if(!row||row.revision!==revision){await client.query('ROLLBACK');return {error:'revision'}}
+        let config:EngineConfig
+        try{config=mergeSharedSettings(row.engine_config||structuredClone(DEFAULT_CONFIG),settings)}
+        catch(error){await client.query('ROLLBACK');return {error:(error as Error).message}}
+        const old=row.engine_snapshot?{...row.engine_snapshot,timestamp:row.engine_snapshot.timestamp-1}:undefined
+        const next=row.telemetry?runEngine(row.telemetry,config,row.engine_edits||{},old):null
+        const result=(await client.query(`UPDATE maestro_plan SET engine_config=$1,engine_snapshot=$2,
+            revision=revision+1,updated_by=$3,updated_at=NOW() WHERE airport='ESSA' RETURNING *`,[config,next,cid])).rows[0]
+        await client.query('COMMIT');return {row:result}
+    }catch(error){await client.query('ROLLBACK');throw error}
+    finally{client.release()}
 }
 export async function updateMaestroPlan(revision: number, config: object, edits: object, cid: number) {
     return (await pool.query(`UPDATE maestro_plan SET config = $2, edits = $3, revision = revision + 1,

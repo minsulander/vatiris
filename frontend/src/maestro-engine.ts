@@ -15,6 +15,7 @@ export const RUNWAYS = ['ESSA/01L', 'ESSA/01R', 'ESSA/08', 'ESSA/19L', 'ESSA/19R
 export const STATE_NAMES = ['UNSTABLE', 'STABLE', 'SUPERSTABLE', 'FROZEN', 'LANDED'] as const
 export const STATE_COLORS = ['#16417c', '#96d796', '#ffffff', '#40e0d0', '#dc7daf']
 export interface EngineConfig {
+    displayPreferences?:{labels:{type:boolean;feeder:boolean;totalDelay:boolean;currentDelay:boolean;runway:boolean};panels:{winds:boolean;rates:boolean;tracks:boolean}}
     predictionMode?:'star'|'euroscope'
     starDistanceMethod?:'vectors'|'ese'|'shortest'
     starApproachSpeed?:number;starBaseSpeed?:number;starFinalNm?:number;starBaseNm?:number;starEntryAltitude?:number;starDescentRate?:number;starCruiseSpeed?:number;starClimbRate?:number
@@ -170,7 +171,10 @@ export function validateConfig(value: any): EngineConfig {
     if(!Array.isArray(extras.delayPaths)||extras.delayPaths.length>100||extras.delayPaths.some((p:any)=>!p||!['ESSA','ESSB'].includes(p.airport)||
         !Array.isArray(p.runways)||!Array.isArray(p.feeders)||!Array.isArray(p.points)||p.points.length<2||p.points.length>100||
         [...p.runways,...p.feeders,...p.points].some((v:any)=>typeof v!=='string'||v.length>40)))throw new Error('Invalid delay path')
-    return { ...extras, active, departureRunway, rates, slots, pending, pendingRate, manualFlights, landingSpeedKnots, surfaceWindDirection, surfaceWindSpeed, stableMinutes: value.stableMinutes,
+    const displayPreferences=value.displayPreferences??{labels:{type:false,feeder:false,totalDelay:false,currentDelay:true,runway:false},panels:{winds:false,rates:false,tracks:true}}
+    for(const [group,keys] of [['labels',['type','feeder','totalDelay','currentDelay','runway']],['panels',['winds','rates','tracks']]] as const)
+        if(!displayPreferences[group]||Object.keys(displayPreferences[group]).some(k=>!(keys as readonly string[]).includes(k))||keys.some(k=>typeof displayPreferences[group][k]!=='boolean'))throw new Error('Invalid display preferences')
+    return { ...extras, displayPreferences, active, departureRunway, rates, slots, pending, pendingRate, manualFlights, landingSpeedKnots, surfaceWindDirection, surfaceWindSpeed, stableMinutes: value.stableMinutes,
         superStableMinutes: value.superStableMinutes, frozenMinutes: value.frozenMinutes,
         unstableSeconds: value.unstableSeconds, minimumNewSeconds: value.minimumNewSeconds }
 }
