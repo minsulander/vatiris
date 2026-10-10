@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import axios from 'axios'
+import MaestroSupervision from './MaestroSupervision.vue'
 import {STAR_PROFILES,STAR_SOURCE} from '@/maestro-star-prediction'
 import {scrollingLabelPositions} from '@/maestro-label-layout'
 import { useAuthStore, backendBaseUrl } from '@/stores/auth'
 import { DEFAULT_CONFIG, RUNWAYS, STATE_NAMES, STATE_COLORS, delayLabel, runEngine, toJuhaSequence, effectiveConfig, rateDistanceNm, validateLockedEdits, windConfig, reorderEdits, retimeEdits, euroscopeInstruction,
     type EngineConfig, type EngineSnapshot, type EngineFlight, type FlightEdit, type Telemetry } from '@/maestro-engine'
 const auth = useAuthStore()
-const applicationBuild='v4.29'
+const applicationBuild='v4.30'
 const engineMismatch=ref(false)
 const localPreview = ['localhost', '127.0.0.1'].includes(location.hostname) && (window as any).__AMAN_LOCAL_TEST__ === true
 const apiBase = localPreview ? location.origin : backendBaseUrl
 const config = ref<EngineConfig>(structuredClone(DEFAULT_CONFIG))
 const edits = ref<Record<string, FlightEdit>>({})
 const sequence = ref<EngineSnapshot | null>(null)
+const supervision=ref<InstanceType<typeof MaestroSupervision>>()
 const now = ref(Date.now())
 const demo = ref(false)
 const view = ref('Runway')
@@ -555,6 +557,7 @@ onUnmounted(() => { clearTimeout(scrollAnimationTimer);clearInterval(timer); cle
     </div>
     <nav class="view-buttons">
         <button @click="menu=menu==='maestro'?'':'maestro'">MAESTRO▼</button>
+        <button data-action="supervision" @click="supervision?.open()">Supervision</button>
         <button v-for="v in ['ACC','Runway','FLOW']" :key="v" :class="{active:view===v}" @click="view=v;menu='';horizontalPosition=0;scrollHorizontal()">{{v}}</button>
         <button data-action="desequenced" @click="dialog='desequenced';menu=''">Desequenced {{unsequenced.length}}</button><button @click="dialog='missed';menu=''">Missed Approach {{all.filter(f=>f.mode==='missed').length}}</button>
     </nav>
@@ -626,6 +629,7 @@ onUnmounted(() => { clearTimeout(scrollAnimationTimer);clearInterval(timer); cle
             <template v-else-if="dialog==='diagnostics'"><p v-for="f in diagnosticFlights" :key="f.callsign">{{f.callsign}} — {{f.issue}} <button :disabled="!editable" @click="recomputeFlights([f.callsign])">Recompute</button></p></template>
         </div>
     </div>
+    <MaestroSupervision ref="supervision" :snapshot="sequence" :config="config" :edits="edits" :now="now" :revision="revision" :master-cid="masterCid" :error="error" />
 </section>
 </template>
 

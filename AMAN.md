@@ -35,3 +35,9 @@ The existing native protocol is compatible with Juha MAESTRO sequence consumers.
 ## Verification
 
 Run `npm run test:maestro` in `frontend`. Engine regressions cover protected phases, drag/slot behaviour, closures, rate changes, wake separation, workbook prediction, bogus EET independence, feeder order/delay and the 12 NM guidance boundary. Frontend/backend builds and the native x86 protocol test are separate checks. Staging PostgreSQL lease/handover, browser loopback connectivity and actual TopSky rendering remain integration checks before production enablement.
+# Live supervision
+
+Click **Supervision** in the AMAN toolbar to open a separate movable, resizable window. It reads the same accepted live snapshot as the arrival display, including on SLAVE controllers. Select a callsign to inspect position and speed inputs, workbook profile and remaining distance, feeder and landing ETA/STA, phase horizons, vector detection, spacing leader, wake/rate requirements, protected TMA instruction and EuroScope guidance suppression. The window also records observed state, instruction, order, timing and prediction changes.
+
+History is local to the open AMAN page, bounded to 1,000 events and reset when switching telemetry source (including DEMO). It is not a server audit log and cannot show events before the page opened or between polling snapshots. Export downloads the current snapshot, settings, controller edits and observed history as JSON. Supervision does not claim MASTER, edit the plan or run another calculation engine.
+
