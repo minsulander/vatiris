@@ -99,6 +99,7 @@ const menuItems = reactive({
     eCharts: "echarts",
     Flight: {
         "ARR DEP": "arrdep",
+        "MAESTRO ESSA": "maestro-essa",
     },
     ATFCM: {
         ECFMP: "ECFMP",

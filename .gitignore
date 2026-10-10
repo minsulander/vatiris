@@ -32,3 +32,8 @@ coverage
 /build
 *.zip
 /backend/public/fdp/*.*json
+
+# Controller-local AMAN runtime data
+MAESTROTelemetry.json
+MAESTROTiming.json
+AMAN-local-session.json

@@ -1,6 +1,60 @@
 import { Pool } from "pg"
+import { DEFAULT_CONFIG, runEngine, validateLockedEdits, type Telemetry, type EngineConfig, type FlightEdit } from '../../frontend/src/maestro-engine'
 
 const pool = new Pool()
+
+export async function getMaestroPlan() {
+    const row = (await pool.query("SELECT * FROM maestro_plan WHERE airport = 'ESSA'")).rows[0]
+    if (row) { row.engine_config ||= structuredClone(DEFAULT_CONFIG); row.engine_edits ||= {} }
+    return row
+}
+export async function claimMaestroMaster(cid: number, release = false) {
+    return (await pool.query(release ?
+        `UPDATE maestro_plan SET master_cid=NULL, master_expires_at=NULL WHERE airport='ESSA' AND master_cid=$1 RETURNING *` :
+        `UPDATE maestro_plan SET master_cid=$1, master_expires_at=NOW()+INTERVAL '30 seconds'
+         WHERE airport='ESSA' AND (master_cid=$1 OR master_cid IS NULL OR master_expires_at<NOW()) RETURNING *`, [cid])).rows[0]
+}
+export async function processMaestroTelemetry(cid: number, telemetry: Telemetry) {
+    const client = await pool.connect()
+    try {
+        await client.query('BEGIN')
+        const row = (await client.query("SELECT * FROM maestro_plan WHERE airport='ESSA' FOR UPDATE")).rows[0]
+        if (!row || row.master_cid !== Number(cid) || new Date(row.master_expires_at).getTime() < Date.now()) {
+            await client.query('ROLLBACK'); return undefined
+        }
+        const snapshot = runEngine(telemetry, row.engine_config || structuredClone(DEFAULT_CONFIG), row.engine_edits || {}, row.engine_snapshot || undefined)
+        const result = (await client.query(`UPDATE maestro_plan SET telemetry=$1, engine_snapshot=$2,
+            master_expires_at=NOW()+INTERVAL '30 seconds' WHERE airport='ESSA' RETURNING *`, [telemetry, snapshot])).rows[0]
+        await client.query('COMMIT')
+        return result
+    } catch (error) { await client.query('ROLLBACK'); throw error }
+    finally { client.release() }
+}
+export async function saveMaestroEnginePlan(cid: number, revision: number, config: EngineConfig, edits: Record<string, FlightEdit>) {
+    const client = await pool.connect()
+    try {
+        await client.query('BEGIN')
+        const row = (await client.query("SELECT * FROM maestro_plan WHERE airport='ESSA' FOR UPDATE")).rows[0]
+        if (!row || row.master_cid !== Number(cid) || new Date(row.master_expires_at).getTime() < Date.now()) {
+            await client.query('ROLLBACK'); return { error: 'master' }
+        }
+        if (row.revision !== revision) { await client.query('ROLLBACK'); return { error: 'revision' } }
+        try { validateLockedEdits(row.engine_snapshot,row.engine_edits || {},edits,config) }
+        catch (error) { await client.query('ROLLBACK'); return { error: (error as Error).message } }
+        // Re-run the same raw prediction on an edit, without adding elapsed time to its ETA.
+        const old = row.engine_snapshot ? { ...row.engine_snapshot, timestamp: row.engine_snapshot.timestamp - 1 } : undefined
+        const snapshot = row.telemetry ? runEngine(row.telemetry, config, edits, old) : null
+        const result = (await client.query(`UPDATE maestro_plan SET engine_config=$1, engine_edits=$2, engine_snapshot=$3,
+            revision=revision+1, updated_by=$4, updated_at=NOW() WHERE airport='ESSA' RETURNING *`, [config, edits, snapshot, cid])).rows[0]
+        await client.query('COMMIT'); return { row: result }
+    } catch (error) { await client.query('ROLLBACK'); throw error }
+    finally { client.release() }
+}
+export async function updateMaestroPlan(revision: number, config: object, edits: object, cid: number) {
+    return (await pool.query(`UPDATE maestro_plan SET config = $2, edits = $3, revision = revision + 1,
+        updated_by = $4, updated_at = NOW() WHERE airport = 'ESSA' AND revision = $1 RETURNING *`,
+        [revision, config, edits, cid])).rows[0]
+}
 
 export async function testQuery() {
     const client = await pool.connect()

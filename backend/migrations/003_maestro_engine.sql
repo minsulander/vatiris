@@ -1,0 +1,6 @@
+ALTER TABLE maestro_plan ADD COLUMN IF NOT EXISTS engine_config JSONB;
+ALTER TABLE maestro_plan ADD COLUMN IF NOT EXISTS engine_edits JSONB NOT NULL DEFAULT '{}';
+ALTER TABLE maestro_plan ADD COLUMN IF NOT EXISTS engine_snapshot JSONB;
+ALTER TABLE maestro_plan ADD COLUMN IF NOT EXISTS telemetry JSONB;
+ALTER TABLE maestro_plan ADD COLUMN IF NOT EXISTS master_cid INTEGER;
+ALTER TABLE maestro_plan ADD COLUMN IF NOT EXISTS master_expires_at TIMESTAMPTZ;

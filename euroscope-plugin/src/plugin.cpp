@@ -1,11 +1,15 @@
 #include "plugin.h"
 #include "Version.h"
+#include "maestro_timing.h"
+#include "maestro_broadcast.h"
 #include "postjson.h"
 
 #include "json.hpp"
 #include <chrono>
+#include <cmath>
 #include <format>
 #include <fstream>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <windows.h>
@@ -27,11 +31,14 @@ VatIRISPlugin::VatIRISPlugin()
     disabled = true; // ... until connected - see OnTimer
     updateAll = false;
     debug = false;
+    RegisterTagItemType("MAESTRO Current delay (G/L)", 70001);
+    RegisterTagItemType("MAESTRO TTG (gain)", 70002);
+    RegisterTagItemType("MAESTRO TTL (lose)", 70003);
     mutex = CreateMutex(NULL, FALSE, NULL);
 
     GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
     std::string settingsPath = DllPathFile;
-    settingsPath.resize(settingsPath.size() - strlen("VatIRIS.dll"));
+    settingsPath.resize(settingsPath.find_last_of("\\/")+1);
     settingsPath += "VatIRISPlugin.txt";
     std::ifstream settingsFile(settingsPath);
     if (settingsFile.is_open()) {
@@ -303,6 +310,11 @@ void VatIRISPlugin::OnFlightPlanDisconnect(EuroScopePlugIn::CFlightPlan FlightPl
 
 bool VatIRISPlugin::OnCompileCommand(const char *commandLine)
 {
+    if (strcmp(commandLine,".vatiris maestro")==0) {
+        DisplayMessage(std::string("AMAN timing: ")+(std::time(nullptr)-maestroLoadedAt<=15?"fresh":"missing/stale")+
+            "; TopSky/MAESTRO receivers: "+std::to_string(maestroReceivers));
+        return true;
+    }
     if (strncmp(commandLine, ".vatiris all", 12) == 0) {
         DisplayMessage("Updating all flight plans");
         updateAll = true;
@@ -330,6 +342,8 @@ bool VatIRISPlugin::OnCompileCommand(const char *commandLine)
 
 void VatIRISPlugin::OnTimer(int counter)
 {
+    if (counter % 2 == 0) {LoadMaestroTiming();BroadcastMaestroSequence();}
+    if (counter % 5 == 0) ExportMaestroTelemetry();
     try {
         if (disabled && GetConnectionType() == EuroScopePlugIn::CONNECTION_TYPE_DIRECT) {
             disabled = false;
@@ -353,6 +367,167 @@ void VatIRISPlugin::OnTimer(int counter)
     } catch (...) {
         DisplayMessage("OnTimer: Unknown exception");
     }
+}
+
+void VatIRISPlugin::LoadMaestroTiming()
+{
+    // File I/O stays out of the tag drawing callback. Bridge writes atomically.
+    maestroTiming = nlohmann::json::object();
+    maestroLoadedAt = 0;
+    try {
+        std::string file = DllPathFile;
+        file = file.substr(0, file.find_last_of("\\/") + 1) + "MAESTROTiming.json";
+        std::ifstream stream(file, std::ios::binary | std::ios::ate);
+        if (!stream || stream.tellg() > 1048576) return;
+        stream.seekg(0);
+        nlohmann::json data;
+        stream >> data;
+        const auto generated = data.at("generatedAt").get<long long>() / 1000;
+        const auto age = static_cast<long long>(std::time(nullptr)) - generated;
+        if (data.at("airport") != "ESSA" || age < -5 || age > 15 ||
+            !data.at("flights").is_array() || data.at("flights").size() > 500) return;
+        for (const auto &flight : data.at("flights")) {
+            const auto callsign = flight.at("callsign").get<std::string>();
+            const auto instruction = MaestroInstructionSeconds(flight);
+            if (callsign.empty() || callsign.size() > 16 || !instruction) continue;
+            maestroTiming[callsign] = *instruction;
+        }
+        maestroLoadedAt = static_cast<std::time_t>(generated);
+        if(data.contains("nativeSequence")) {
+            const auto& sequence=data.at("nativeSequence");
+            if(sequence.at("data").at("icao")=="ESSA" && sequence.at("sequence").is_array() && sequence.at("sequence").size()<=500)
+                maestroSequence=sequence;
+        } else if(maestroSequence.is_object()) {
+            maestroSequence["sequence"]=nlohmann::json::array();
+            maestroSequence["data"]["timestamp"]=generated;
+            maestroSequence["data"]["source"]="EMPTY";
+        }
+    } catch (...) { maestroTiming.clear(); }
+}
+
+void VatIRISPlugin::BroadcastMaestroSequence()
+{
+    try {
+        if(!maestroSequence.is_object())return;
+        auto outgoing=maestroSequence;
+        if(std::time(nullptr)-maestroLoadedAt>15) {
+            outgoing["sequence"]=nlohmann::json::array();
+            outgoing["data"]["source"]="STALE";
+            outgoing["data"]["timestamp"]=static_cast<long long>(std::time(nullptr));
+        }
+        maestroReceivers=MaestroBroadcastSequence(outgoing.dump());
+    }catch(...){maestroReceivers=0;}
+}
+
+void VatIRISPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, EuroScopePlugIn::CRadarTarget,
+    int ItemCode, int, char sItemString[16], int *pColorCode, COLORREF *pRGB, double *)
+{
+    if (ItemCode < 70001 || ItemCode > 70003) return;
+    sItemString[0] = '\0';
+    if (pColorCode) *pColorCode = EuroScopePlugIn::TAG_COLOR_DEFAULT;
+    if (!FlightPlan.IsValid() || std::time(nullptr) - maestroLoadedAt > 15) return;
+    const auto fp = FlightPlan.GetFlightPlanData();
+    if (!fp.IsReceived() || !fp.GetDestination() || strcmp(fp.GetDestination(), "ESSA") != 0) return;
+    const auto found = maestroTiming.find(FlightPlan.GetCallsign());
+    if (found == maestroTiming.end()) return;
+    const int delta = found->get<int>();
+    if ((ItemCode == 70002 && delta >= 0) || (ItemCode == 70003 && delta <= 0)) return;
+    const int minutes = static_cast<int>(std::round(std::abs(delta) / 60.0));
+    if (minutes == 0) return;
+    sprintf_s(sItemString, 16, "%s%d", delta < 0 ? "-" : "", minutes);
+    if (pColorCode && pRGB) {
+        *pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
+        *pRGB = delta < 0 ? RGB(41,255,40) : minutes < 3 ? RGB(240,225,41) : RGB(225,25,25);
+    }
+}
+
+void VatIRISPlugin::OnNewMetarReceived(const char *station, const char *metar)
+{
+    if (!station || !metar || (std::string(station) != "ESSA" && std::string(station) != "ESSB")) return;
+    try {
+        std::cmatch match;
+        static const std::regex wind(R"((?:^|\s)([0-9]{3}|VRB)([0-9]{2,3})(?:G[0-9]{2,3})?(KT|MPS)(?:\s|$))");
+        if (!std::regex_search(metar, match, wind)) return;
+        const int direction = match[1].str() == "VRB" ? 0 : std::stoi(match[1].str());
+        const double speed = std::stod(match[2].str()) * (match[3].str() == "MPS" ? 1.943844 : 1.0);
+        maestroWinds[station] = { {"direction", direction}, {"speed", speed},
+            {"timestamp", static_cast<long long>(std::time(nullptr)) * 1000} };
+    } catch (...) { }
+}
+
+void VatIRISPlugin::ExportMaestroTelemetry()
+{
+    try {
+        nlohmann::json data = { {"source", ControllerMyself().IsValid() ? ControllerMyself().GetCallsign() : "OFFLINE"},
+            {"timestamp", static_cast<long long>(std::time(nullptr)) * 1000}, {"flights", nlohmann::json::array()}, {"winds", maestroWinds} };
+        nlohmann::json runwayGeometry = nlohmann::json::object();
+        for (auto runway = SectorFileElementSelectFirst(EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY); runway.IsValid();
+            runway = SectorFileElementSelectNext(runway, EuroScopePlugIn::SECTOR_ELEMENT_RUNWAY)) {
+            const auto airport = runway.GetAirportName();
+            if (!airport || (std::string(airport) != "ESSA" && std::string(airport) != "ESSB")) continue;
+            for (int end = 0; end < 2; end++) {
+                EuroScopePlugIn::CPosition threshold, opposite;
+                const auto name = runway.GetRunwayName(end);
+                if (!name || !*name || !runway.GetPosition(&threshold, end) || !runway.GetPosition(&opposite, 1-end)) continue;
+                const double pi = 3.141592653589793, a = threshold.m_Latitude*pi/180, b = opposite.m_Latitude*pi/180;
+                const double delta = (opposite.m_Longitude-threshold.m_Longitude)*pi/180;
+                const double bearing = std::fmod(std::atan2(std::sin(delta)*std::cos(b), std::cos(a)*std::sin(b)-std::sin(a)*std::cos(b)*std::cos(delta))*180/pi+360,360);
+                runwayGeometry[std::string(airport)+"/"+name] = { {"latitude",threshold.m_Latitude}, {"longitude",threshold.m_Longitude}, {"heading",bearing} };
+            }
+        }
+        data["runways"] = runwayGeometry;
+        if (GetConnectionType() != EuroScopePlugIn::CONNECTION_TYPE_NO) {
+            int count = 0;
+            for (auto fp = FlightPlanSelectFirst(); fp.IsValid() && count < 1000; fp = FlightPlanSelectNext(fp)) {
+                const auto fpd = fp.GetFlightPlanData();
+                if (!fpd.IsReceived() || !fpd.GetDestination()) continue;
+                const std::string arrival = fpd.GetDestination();
+                if (arrival != "ESSA" && arrival != "ESSB") continue;
+                const auto target = fp.GetCorrelatedRadarTarget();
+                if (!target.IsValid()) continue;
+                const auto position = target.GetPosition();
+                if (position.GetReceivedTime() > 30) continue;
+                const auto route = fp.GetExtractedRoute();
+                const int points = route.GetPointsNumber();
+                if (points < 1 || points > 1000) continue;
+                nlohmann::json prediction = nlohmann::json::array();
+                for (int i = 0; i < points; i++) {
+                    const char *name = route.GetPointName(i);
+                    if (!name || strlen(name) > 40) continue;
+                    const auto point = route.GetPointPosition(i);
+                    prediction.push_back({ {"name", name}, {"seconds", route.GetPointDistanceInMinutes(i) * 60},
+                        {"latitude",point.m_Latitude}, {"longitude",point.m_Longitude} });
+                }
+                const auto ctr = fp.GetControllerAssignedData();
+                const int assigned = route.GetPointsAssignedIndex();
+                const int calculated = route.GetPointsCalculatedIndex();
+                const std::string problem = assigned >= 0 && calculated >= 0 && assigned < calculated ?
+                    "Assigned direct-to is behind the current route position" : "";
+                const auto callsign = fp.GetCallsign();
+                if (!callsign || strlen(callsign) > 16) continue;
+                const auto coordinates = position.GetPosition();
+                data["flights"].push_back({ {"callsign", callsign}, {"aircraft", fpd.GetAircraftFPType()},
+                    {"wake", std::string(1, fpd.GetAircraftWtc())}, {"departure", fpd.GetOrigin()}, {"arrival", arrival},
+                    {"runway", fpd.GetArrivalRwy()}, {"route", prediction},
+                    {"star",fpd.GetStarName()?fpd.GetStarName():""}, {"routeText",std::string(fpd.GetRoute()?fpd.GetRoute():"").substr(0,4096)},
+                    {"assignedSpeed",ctr.GetAssignedSpeed()}, {"verticalSpeed",target.GetVerticalSpeed()},
+                    {"landingSeconds", route.GetPointDistanceInMinutes(points - 1) * 60},
+                    {"distanceNm", fp.GetDistanceToDestination()}, {"groundspeed", position.GetReportedGS()},
+                    {"altitude", position.GetPressureAltitude()}, {"heading", position.GetReportedHeadingTrueNorth()},
+                    {"assignedHeading", ctr.GetAssignedHeading()}, {"direct", ctr.GetDirectToPointName()}, {"routeProblem", problem},
+                    {"latitude",coordinates.m_Latitude}, {"longitude",coordinates.m_Longitude},
+                    {"positionAgeSeconds",position.GetReceivedTime()}, {"calculatedRouteIndex",calculated} });
+                const std::string runwayKey=arrival+"/"+fpd.GetArrivalRwy();
+                if (runwayGeometry.contains(runwayKey)) data["flights"].back()["threshold"]=runwayGeometry[runwayKey];
+                count++;
+            }
+        }
+        std::string file = DllPathFile;
+        file = file.substr(0, file.find_last_of("\\/") + 1) + "MAESTROTelemetry.json";
+        const std::string temp = file + ".tmp";
+        { std::ofstream out(temp, std::ios::binary | std::ios::trunc); if (!out) return; out << data.dump(); if (!out) return; }
+        MoveFileExA(temp.c_str(), file.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH);
+    } catch (...) { /* Invalid predictions must not interrupt the radar. */ }
 }
 
 void VatIRISPlugin::UpdateMyself()

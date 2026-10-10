@@ -73,7 +73,12 @@ import { useWindStore } from "./stores/wind"
 import { useEaipStore } from "./stores/eaip"
 import { useVatfspStore } from "./stores/vatfsp"
 
-registerSW({ immediate: true })
+const localAmanPreview = (window as any).__AMAN_LOCAL_TEST__ === true && ['localhost','127.0.0.1'].includes(location.hostname)
+if (!localAmanPreview) registerSW({ immediate: true })
+else if ('serviceWorker' in navigator) {
+    // Local test builds must always load the current files after an update.
+    void navigator.serviceWorker.getRegistrations().then(registrations => Promise.all(registrations.map(r=>r.unregister()))).catch(()=>{})
+}
 
 const global = window as any
 

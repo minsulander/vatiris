@@ -39,3 +39,9 @@ A locally running backend will support logins through the [VATSIM Connect develo
 - Environment variables `WIKI_TOKEN` and `WIKI_SECRET` for wiki access, available through the wiki [my account page](https://wiki.vatsim-scandinavia.org/my-account/auth)
 - CDM proxy: `VIFF_BASE_URL` (default `https://api.viffsys.com` per [vIFF API](https://github.com/rpuig2001/CDM/wiki/vIFF-Documentation)). `CDM_API_KEY` required only for DPI (REA/DLA/SIR); reading CTOT via dep/arr airport or `etfms/restricted` works without a key.
 
+
+### ESSA arrival manager
+
+The ESSA AMAN opens through Flight → MAESTRO ESSA or `/maestro`. See [AMAN.md](AMAN.md) for the prediction model and [AMAN-SHARING.md](AMAN-SHARING.md) for shared-backend deployment, controller setup and staging checks.
+
+From `frontend`, run `npm run test:maestro` for the arrival engine regressions.

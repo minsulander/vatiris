@@ -7,7 +7,7 @@
         @close="close"
         @focus="focus"
     >
-        <slot v-if="showContent"></slot>
+        <slot v-if="showContent || props.preserveContent"></slot>
     </VueWinBox>
 </template>
 
@@ -23,6 +23,7 @@ const props = defineProps<{
     width?: string | number
     height?: string | number
     class?: string
+    preserveContent?: boolean
 }>()
 
 const windows = useWindowsStore()
@@ -36,7 +37,7 @@ const options = computed(() => {
     const height = props.height || 480
     return {
         title: props.title || "",
-        class: `no-full ${props.class || ""}`,
+        class: `no-full ${props.id === "maestro-essa" ? "aman-window" : ""} ${props.class || ""}`,
         top: 30,
         border: 3,
         min: id in windows.layout && windows.layout[id].min,
@@ -270,3 +271,7 @@ onUnmounted(() => {
     delete windows.winbox[props.id]
 })
 </script>
+
+<style>
+.aman-window .wb-title{font-family:Arial,Tahoma,sans-serif!important;font-size:14px!important;font-weight:700!important}
+</style>

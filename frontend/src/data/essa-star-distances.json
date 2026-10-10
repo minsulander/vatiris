@@ -1,0 +1,665 @@
+{
+  "airport": "ESSA",
+  "units": "NM",
+  "source": {
+    "file": "STAR Distances (updated).xlsx",
+    "sha256": "0ad96dafbb4dcf807ae55d2bc320e7eba1768aeb134c4f442df202a4bd73606e",
+    "sheet": "Tabellenblatt1"
+  },
+  "geometrySources": {
+    "runways": "ESAA-Sweden_20261001222554-261001-0003.sct",
+    "feeders": "ESAA/NavData/isec.txt"
+  },
+  "defaultMethod": "vectors",
+  "profiles": [
+    {
+      "id": "01L:ELTOK:ELTOK8M",
+      "runway": "01L",
+      "feeder": "ELTOK",
+      "procedure": "ELTOK8M",
+      "kind": "star",
+      "sourceRange": "A3:E3",
+      "shortest": 46.0,
+      "ese": 48.0,
+      "vectors": 49.0
+    },
+    {
+      "id": "01L:VACRA:VACRA1M",
+      "runway": "01L",
+      "feeder": "VACRA",
+      "procedure": "VACRA1M",
+      "kind": "star",
+      "sourceRange": "A4:E4",
+      "shortest": 65.0,
+      "ese": 67.0,
+      "vectors": 72.0
+    },
+    {
+      "id": "01L:NILUG:NILUG3M",
+      "runway": "01L",
+      "feeder": "NILUG",
+      "procedure": "NILUG3M",
+      "kind": "star",
+      "sourceRange": "A5:E5",
+      "shortest": 50.0,
+      "ese": 66.0,
+      "vectors": 71.0
+    },
+    {
+      "id": "01L:XILAN:XILAN5M",
+      "runway": "01L",
+      "feeder": "XILAN",
+      "procedure": "XILAN5M",
+      "kind": "star",
+      "sourceRange": "A6:E6",
+      "shortest": 52.0,
+      "ese": 49.0,
+      "vectors": 54.0
+    },
+    {
+      "id": "01R:ELTOK:ELTOK8M",
+      "runway": "01R",
+      "feeder": "ELTOK",
+      "procedure": "ELTOK8M",
+      "kind": "star",
+      "sourceRange": "A11:E11",
+      "shortest": 55.0,
+      "ese": 54.0,
+      "vectors": 57.0
+    },
+    {
+      "id": "01R:VACRA:VACRA1M",
+      "runway": "01R",
+      "feeder": "VACRA",
+      "procedure": "VACRA1M",
+      "kind": "star",
+      "sourceRange": "A12:E12",
+      "shortest": 75.0,
+      "ese": 73.0,
+      "vectors": 81.0
+    },
+    {
+      "id": "01R:NILUG:NILUG3M",
+      "runway": "01R",
+      "feeder": "NILUG",
+      "procedure": "NILUG3M",
+      "kind": "star",
+      "sourceRange": "A13:E13",
+      "shortest": 49.0,
+      "ese": 72.0,
+      "vectors": 80.0
+    },
+    {
+      "id": "01R:XILAN:XILAN5M",
+      "runway": "01R",
+      "feeder": "XILAN",
+      "procedure": "XILAN5M",
+      "kind": "star",
+      "sourceRange": "A14:E14",
+      "shortest": 57.0,
+      "ese": 55.0,
+      "vectors": 63.0
+    },
+    {
+      "id": "08:ELTOK:ELTOK8S",
+      "runway": "08",
+      "feeder": "ELTOK",
+      "procedure": "ELTOK8S",
+      "kind": "star",
+      "sourceRange": "A15:E15",
+      "shortest": 33.0,
+      "ese": 39.0,
+      "vectors": 41.0
+    },
+    {
+      "id": "08:VACRA:VACRA1S",
+      "runway": "08",
+      "feeder": "VACRA",
+      "procedure": "VACRA1S",
+      "kind": "star",
+      "sourceRange": "A16:E16",
+      "shortest": 59.0,
+      "ese": 81.0,
+      "vectors": 88.0
+    },
+    {
+      "id": "08:NILUG:NILUG3S",
+      "runway": "08",
+      "feeder": "NILUG",
+      "procedure": "NILUG3S",
+      "kind": "star",
+      "sourceRange": "A17:E17",
+      "shortest": 75.0,
+      "ese": 80.0,
+      "vectors": 87.0
+    },
+    {
+      "id": "08:XILAN:XILAN5S",
+      "runway": "08",
+      "feeder": "XILAN",
+      "procedure": "XILAN5S",
+      "kind": "star",
+      "sourceRange": "A18:E18",
+      "shortest": 60.0,
+      "ese": 63.0,
+      "vectors": 70.0
+    },
+    {
+      "id": "19L:ELTOK:ELTOK8P",
+      "runway": "19L",
+      "feeder": "ELTOK",
+      "procedure": "ELTOK8P",
+      "kind": "star",
+      "sourceRange": "A19:E19",
+      "shortest": 43.0,
+      "ese": 45.0,
+      "vectors": 48.0
+    },
+    {
+      "id": "19L:VACRA:VACRA1P",
+      "runway": "19L",
+      "feeder": "VACRA",
+      "procedure": "VACRA1P",
+      "kind": "star",
+      "sourceRange": "A20:E20",
+      "shortest": 40.0,
+      "ese": 66.0,
+      "vectors": 66.0
+    },
+    {
+      "id": "19L:NILUG:NILUG3P",
+      "runway": "19L",
+      "feeder": "NILUG",
+      "procedure": "NILUG3P",
+      "kind": "star",
+      "sourceRange": "A21:E21",
+      "shortest": 75.0,
+      "ese": 88.0,
+      "vectors": 88.0
+    },
+    {
+      "id": "19L:XILAN:XILAN6P",
+      "runway": "19L",
+      "feeder": "XILAN",
+      "procedure": "XILAN6P",
+      "kind": "star",
+      "sourceRange": "A22:E22",
+      "shortest": 45.0,
+      "ese": 71.0,
+      "vectors": 71.0
+    },
+    {
+      "id": "19R:ELTOK:ELTOK8P",
+      "runway": "19R",
+      "feeder": "ELTOK",
+      "procedure": "ELTOK8P",
+      "kind": "star",
+      "sourceRange": "A23:E23",
+      "shortest": 43.0,
+      "ese": 45.0,
+      "vectors": 48.0
+    },
+    {
+      "id": "19R:VACRA:VACRA1P",
+      "runway": "19R",
+      "feeder": "VACRA",
+      "procedure": "VACRA1P",
+      "kind": "star",
+      "sourceRange": "A24:E24",
+      "shortest": 40.0,
+      "ese": 66.0,
+      "vectors": 67.0
+    },
+    {
+      "id": "19R:NILUG:NILUG3P",
+      "runway": "19R",
+      "feeder": "NILUG",
+      "procedure": "NILUG3P",
+      "kind": "star",
+      "sourceRange": "A25:E25",
+      "shortest": 75.0,
+      "ese": 88.0,
+      "vectors": 89.0
+    },
+    {
+      "id": "19R:XILAN:XILAN6P",
+      "runway": "19R",
+      "feeder": "XILAN",
+      "procedure": "XILAN6P",
+      "kind": "star",
+      "sourceRange": "A26:E26",
+      "shortest": 45.0,
+      "ese": 71.0,
+      "vectors": 72.0
+    },
+    {
+      "id": "26:ELTOK:ELTOK5T",
+      "runway": "26",
+      "feeder": "ELTOK",
+      "procedure": "ELTOK5T",
+      "kind": "star",
+      "sourceRange": "A31:E31",
+      "shortest": 55.0,
+      "ese": 63.0,
+      "vectors": 64.0
+    },
+    {
+      "id": "26:VACRA:VACRA1T",
+      "runway": "26",
+      "feeder": "VACRA",
+      "procedure": "VACRA1T",
+      "kind": "star",
+      "sourceRange": "A32:E32",
+      "shortest": 46.0,
+      "ese": 45.0,
+      "vectors": 46.0
+    },
+    {
+      "id": "26:NILUG:NILUG3T",
+      "runway": "26",
+      "feeder": "NILUG",
+      "procedure": "NILUG3T",
+      "kind": "star",
+      "sourceRange": "A33:E33",
+      "shortest": 68.0,
+      "ese": 66.0,
+      "vectors": 71.0
+    },
+    {
+      "id": "26:XILAN:XILAN6T",
+      "runway": "26",
+      "feeder": "XILAN",
+      "procedure": "XILAN6T",
+      "kind": "star",
+      "sourceRange": "A34:E34",
+      "shortest": 34.0,
+      "ese": 49.0,
+      "vectors": 54.0
+    },
+    {
+      "id": "01L:ELTOK:ALJAC RNP Y",
+      "runway": "01L",
+      "feeder": "ELTOK",
+      "procedure": "ALJAC RNP Y",
+      "kind": "rnp",
+      "shortest": 41.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B40:C40"
+    },
+    {
+      "id": "01R:XILAN:REYMY RNP Z",
+      "runway": "01R",
+      "feeder": "XILAN",
+      "procedure": "REYMY RNP Z",
+      "kind": "rnp",
+      "shortest": 39.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B42:C42"
+    },
+    {
+      "id": "01R:NILUG:AXWAL RNP Y",
+      "runway": "01R",
+      "feeder": "NILUG",
+      "procedure": "AXWAL RNP Y",
+      "kind": "rnp",
+      "shortest": 50.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B43:C43"
+    },
+    {
+      "id": "01R:ELTOK:INLUX RNP X",
+      "runway": "01R",
+      "feeder": "ELTOK",
+      "procedure": "INLUX RNP X",
+      "kind": "rnp",
+      "shortest": 43.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B44:C44"
+    },
+    {
+      "id": "19R:XILAN:ELFEC RNP Y",
+      "runway": "19R",
+      "feeder": "XILAN",
+      "procedure": "ELFEC RNP Y",
+      "kind": "rnp",
+      "shortest": 43.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B45:C45"
+    },
+    {
+      "id": "19R:ELTOK:BALVI RNP X",
+      "runway": "19R",
+      "feeder": "ELTOK",
+      "procedure": "BALVI RNP X",
+      "kind": "rnp",
+      "shortest": 37.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B46:C46"
+    },
+    {
+      "id": "26:XILAN:SA502 RNP Y",
+      "runway": "26",
+      "feeder": "XILAN",
+      "procedure": "SA502 RNP Y",
+      "kind": "rnp",
+      "shortest": 43.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B47:C47"
+    },
+    {
+      "id": "26:ELTOK:SA502 RNP Y",
+      "runway": "26",
+      "feeder": "ELTOK",
+      "procedure": "SA502 RNP Y",
+      "kind": "rnp",
+      "shortest": 48.0,
+      "ese": null,
+      "vectors": null,
+      "sourceRange": "B47:D47"
+    }
+  ],
+  "trajectories": [
+    {
+      "method": "ese",
+      "fix": "OBCIV",
+      "runway": "01L",
+      "remainingNm": 26.0,
+      "sourceRange": "H3:I3"
+    },
+    {
+      "method": "vectors",
+      "fix": "OBCIV",
+      "runway": "01L",
+      "remainingNm": 27.0,
+      "sourceRange": "H4:I4"
+    },
+    {
+      "method": "ese",
+      "fix": "TEB",
+      "runway": "01L",
+      "remainingNm": 21.0,
+      "sourceRange": "H5:I5"
+    },
+    {
+      "method": "vectors",
+      "fix": "TEB",
+      "runway": "01L",
+      "remainingNm": 26.0,
+      "sourceRange": "H6:I6"
+    },
+    {
+      "method": "ese",
+      "fix": "OBCIV",
+      "runway": "01R",
+      "remainingNm": 32.0,
+      "sourceRange": "H11:I11"
+    },
+    {
+      "method": "vectors",
+      "fix": "OBCIV",
+      "runway": "01R",
+      "remainingNm": 35.0,
+      "sourceRange": "H12:I12"
+    },
+    {
+      "method": "ese",
+      "fix": "TEB",
+      "runway": "01R",
+      "remainingNm": 27.0,
+      "sourceRange": "H13:I13"
+    },
+    {
+      "method": "vectors",
+      "fix": "TEB",
+      "runway": "01R",
+      "remainingNm": 35.0,
+      "sourceRange": "H14:I14"
+    },
+    {
+      "method": "ese",
+      "fix": "BALVI",
+      "runway": "08",
+      "remainingNm": 19.0,
+      "sourceRange": "H15:I15"
+    },
+    {
+      "method": "vectors",
+      "fix": "BALVI",
+      "runway": "08",
+      "remainingNm": 21.0,
+      "sourceRange": "H16:I16"
+    },
+    {
+      "method": "ese",
+      "fix": "TEB",
+      "runway": "08",
+      "remainingNm": 35.0,
+      "sourceRange": "H17:I17"
+    },
+    {
+      "method": "vectors",
+      "fix": "TEB",
+      "runway": "08",
+      "remainingNm": 42.0,
+      "sourceRange": "H18:I18"
+    },
+    {
+      "method": "ese",
+      "fix": "BALVI",
+      "runway": "19L",
+      "remainingNm": 25.0,
+      "sourceRange": "H19:I19"
+    },
+    {
+      "method": "vectors",
+      "fix": "BALVI",
+      "runway": "19L",
+      "remainingNm": 28.0,
+      "sourceRange": "H20:I20"
+    },
+    {
+      "method": "ese",
+      "fix": "ERXEC",
+      "runway": "19L",
+      "remainingNm": 21.0,
+      "sourceRange": "H21:I21"
+    },
+    {
+      "method": "vectors",
+      "fix": "ERXEC",
+      "runway": "19L",
+      "remainingNm": 21.0,
+      "sourceRange": "H22:I22"
+    },
+    {
+      "method": "ese",
+      "fix": "BALVI",
+      "runway": "19R",
+      "remainingNm": 23.0,
+      "sourceRange": "H23:I23"
+    },
+    {
+      "method": "vectors",
+      "fix": "BALVI",
+      "runway": "19R",
+      "remainingNm": 28.0,
+      "sourceRange": "H24:I24"
+    },
+    {
+      "method": "ese",
+      "fix": "ERXEC",
+      "runway": "19R",
+      "remainingNm": 21.0,
+      "sourceRange": "H25:I25"
+    },
+    {
+      "method": "vectors",
+      "fix": "ERXEC",
+      "runway": "19R",
+      "remainingNm": 22.0,
+      "sourceRange": "H26:I26"
+    },
+    {
+      "method": "ese",
+      "fix": "ERXEC",
+      "runway": "26",
+      "remainingNm": 22.0,
+      "sourceRange": "H31:I31"
+    },
+    {
+      "method": "vectors",
+      "fix": "ERXEC",
+      "runway": "26",
+      "remainingNm": 23.0,
+      "sourceRange": "H32:I32"
+    },
+    {
+      "method": "ese",
+      "fix": "TEB",
+      "runway": "26",
+      "remainingNm": 21.0,
+      "sourceRange": "H33:I33"
+    },
+    {
+      "method": "vectors",
+      "fix": "TEB",
+      "runway": "26",
+      "remainingNm": 26.0,
+      "sourceRange": "H34:I34"
+    }
+  ],
+  "navigation": {
+    "SA502": {
+      "latitude": 59.79658277777778,
+      "longitude": 18.148832777777777
+    },
+    "TEB": {
+      "latitude": 59.531694,
+      "longitude": 18.203306
+    },
+    "NILUG": {
+      "latitude": 58.81583277777777,
+      "longitude": 17.884721944444443
+    },
+    "AXWAL": {
+      "latitude": 59.392721944444446,
+      "longitude": 18.01888888888889
+    },
+    "INLUX": {
+      "latitude": 59.506305833333336,
+      "longitude": 17.597693888888887
+    },
+    "OBCIV": {
+      "latitude": 59.53897194444444,
+      "longitude": 17.358360833333336
+    },
+    "ALJAC": {
+      "latitude": 59.53919388888889,
+      "longitude": 17.470499999999998
+    },
+    "REYMY": {
+      "latitude": 59.60091694444444,
+      "longitude": 18.290555833333336
+    },
+    "XILAN": {
+      "latitude": 59.65944388888889,
+      "longitude": 19.076110833333335
+    },
+    "BALVI": {
+      "latitude": 59.74583277777778,
+      "longitude": 17.590277777777775
+    },
+    "ELTOK": {
+      "latitude": 59.824443888888894,
+      "longitude": 16.989916944444445
+    },
+    "ERXEC": {
+      "latitude": 59.89625,
+      "longitude": 18.336916944444443
+    },
+    "ELFEC": {
+      "latitude": 59.94972194444444,
+      "longitude": 17.892082777777777
+    },
+    "VACRA": {
+      "latitude": 60.279221944444444,
+      "longitude": 18.39155583333333
+    }
+  },
+  "runways": {
+    "08": {
+      "latitude": 59.65841888888889,
+      "longitude": 17.93613277777778,
+      "heading": 75.83313179808567
+    },
+    "26": {
+      "latitude": 59.663896944444446,
+      "longitude": 17.979155833333333,
+      "heading": 255.8702629895875
+    },
+    "01R": {
+      "latitude": 59.626396944444444,
+      "longitude": 17.950741944444445,
+      "heading": 10.380937560836426
+    },
+    "19L": {
+      "latitude": 59.648468888888885,
+      "longitude": 17.95874388888889,
+      "heading": 190.3878419914463
+    },
+    "01L": {
+      "latitude": 59.637252777777775,
+      "longitude": 17.913221944444444,
+      "heading": 10.354331442526908
+    },
+    "19R": {
+      "latitude": 59.666399999999996,
+      "longitude": 17.923766944444445,
+      "heading": 190.36343147249355
+    }
+  },
+  "feeders": {
+    "ELTOK": {
+      "latitude": 59.824444,
+      "longitude": 16.989917
+    },
+    "NILUG": {
+      "latitude": 58.815833,
+      "longitude": 17.884722
+    },
+    "VACRA": {
+      "latitude": 60.279222,
+      "longitude": 18.391556
+    },
+    "XILAN": {
+      "latitude": 59.659444,
+      "longitude": 19.076111
+    }
+  },
+  "notes": {
+    "C1": "The turning radius is not considered in the trajectory calculations.",
+    "C2": "Assuming vectors to join centerline 2 NM from FAP.\n\n* If trajectory FF-FAP inside vectoring lines, turn to final not included in the calculation.\n\n* If trajectory FF-FAP outside vectoring lines, turn to final included in the calculation.\n\n* Curved RNP APPs considered flying direct FF-IAF",
+    "D2": "The FLEG distance calculated from ESE data",
+    "E2": "Assuming vectors from IAF with base turn (parallel distance 6,5) and final turn included in the calculation.\n(Joining the centerline 2 NM from FAP)",
+    "A11": "OGMAK missing for ESE calculations\n\nPosibility: Calculating trajectory using a 2 NM longer final manually\n(this is not considered in the table values)",
+    "A15": "All traffic via TEB is considered flying TEB-ARL to join left downwind.",
+    "C17": "Joining via right base (through the departure flow) gives 60 miles.",
+    "A39": "Considered flying direct to IAF",
+    "B40": "Via ELTOK",
+    "B41": "Via HMR",
+    "B42": "Via XILAN",
+    "B43": "Via NILUG",
+    "B44": "Via ELTOK",
+    "B45": "Via XILAN",
+    "B46": "Via ELTOK",
+    "C47": "Via XILAN",
+    "D47": "Via ELTOK2H"
+  }
+}

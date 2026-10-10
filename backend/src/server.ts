@@ -14,6 +14,7 @@ const app = express()
 const port = process.env.PORT || 5172
 
 app.use(cors())
+app.use('/maestro', bodyparser.json({ limit: '5mb' }))
 app.use(bodyparser.json())
 
 app.listen(port, async () => {
@@ -73,6 +74,8 @@ app.use("/wiki", wikiRoutes)
 
 import esdataRoutes from "./routes/esdata"
 app.use("/esdata", esdataRoutes)
+import maestroRoutes from "./routes/maestro"
+app.use("/maestro", maestroRoutes)
 
 import eaipRoutes from "./routes/eaip"
 app.use("/eaip", eaipRoutes)

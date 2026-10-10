@@ -11,6 +11,7 @@
                 v-if="id in windows.layout && windows.layout[id].enabled"
                 :key="id"
                 :id="'' + id"
+                :preserve-content="('' + id) === 'maestro-essa'"
                 :title="win.title"
                 :width="win.width"
                 :height="win.height"
@@ -75,6 +76,7 @@ import Pdf from "@/components/Pdf.vue"
 import About from "@/components/About.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
+import Maestro from "@/components/flight/MaestroJuha.vue"
 import useEventBus from "@/eventbus"
 import AircraftTypes from "@/components/icao/AircraftTypes.vue"
 import Callsigns from "@/components/icao/Callsigns.vue"
@@ -104,6 +106,12 @@ const windows = useWindowsStore()
 
 const showAboutDialog = ref(false)
 const availableWindows = shallowReactive({
+    "maestro-essa": {
+        title: "AMAN",
+        component: Maestro,
+        width: 780,
+        height: 700,
+    },
     notam: {
         title: "NOTAM",
         component: Notam,
