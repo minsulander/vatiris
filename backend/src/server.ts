@@ -14,6 +14,7 @@ const app = express()
 const port = process.env.PORT || 5172
 
 app.use(cors())
+app.use("/aman", bodyparser.json({ limit: "2mb" }))
 app.use(bodyparser.json())
 
 app.listen(port, async () => {
@@ -86,6 +87,11 @@ app.use("/fsp", fspRoutes)
 import cdmRoutes from "./routes/cdm"
 app.use("/cdm", cdmRoutes)
 
+import amanRoutes from "./routes/aman"
+import amanRoomRoutes from "./routes/aman-rooms"
+app.use("/aman/rooms", amanRoomRoutes)
+app.use("/aman", amanRoutes)
+
 import aupRoutes from "./routes/aup"
 app.use("/aup", aupRoutes)
 app.use("/lara", aupRoutes)
@@ -94,3 +100,4 @@ app.use(express.static("public"))
 app.get(/.*/, (req, res) => {
     res.status(404).send()
 })
+
