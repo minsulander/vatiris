@@ -84,6 +84,12 @@ app.use("/notam", notamRoutes)
 import fspRoutes from "./routes/fsp"
 app.use("/fsp", fspRoutes)
 
+import wxRoutes from "./routes/wx"
+app.use("/wx", wxRoutes)
+
+import efsRoutes from "./routes/efs"
+app.use("/efs", efsRoutes)
+
 import cdmRoutes from "./routes/cdm"
 app.use("/cdm", cdmRoutes)
 

@@ -2,6 +2,60 @@ import moment from "moment"
 import { useAirportStore, type Airport } from "@/stores/airport"
 import * as turf from "@turf/turf"
 import { sidManager, type SIDMatch } from "@/sid"
+import Papa from "papaparse"
+import runwaysRaw from "@/data/runways.csv?raw"
+
+interface RunwayThreshold {
+    airport: string
+    ident: string
+    lat: number
+    lon: number
+}
+
+const thresholdCsv = runwaysRaw.replace(/""([^"]+)""/g, "$1").replace(/"([^"]+)"/g, "$1")
+const runwayThresholds: RunwayThreshold[] = []
+for (const row of Papa.parse(thresholdCsv, { header: true, skipEmptyLines: true, delimiter: "," })
+    .data as any[]) {
+    const airport = (row.airport_ident || "").trim()
+    if (!airport) continue
+    const leLat = parseFloat(row.le_latitude_deg)
+    const leLon = parseFloat(row.le_longitude_deg)
+    const heLat = parseFloat(row.he_latitude_deg)
+    const heLon = parseFloat(row.he_longitude_deg)
+    const leIdent = (row.le_ident || "").trim()
+    const heIdent = (row.he_ident || "").trim()
+    if (leIdent && isFinite(leLat) && isFinite(leLon)) {
+        runwayThresholds.push({ airport, ident: leIdent, lat: leLat, lon: leLon })
+    }
+    if (heIdent && isFinite(heLat) && isFinite(heLon)) {
+        runwayThresholds.push({ airport, ident: heIdent, lat: heLat, lon: heLon })
+    }
+}
+
+/** Great-circle distance in NM from pilot position to runway threshold. */
+export function distanceToRunwayThreshold(
+    pilot: { latitude?: number; longitude?: number },
+    icao: string,
+    runway: string,
+): number {
+    if (
+        !pilot ||
+        !isFinite(pilot.latitude as number) ||
+        !isFinite(pilot.longitude as number) ||
+        !icao ||
+        !runway
+    ) {
+        return Infinity
+    }
+    const rwy = runway.toUpperCase().trim()
+    const thr = runwayThresholds.find(
+        (t) => t.airport === icao.toUpperCase() && t.ident.toUpperCase() === rwy,
+    )
+    if (!thr) return Infinity
+    const from = turf.point([pilot.longitude as number, pilot.latitude as number])
+    const to = turf.point([thr.lon, thr.lat])
+    return turf.distance(from, to) / 1.852
+}
 
 export function departureDistance(pilot: any) {
     if (

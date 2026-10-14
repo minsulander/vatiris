@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid"
 import axios from "axios"
 import { defineStore } from "pinia"
 import { reactive, ref } from "vue"
+import moment from "moment"
 const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
 
 export const useEsdataStore = defineStore("esdata", () => {
@@ -11,6 +12,8 @@ export const useEsdataStore = defineStore("esdata", () => {
     const data = reactive({} as any)
     const subscriptions = reactive([] as string[])
     const loading = ref(false)
+    /** ISO time of last successful esdata fetch (client receive). */
+    const lastReceivedAt = ref<string | null>(null)
 
     const statusLabel = {
         PRE: "PRE",
@@ -87,12 +90,26 @@ export const useEsdataStore = defineStore("esdata", () => {
             const res = await axios.get(`${backendBaseUrl}/esdata`)
             for (const key in data) delete data[key]
             Object.assign(data, res.data)
+            lastReceivedAt.value = moment.utc().toISOString()
             loading.value = false
             //console.log("Got ES data")
         } catch (error) {
             console.error("Failed to fetch esdata", error)
             loading.value = false
         }
+    }
+
+    /** Newest payload timestamp among callsigns, else last successful fetch. */
+    function latestDataTime(): string | null {
+        let latest: moment.Moment | null = null
+        for (const key of Object.keys(data)) {
+            const t = data[key]?.timestamp
+            if (!t) continue
+            const m = moment.utc(t)
+            if (m.isValid() && (!latest || m.isAfter(latest))) latest = m
+        }
+        if (latest) return latest.toISOString()
+        return lastReceivedAt.value
     }
 
     if ((window as any).esdataRefreshInterval) clearInterval((window as any).esdataRefreshInterval)
@@ -110,11 +127,13 @@ export const useEsdataStore = defineStore("esdata", () => {
     return {
         data,
         loading,
+        lastReceivedAt,
         statusLabel,
         statusDescription,
         statusOrder,
         subscribe,
         unsubscribe,
         fetch,
+        latestDataTime,
     }
 })

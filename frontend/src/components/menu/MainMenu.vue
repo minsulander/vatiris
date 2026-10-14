@@ -99,6 +99,10 @@ const menuItems = reactive({
     eCharts: "echarts",
     Flight: {
         "ARR DEP": "arrdep",
+        STRIPVIEW: {
+            ESSA: "striptv-essa",
+            // ESSB / ESGG — deferred
+        },
     },
     ATFCM: {
         ECFMP: "ECFMP",

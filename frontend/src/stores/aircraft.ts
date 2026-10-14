@@ -122,6 +122,7 @@ export const useAircraftStore = defineStore("aircraft", () => {
 
     return {
         getT1,
+        getWTC,
         isSlowAircraft,
         isNotMediumWTC,
         isPropellerDriven,

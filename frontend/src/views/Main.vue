@@ -75,6 +75,8 @@ import Pdf from "@/components/Pdf.vue"
 import About from "@/components/About.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
+import StripTvEssa from "@/components/striptv/StripTvEssa.vue"
+// StripTvPaper (ESGG) — deferred
 import useEventBus from "@/eventbus"
 import AircraftTypes from "@/components/icao/AircraftTypes.vue"
 import Callsigns from "@/components/icao/Callsigns.vue"
@@ -256,6 +258,13 @@ const availableWindows = shallowReactive({
         width: 680,
         height: 400,
     },
+    "striptv-essa": {
+        title: "STRIPVIEW ESSA",
+        component: StripTvEssa,
+        width: 1100,
+        height: 700,
+    },
+    // striptv-esgg (StripTvPaper) — deferred
     sectors: {
         title: "Sectors",
         component: Iframe,
