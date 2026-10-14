@@ -1,13 +1,19 @@
 /**
- * Seed local IRIS with mock ESSA/ESGG strip traffic for Strip TV look tweaking.
+ * Seed local IRIS with mock ESSA strip traffic via esdata + /efs/sync.
  * Usage: node scripts/mock-striptv.mjs
  */
 const BASE = process.env.BACKEND_URL || "http://localhost:5172"
+const REALM = process.env.EFS_SYNC_REALM || "live"
+const CID = process.env.EFS_SYNC_CID || "1396125"
+const AIRPORT = "ESSA"
 
 async function put(path, body) {
     const res = await fetch(`${BASE}${path}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "X-Vatsim-Cid": CID,
+        },
         body: JSON.stringify(body),
     })
     if (!res.ok) throw new Error(`${path} ${res.status} ${await res.text()}`)
@@ -44,7 +50,6 @@ const types = [
     ["CRJ9", "M"],
 ]
 
-/** Hand-picked head of sequence (first = bottom of bay). */
 const flights = [
     { cs: "UPS292", gs: "LINEUP", rwy: "01L", sid: "300·040·TOVRI", type: "B763", wtc: "H", stand: "F33", cleared: true, cfto: true, atd: "0301", cfl: 5000 },
     { cs: "SAS912", gs: "TAXI", rwy: "01L", sid: "BABAP4C", type: "A20N", wtc: "M", stand: "F12", cleared: true, cfl: 5000 },
@@ -56,7 +61,6 @@ const flights = [
     { cs: "BAW777", gs: "TAXI", rwy: "01R", sid: "ARS3B·KOGAV", type: "B789", wtc: "H", stand: "F05", cleared: true, cfl: 5000 },
 ]
 
-// Bulk traffic so each bay overflows (scroll pin test)
 const airlines = ["SAS", "NAX", "RYR", "DLH", "BAW", "AFL", "THY", "EIN", "LOT", "WZZ", "EZY", "IBE", "AFR", "KLM", "FIN"]
 for (let i = 0; i < 48; i++) {
     const west = i % 2 === 0
@@ -81,7 +85,16 @@ for (let i = 0; i < 48; i++) {
     })
 }
 
+function bayForRwy(rwy) {
+    if (rwy === "01R" || rwy === "19L") return "TWR-E"
+    return "TWR-W"
+}
+
 const esBody = {}
+const orderEntries = []
+let posW = 0
+let posE = 0
+
 for (const f of flights) {
     esBody[f.cs] = {
         groundstate: f.gs,
@@ -96,51 +109,58 @@ for (const f of flights) {
         atd: f.atd,
         cfl: f.cfl,
     }
+    const bayId = bayForRwy(f.rwy)
+    const position = bayId === "TWR-E" ? posE++ : posW++
+    orderEntries.push({
+        stripKey: f.cs,
+        bayId,
+        sectionId: f.gs,
+        position,
+    })
 }
 
-const twrW = flights.filter((f) => f.rwy === "01L" || f.rwy === "08").map((f) => f.cs)
-const twrE = flights.filter((f) => f.rwy === "01R").map((f) => f.cs)
-
-const paper = {
-    PA_TAXI: flights.filter((f) => f.gs === "TAXI").slice(0, 20).map((f) => f.cs),
-    PA_BANAN: flights.filter((f) => f.gs === "LINEUP").slice(0, 16).map((f) => f.cs),
-    UTFLYGNING: flights.filter((f) => f.gs === "DEPA").slice(0, 12).map((f) => f.cs),
-}
-
-/** EFS layout TTL is 5 min — refresh often enough to stay active. */
 const KEEP_ALIVE_MS = Number(process.env.MOCK_INTERVAL_MS) || 90_000
 const once = process.argv.includes("--once")
+const syncBase = `/efs/sync/${REALM}/${AIRPORT}`
 
-async function seed() {
+async function seedFull() {
     await post("/esdata", esBody)
-    await put("/efs/ESSA/DEP", {
-        source: "mock",
-        sep: { sep: "2.5", dlv: "2.5", depGap: "", info: "" },
-        columns: [
-            { id: "TWR-W", callsigns: twrW },
-            { id: "TWR-E", callsigns: twrE },
-        ],
-    })
-    await put("/efs/ESGG/DEP", {
-        source: "mock",
-        sep: { sep: "3", dlv: "2.5", depGap: "6", info: "" },
-        columns: [
-            { id: "PA_TAXI", callsigns: paper.PA_TAXI },
-            { id: "PA_BANAN", callsigns: paper.PA_BANAN },
-            { id: "UTFLYGNING", callsigns: paper.UTFLYGNING },
-        ],
-    })
+    // Parallel strip PUTs (EFS-owned fields only)
+    await Promise.all(
+        orderEntries.map((e) =>
+            put(`${syncBase}/${e.stripKey}`, {
+                strip: {
+                    callsign: e.stripKey,
+                    kind: "aircraft",
+                    bayId: e.bayId,
+                    sectionId: e.sectionId,
+                    position: e.position,
+                },
+                strokes: [],
+            }),
+        ),
+    )
+    await put(`${syncBase}/order`, { revision: Date.now(), entries: orderEntries })
+    await put(`${syncBase}/meta`, { essaSep: { sep: "2.5", dlv: "2.5", depGap: "" } })
+    await put(`${syncBase}/heartbeat`, {})
 }
 
-console.log("Seeding mock Strip TV traffic…")
-await seed()
-console.log("OK — open Flight → STRIP TV ESSA / STRIP TV ESGG")
-console.log(`Callsigns: ${flights.length} total (TWR-W ${twrW.length}, TWR-E ${twrE.length})`)
-console.log("First W:", twrW[0], "First E:", twrE[0])
+async function keepAlive() {
+    await post("/esdata", esBody)
+    await put(`${syncBase}/order`, { revision: Date.now(), entries: orderEntries })
+    await put(`${syncBase}/meta`, { essaSep: { sep: "2.5", dlv: "2.5", depGap: "" } })
+    await put(`${syncBase}/heartbeat`, {})
+}
+
+console.log("Seeding mock Strip TV traffic via /efs/sync…")
+await seedFull()
+console.log("OK — open Flight → STRIPVIEW → ESSA")
+console.log(`Callsigns: ${flights.length} total (order entries ${orderEntries.length})`)
+console.log("Realm:", REALM, "CID:", CID)
 
 if (!once) {
     console.log(`Keep-alive every ${KEEP_ALIVE_MS / 1000}s (Ctrl+C to stop, or --once)`)
     setInterval(() => {
-        seed().catch((err) => console.error("Reseed failed:", err.message || err))
+        keepAlive().catch((err) => console.error("Reseed failed:", err.message || err))
     }, KEEP_ALIVE_MS)
 }

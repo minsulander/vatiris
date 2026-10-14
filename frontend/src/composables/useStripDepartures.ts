@@ -171,6 +171,7 @@ export function useStripDepartures(options: {
         const fp = pilot?.flight_plan || prefile?.flight_plan
 
         const adep = fp?.departure || icao
+        // When EFS sync is live, order membership is authoritative — still enrich even if FP adep mismatches
         if (adep !== icao && !efs.isActive(icao, view)) return null
 
         const type = fp?.aircraft_short || fp?.aircraft || es.aircraft || es.type || ""
@@ -289,22 +290,56 @@ export function useStripDepartures(options: {
 
     const efsActive = computed(() => efs.isActive(icaoRef.value, view))
 
+    function placeholderFlight(callsign: string): StripFlight {
+        const icao = icaoRef.value
+        return {
+            callsign: callsign.toUpperCase(),
+            type: "",
+            wtc: undefined,
+            flightRules: undefined,
+            runway: undefined,
+            sid: undefined,
+            tmaExit: undefined,
+            stand: undefined,
+            groundstate: undefined,
+            adep: icao,
+            ades: undefined,
+            squawk: undefined,
+            std: undefined,
+            atd: undefined,
+            cfto: false,
+            cfl: undefined,
+            rfl: undefined,
+            xfl: undefined,
+            thrDistanceNm: Infinity,
+            sidAmber: false,
+            sidEastBox: false,
+            rwyNonStandard: false,
+        }
+    }
+
     const columns = computed((): StripColumn[] => {
         const icao = icaoRef.value
         const defs = options.columnDefs
 
+        // Track Pinia reactive sync state
+        void efs.efsActive
+        void efs.columns
+        void efs.snapshots
+
+        // EFS live: Strip TV shows ONLY synced order callsigns (join esdata for status)
         if (efs.isActive(icao, view)) {
-            const layout = efs.getLayout(icao, view)
+            const syncedCols = efs.getColumns(icao, view)
             return defs.map((def) => {
-                const col = layout?.columns.find((c) => c.id === def.id)
-                const flights = (col?.callsigns || [])
-                    .map((cs) => enrichCallsign(cs))
-                    .filter((f): f is StripFlight => !!f)
+                const col = syncedCols.find((c) => c.id === def.id)
+                const flights = (col?.callsigns || []).map(
+                    (cs) => enrichCallsign(cs) || placeholderFlight(cs),
+                )
                 return { id: def.id, title: def.title, flights }
             })
         }
 
-        // Fallback: no EFS
+        // Fallback: no EFS — esdata/VATSIM heuristic list only when sync inactive
         const all = collectFallbackFlights()
         return defs.map((def) => {
             let flights: StripFlight[]
@@ -337,19 +372,18 @@ export function useStripDepartures(options: {
     const sep = computed((): EfsSepParams | undefined => {
         const icao = icaoRef.value
         if (icao !== "ESSA" && options.mode !== "essa-twr") {
-            // Paper airports: only show synced SEP when EFS is up
             if (!efs.isActive(icao, view)) return undefined
-            const synced = efs.getLayout(icao, view)?.sep
-            return { ...synced, info: synced?.info ?? "" }
+            const synced = efs.getSep(icao, view)
+            return { ...synced, info: "" }
         }
 
         if (efs.isActive(icao, view)) {
-            const synced = efs.getLayout(icao, view)?.sep
+            const synced = efs.getSep(icao, view)
             return {
                 sep: synced?.sep,
                 dlv: synced?.dlv,
                 depGap: synced?.depGap,
-                info: "", // EFS connected → INFO empty
+                info: "", // EFS live → INFO empty
             }
         }
 
