@@ -94,6 +94,34 @@ function essaColumnForRunway(rwy: string | undefined): string {
     return "TWR-W"
 }
 
+/** Parse ATD HHMM → minutes for ordering (invalid → large). */
+function atdSortMinutes(atd: string | undefined): number {
+    const d = String(atd || "").replace(/\D/g, "")
+    if (d.length < 3 || d.length > 4) return Number.MAX_SAFE_INTEGER
+    const p = d.padStart(4, "0")
+    const hh = Number(p.slice(0, 2))
+    const mm = Number(p.slice(2, 4))
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return Number.MAX_SAFE_INTEGER
+    return hh * 60 + mm
+}
+
+/**
+ * No-EFS bay order (array[0] = bottom of column after DOM reverse):
+ * 1) ATD present (earlier ATD first), 2) CFTO, 3) thr distance.
+ */
+function compareNoEfsStripOrder(a: StripFlight, b: StripFlight): number {
+    const tier = (f: StripFlight) => (f.atd ? 0 : f.cfto ? 1 : 2)
+    const ta = tier(a)
+    const tb = tier(b)
+    if (ta !== tb) return ta - tb
+    if (ta === 0) {
+        const da = atdSortMinutes(a.atd)
+        const db = atdSortMinutes(b.atd)
+        if (da !== db) return da - db
+    }
+    return a.thrDistanceNm - b.thrDistanceNm
+}
+
 export function useStripDepartures(options: {
     icao: Ref<string> | string
     view?: string
@@ -365,7 +393,7 @@ export function useStripDepartures(options: {
                     const wantGs = PAPER_GS[def.id]
                     flights = all.filter((f) => f.groundstate === wantGs)
                 }
-                flights = [...flights].sort((a, b) => a.thrDistanceNm - b.thrDistanceNm)
+                flights = [...flights].sort(compareNoEfsStripOrder)
                 return { id: def.id, title: def.title, flights }
             })
         }
