@@ -8,7 +8,7 @@ IRIS stores EFS-owned data only. EuroScope/ops status stays on **esdata**; consu
 |--------|------|------|
 | PUT/GET/DELETE | `/efs/sync/:realm/:airport/:stripKey` | `{ strokes?, strip? }` |
 | PUT/GET | `/efs/sync/:realm/:airport/order` | `{ revision?, entries: [{ stripKey, bayId, sectionId, position }] }` |
-| PUT/GET | `/efs/sync/:realm/:airport/meta` | `{ essaSep: { sep, dlv, depGap } }` |
+| PUT/GET | `/efs/sync/:realm/:airport/meta` | `{ essaSep: { sep, dlv, depGap }, essaConfig?: "1"\|"9A"\|… }` |
 | PUT | `/efs/sync/:realm/:airport/heartbeat` | `{}` |
 | GET | `/efs/sync/:realm/:airport` | Full snapshot |
 | WS | `/efs/sync/:realm/:airport/ws?cid=` | Fanout |
@@ -19,6 +19,7 @@ IRIS stores EFS-owned data only. EuroScope/ops status stays on **esdata**; consu
 - **Write auth:** `X-Vatsim-Cid` (optional allowlist `EFS_SYNC_ALLOW_CIDS=cid,cid`)
 - **TTL:** 5 minutes from any write → `efsActive`
 - **SEP:** bare numbers preferred (`2.5`); IRIS strips trailing `nm`
+- **essaConfig:** optional ESSA bankonfig id from TWR ES (Strip TV header). If omitted, IRIS derives from plugin `rwyconfig` / ATIS / WX.
 - **Forbidden on strip bodies:** groundstate, clearance, CFTO, depRwy, sid, stand, cfl, ownership, atd, type/wtc, …
 
 ## ESSA Strip TV bay map

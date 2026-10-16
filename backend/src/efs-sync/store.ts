@@ -302,7 +302,7 @@ export function getOrder(realm: EfsRealm, airport: string): AirportOrder | undef
 export function putMeta(
     realm: EfsRealm,
     airport: string,
-    body: { essaSep?: EssaSep },
+    body: { essaSep?: EssaSep; essaConfig?: string },
     cid: number,
 ): AirportMeta | { error: string } {
     if (!body || typeof body !== "object") {
@@ -314,15 +314,18 @@ export function putMeta(
     }
     const room = getOrCreate(realm, airport)
     touch(room, cid)
+    const prev = room.meta
+    const essaConfigRaw = body.essaConfig != null ? String(body.essaConfig).trim() : prev?.essaConfig
     const meta: AirportMeta = {
-        essaSep: normalizeSep(body.essaSep),
+        essaSep: body.essaSep !== undefined ? normalizeSep(body.essaSep) : prev?.essaSep,
+        essaConfig: essaConfigRaw || undefined,
         updatedAt: room.updatedAt,
         updatedByCid: cid,
     }
     room.meta = meta
     broadcast(room, {
         type: "meta",
-        meta: { essaSep: meta.essaSep },
+        meta: { essaSep: meta.essaSep, essaConfig: meta.essaConfig },
         updatedAt: room.updatedAt,
         updatedByCid: cid,
     })

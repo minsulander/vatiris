@@ -12,7 +12,7 @@
             </div>
             <div class="hdr-center">
                 <div class="hdr-rwy">
-                    {{ clockHour }}: ARR {{ ops?.runwayInUse?.arr || "—" }} / DEP
+                    {{ rwyConfigId || "—" }}: ARR {{ ops?.runwayInUse?.arr || "—" }} / DEP
                     {{ ops?.runwayInUse?.dep || activeDepRunway || "—" }}
                 </div>
                 <div class="hdr-sep">
@@ -101,7 +101,7 @@ const wxOps = useWxOpsStore()
 const esdata = useEsdataStore()
 const efs = useEfsStore()
 
-const { columns, ops, sep, activeDepRunway } = useStripDepartures({
+const { columns, ops, sep, activeDepRunway, rwyConfigId } = useStripDepartures({
     icao: "ESSA",
     view: "DEP",
     mode: "essa-twr",
@@ -213,8 +213,6 @@ const dataOutdated = computed(() => {
     if (!t) return true
     return now.value.diff(t) > DATA_STALE_MS
 })
-const clockHour = computed(() => now.value.format("HH"))
-
 interface DisplayColumn {
     id: string
     heading: string

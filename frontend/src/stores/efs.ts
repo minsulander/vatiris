@@ -39,7 +39,7 @@ export interface AirportSyncSnapshot {
     updatedAt: string
     order?: AirportOrder
     strips?: Record<string, unknown>
-    meta?: { essaSep?: EfsSepParams }
+    meta?: { essaSep?: EfsSepParams; essaConfig?: string }
     columns?: EfsColumn[]
     sep?: EfsSepParams
 }
@@ -308,6 +308,12 @@ export const useEfsStore = defineStore("efs", () => {
         return sepByKey[key(defaultRealm.value, airport)]
     }
 
+    function getEssaConfig(airport: string, _view?: string): string | undefined {
+        const snap = snapshots[key(defaultRealm.value, airport)]
+        const c = snap?.meta?.essaConfig
+        return c ? String(c).trim() : undefined
+    }
+
     /** @deprecated use getColumns — kept for transitional callers */
     function getLayout(airport: string, view?: string) {
         const cols = getColumns(airport, view)
@@ -355,6 +361,7 @@ export const useEfsStore = defineStore("efs", () => {
         isActive,
         getColumns,
         getSep,
+        getEssaConfig,
         getLayout,
         latestDataTime,
     }

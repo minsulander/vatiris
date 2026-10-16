@@ -15,6 +15,12 @@ import {
 import constants from "@/constants"
 import { computeEssaSepPreload, isDepRwyNonStandard, normalizeEssaRwy } from "@/striptv/essaSep"
 import { isEssaEastSidBox, isSidAmberHighlight } from "@/striptv/sidHighlight"
+import {
+    GRP_TOF_ROLL_GS_KT,
+    pruneStripAtd,
+    resolveEssaStripTvConfigId,
+    resolveStripAtd,
+} from "@/striptv/essaConfig"
 import type { EfsSepParams } from "@/stores/efs"
 
 export type StripColumnMode = "essa-twr" | "paper"
@@ -34,9 +40,9 @@ export interface StripFlight {
     ades: string | undefined
     squawk: string | undefined
     std: string | undefined
-    /** Actual time of departure (hhmm) — shown above CFTO △ */
+    /** ATD (hhmm) — CFTO+GS>40, or GS>40 if no ground state; shown above △ */
     atd: string | undefined
-    /** Cleared for takeoff — green △ (vatefs clearedForTakeoff) */
+    /** Cleared for takeoff / DEPA — green △ (not ATD) */
     cfto: boolean
     /** EuroScope temporary altitude (feet / FL / 1=CA / 2=VA) */
     cfl: string | number | undefined
@@ -195,12 +201,17 @@ export function useStripDepartures(options: {
 
         const cleared = es.clearence === true || es.clearance === true
         const gs = (es.groundstate || "").toUpperCase()
-        // vatefs: CFTO flag or DEPA groundstate
-        const cfto =
-            es.clearedForTakeoff === true ||
-            es.cfto === true ||
-            gs === "DEPA"
-        const atd = es.atd ? String(es.atd) : undefined
+        // △ = CFTO clearance / DEPA state (not the same as ATD)
+        const cftoFlag = es.clearedForTakeoff === true || es.cfto === true
+        const cfto = cftoFlag || gs === "DEPA"
+        // ATD = CFTO + GS>40; if no ground state at all, GS>40 alone is enough
+        const groundspeed = Number(pilot?.groundspeed)
+        const noGroundState = !gs
+        const rollStarted =
+            Number.isFinite(groundspeed) &&
+            groundspeed > GRP_TOF_ROLL_GS_KT &&
+            (cftoFlag || noGroundState)
+        const atd = resolveStripAtd({ callsign: cs, rollStarted })
         const tmaExit =
             (es.tmaExit && String(es.tmaExit)) ||
             (es.tma_exit && String(es.tma_exit)) ||
@@ -269,6 +280,10 @@ export function useStripDepartures(options: {
             const gs = es?.groundstate
             if (!gs || !TAXI_PLUS.has(gs)) return
 
+            // No-EFS only: drop once past 1000 ft (avoids sticky airborne strips)
+            const alt = typeof p.altitude === "number" ? p.altitude : Number(p.altitude)
+            if (Number.isFinite(alt) && alt > 1000) return
+
             // Skip if clearly airborne / far from airport when we have position
             if (p.latitude != null && p.groundspeed > 50) {
                 const fdpRec = fdp.fdp?.flights?.[cs]
@@ -327,31 +342,36 @@ export function useStripDepartures(options: {
         void efs.columns
         void efs.snapshots
 
+        let result: StripColumn[]
+
         // EFS live: Strip TV shows ONLY synced order callsigns (join esdata for status)
         if (efs.isActive(icao, view)) {
             const syncedCols = efs.getColumns(icao, view)
-            return defs.map((def) => {
+            result = defs.map((def) => {
                 const col = syncedCols.find((c) => c.id === def.id)
                 const flights = (col?.callsigns || []).map(
                     (cs) => enrichCallsign(cs) || placeholderFlight(cs),
                 )
                 return { id: def.id, title: def.title, flights }
             })
+        } else {
+            // Fallback: no EFS — esdata/VATSIM heuristic list only when sync inactive
+            const all = collectFallbackFlights()
+            result = defs.map((def) => {
+                let flights: StripFlight[]
+                if (options.mode === "essa-twr") {
+                    flights = all.filter((f) => essaColumnForRunway(f.runway) === def.id)
+                } else {
+                    const wantGs = PAPER_GS[def.id]
+                    flights = all.filter((f) => f.groundstate === wantGs)
+                }
+                flights = [...flights].sort((a, b) => a.thrDistanceNm - b.thrDistanceNm)
+                return { id: def.id, title: def.title, flights }
+            })
         }
 
-        // Fallback: no EFS — esdata/VATSIM heuristic list only when sync inactive
-        const all = collectFallbackFlights()
-        return defs.map((def) => {
-            let flights: StripFlight[]
-            if (options.mode === "essa-twr") {
-                flights = all.filter((f) => essaColumnForRunway(f.runway) === def.id)
-            } else {
-                const wantGs = PAPER_GS[def.id]
-                flights = all.filter((f) => f.groundstate === wantGs)
-            }
-            flights = [...flights].sort((a, b) => a.thrDistanceNm - b.thrDistanceNm)
-            return { id: def.id, title: def.title, flights }
-        })
+        pruneStripAtd(result.flatMap((c) => c.flights.map((f) => f.callsign)))
+        return result
     })
 
     const ops = computed(() => {
@@ -397,12 +417,30 @@ export function useStripDepartures(options: {
         })
     })
 
+    /** ESSA bankonfig number for Strip TV header (1, 9A, …). */
+    const rwyConfigId = computed((): string | null => {
+        void esdata.data
+        void esdata.lastReceivedAt
+        void efs.snapshots
+        void vatsim.data
+        const icao = icaoRef.value
+        if (icao !== "ESSA") return null
+        return resolveEssaStripTvConfigId({
+            efsActive: efs.isActive(icao, view),
+            efsConfigId: efs.getEssaConfig(icao, view),
+            esdataAll: esdata.data,
+            atis: vatsim.data?.atis,
+            wxRwyHtml: wx.rwy(icao),
+        })
+    })
+
     return {
         columns,
         efsActive,
         ops,
         sep,
         activeDepRunway,
+        rwyConfigId,
         icao: icaoRef,
     }
 }

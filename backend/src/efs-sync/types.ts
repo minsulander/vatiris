@@ -40,6 +40,8 @@ export interface EssaSep {
 
 export interface AirportMeta {
     essaSep?: EssaSep
+    /** ESSA runway config id from TWR ES (e.g. "1", "9A") */
+    essaConfig?: string
     updatedAt?: string
     updatedByCid?: number
 }
