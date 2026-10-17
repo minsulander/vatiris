@@ -1,4 +1,5 @@
 import "./env"
+import http from "http"
 import express, { Request, Response } from "express"
 import cors from "cors"
 import bodyparser from "body-parser"
@@ -16,19 +17,6 @@ const port = process.env.PORT || 5172
 app.use(cors())
 app.use("/aman", bodyparser.json({ limit: "2mb" }))
 app.use(bodyparser.json())
-
-app.listen(port, async () => {
-    console.log(`Server running at http://localhost:${port}`)
-    console.log("  Using VATSIM Auth Base URI:", vatsimAuthBaseUri)
-    console.log("  Using Client ID:", clientId)
-    console.log("  Using Redirect URI:", redirectUri)
-    if (!clientSecret) console.warn("  No CLIENT_SECRET set - VATSIM auth (/token) will fail")
-    try {
-        console.log("  DB Time:", await db.testQuery())
-    } catch (e) {
-        console.error(e)
-    }
-})
 
 import axios from "axios"
 
@@ -84,6 +72,12 @@ app.use("/notam", notamRoutes)
 import fspRoutes from "./routes/fsp"
 app.use("/fsp", fspRoutes)
 
+import wxRoutes from "./routes/wx"
+app.use("/wx", wxRoutes)
+
+import efsSyncRoutes from "./routes/efs-sync"
+app.use("/efs/sync", efsSyncRoutes)
+
 import cdmRoutes from "./routes/cdm"
 app.use("/cdm", cdmRoutes)
 
@@ -99,5 +93,23 @@ app.use("/lara", aupRoutes)
 app.use(express.static("public"))
 app.get(/.*/, (req, res) => {
     res.status(404).send()
+})
+
+import { attachEfsSyncWebSocket } from "./efs-sync/ws"
+
+const server = http.createServer(app)
+attachEfsSyncWebSocket(server)
+
+server.listen(port, async () => {
+    console.log(`Server running at http://localhost:${port}`)
+    console.log("  Using VATSIM Auth Base URI:", vatsimAuthBaseUri)
+    console.log("  Using Client ID:", clientId)
+    console.log("  Using Redirect URI:", redirectUri)
+    if (!clientSecret) console.warn("  No CLIENT_SECRET set - VATSIM auth (/token) will fail")
+    try {
+        console.log("  DB Time:", await db.testQuery())
+    } catch (e) {
+        console.error(e)
+    }
 })
 
