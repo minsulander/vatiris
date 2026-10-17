@@ -55,12 +55,8 @@
                     :ref="(el) => setBayBodyRef(col.id, el)"
                     @wheel.prevent
                 >
-                    <!-- Last→first in DOM; scroll pinned to bottom so #1 stays visible -->
-                    <StripCard
-                        v-for="f in [...col.flights].reverse()"
-                        :key="f.callsign"
-                        :flight="f"
-                    />
+                    <!-- Ascending /order position: index 0 = top (EFS TAXIWAY DEP) -->
+                    <StripCard v-for="f in col.flights" :key="f.callsign" :flight="f" />
                 </div>
             </section>
         </div>

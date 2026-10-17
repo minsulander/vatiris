@@ -40,9 +40,9 @@ export interface StripFlight {
     ades: string | undefined
     squawk: string | undefined
     std: string | undefined
-    /** ATD (hhmm) — CFTO+GS>40, or GS>40 if no ground state; shown above △ */
+    /** ATD (hhmm) — EFS `atd` when sync live; else IRIS roll latch (no-EFS) */
     atd: string | undefined
-    /** Cleared for takeoff / DEPA — green △ (not ATD) */
+    /** CFTO △ — EFS `cfto` when sync live; else esdata/DEPA (no-EFS) */
     cfto: boolean
     /** EuroScope temporary altitude (feet / FL / 1=CA / 2=VA) */
     cfl: string | number | undefined
@@ -106,18 +106,19 @@ function atdSortMinutes(atd: string | undefined): number {
 }
 
 /**
- * No-EFS bay order (array[0] = bottom of column after DOM reverse):
- * 1) ATD present (earlier ATD first), 2) CFTO, 3) thr distance.
+ * No-EFS bay order (array[0] = top, last = bottom — no DOM reverse):
+ * top: thr distance → CFTO → bottom: ATD (earlier ATD lower).
  */
 function compareNoEfsStripOrder(a: StripFlight, b: StripFlight): number {
-    const tier = (f: StripFlight) => (f.atd ? 0 : f.cfto ? 1 : 2)
+    const tier = (f: StripFlight) => (f.atd ? 2 : f.cfto ? 1 : 0)
     const ta = tier(a)
     const tb = tier(b)
     if (ta !== tb) return ta - tb
-    if (ta === 0) {
+    if (ta === 2) {
         const da = atdSortMinutes(a.atd)
         const db = atdSortMinutes(b.atd)
-        if (da !== db) return da - db
+        // Earlier ATD toward bottom → descending within ATD tier
+        if (da !== db) return db - da
     }
     return a.thrDistanceNm - b.thrDistanceNm
 }
@@ -229,17 +230,26 @@ export function useStripDepartures(options: {
 
         const cleared = es.clearence === true || es.clearance === true
         const gs = (es.groundstate || "").toUpperCase()
-        // △ = CFTO clearance / DEPA state (not the same as ATD)
-        const cftoFlag = es.clearedForTakeoff === true || es.cfto === true
-        const cfto = cftoFlag || gs === "DEPA"
-        // ATD = CFTO + GS>40; if no ground state at all, GS>40 alone is enough
-        const groundspeed = Number(pilot?.groundspeed)
-        const noGroundState = !gs
-        const rollStarted =
-            Number.isFinite(groundspeed) &&
-            groundspeed > GRP_TOF_ROLL_GS_KT &&
-            (cftoFlag || noGroundState)
-        const atd = resolveStripAtd({ callsign: cs, rollStarted })
+
+        let cfto: boolean
+        let atd: string | undefined
+        if (efs.isActive(icao, view)) {
+            // EFS-owned cfto/atd from /order (then strip body) — never IRIS GS/esdata
+            const flags = efs.getCftoAtd(icao, cs)
+            cfto = flags.cfto
+            atd = flags.atd || undefined
+        } else {
+            // No-EFS fallback: △ from CFTO/DEPA; ATD = CFTO+GS>40 (or GS>40 if no GS)
+            const cftoFlag = es.clearedForTakeoff === true || es.cfto === true
+            cfto = cftoFlag || gs === "DEPA"
+            const groundspeed = Number(pilot?.groundspeed)
+            const noGroundState = !gs
+            const rollStarted =
+                Number.isFinite(groundspeed) &&
+                groundspeed > GRP_TOF_ROLL_GS_KT &&
+                (cftoFlag || noGroundState)
+            atd = resolveStripAtd({ callsign: cs, rollStarted })
+        }
         const tmaExit =
             (es.tmaExit && String(es.tmaExit)) ||
             (es.tma_exit && String(es.tma_exit)) ||
@@ -335,8 +345,10 @@ export function useStripDepartures(options: {
 
     function placeholderFlight(callsign: string): StripFlight {
         const icao = icaoRef.value
+        const cs = callsign.toUpperCase()
+        const flags = efs.isActive(icao, view) ? efs.getCftoAtd(icao, cs) : { cfto: false, atd: null }
         return {
-            callsign: callsign.toUpperCase(),
+            callsign: cs,
             type: "",
             wtc: undefined,
             flightRules: undefined,
@@ -349,8 +361,8 @@ export function useStripDepartures(options: {
             ades: undefined,
             squawk: undefined,
             std: undefined,
-            atd: undefined,
-            cfto: false,
+            atd: flags.atd || undefined,
+            cfto: flags.cfto,
             cfl: undefined,
             rfl: undefined,
             xfl: undefined,
@@ -372,7 +384,7 @@ export function useStripDepartures(options: {
 
         let result: StripColumn[]
 
-        // EFS live: Strip TV shows ONLY synced order callsigns (join esdata for status)
+        // EFS live: /order TWR-W/E ascending position (0 = top); join esdata + EFS cfto/atd
         if (efs.isActive(icao, view)) {
             const syncedCols = efs.getColumns(icao, view)
             result = defs.map((def) => {
@@ -396,9 +408,9 @@ export function useStripDepartures(options: {
                 flights = [...flights].sort(compareNoEfsStripOrder)
                 return { id: def.id, title: def.title, flights }
             })
+            pruneStripAtd(result.flatMap((c) => c.flights.map((f) => f.callsign)))
         }
 
-        pruneStripAtd(result.flatMap((c) => c.flights.map((f) => f.callsign)))
         return result
     })
 

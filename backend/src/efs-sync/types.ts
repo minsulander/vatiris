@@ -21,6 +21,10 @@ export interface StripMeta {
     qnhGiven?: boolean
     atisGiven?: boolean
     noteText?: string
+    /** Cleared for takeoff (EFS-owned). false clears. */
+    cfto?: boolean
+    /** Actual time of departure HHmm UTC, or null to clear (RTO). */
+    atd?: string | null
     [k: string]: unknown
 }
 
@@ -51,6 +55,10 @@ export interface OrderEntry {
     bayId: string
     sectionId: string
     position: number
+    /** Cleared for takeoff (EFS-owned). false clears. */
+    cfto?: boolean
+    /** Actual time of departure HHmm UTC, or null to clear (RTO). */
+    atd?: string | null
 }
 
 export interface AirportOrder {
@@ -83,7 +91,6 @@ export const FORBIDDEN_ES_KEYS = [
     "clearance",
     "clearence",
     "clearedForTakeoff",
-    "cfto",
     "depRwy",
     "arrRwy",
     "sid",
@@ -94,7 +101,6 @@ export const FORBIDDEN_ES_KEYS = [
     "ownership",
     "nextSector",
     "appDepNextSector",
-    "atd",
     "squawk",
     "aircraft",
     "type",

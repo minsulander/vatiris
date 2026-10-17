@@ -105,17 +105,19 @@ for (const f of flights) {
         wtc: f.wtc,
         flightRules: f.fr || "I",
         clearence: f.cleared !== false,
-        clearedForTakeoff: !!f.cfto || f.gs === "DEPA",
-        atd: f.atd,
         cfl: f.cfl,
     }
     const bayId = bayForRwy(f.rwy)
     const position = bayId === "TWR-E" ? posE++ : posW++
+    const cfto = !!f.cfto || f.gs === "DEPA"
+    const atd = f.atd || null
     orderEntries.push({
         stripKey: f.cs,
         bayId,
         sectionId: f.gs,
         position,
+        cfto,
+        atd,
     })
 }
 
@@ -135,6 +137,8 @@ async function seedFull() {
                     bayId: e.bayId,
                     sectionId: e.sectionId,
                     position: e.position,
+                    cfto: e.cfto,
+                    atd: e.atd,
                 },
                 strokes: [],
             }),

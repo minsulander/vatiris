@@ -25,6 +25,16 @@ export interface OrderEntry {
     bayId: string
     sectionId: string
     position: number
+    /** EFS-owned cleared-for-takeoff; false clears */
+    cfto?: boolean
+    /** EFS-owned ATD HHmm UTC, or null to clear */
+    atd?: string | null
+}
+
+export interface EfsCftoAtd {
+    cfto: boolean
+    /** HHmm or null when cleared / unset */
+    atd: string | null
 }
 
 export interface AirportOrder {
@@ -58,6 +68,13 @@ function sectionRank(sectionId: string) {
     return i >= 0 ? i : SECTION_ORDER.length
 }
 
+function normalizeEfsAtd(raw: unknown): string | null {
+    if (raw === null || raw === false || raw === undefined || raw === "") return null
+    const digits = String(raw).replace(/\D/g, "")
+    if (digits.length < 3 || digits.length > 4) return null
+    return digits.padStart(4, "0")
+}
+
 function columnsFromOrder(order?: AirportOrder): EfsColumn[] {
     const byBay: Record<string, OrderEntry[]> = { "TWR-W": [], "TWR-E": [] }
     for (const e of order?.entries || []) {
@@ -68,6 +85,8 @@ function columnsFromOrder(order?: AirportOrder): EfsColumn[] {
             bayId: bay,
             sectionId: String(e.sectionId || "TAXI").toUpperCase(),
             position: Number(e.position) || 0,
+            cfto: e.cfto === true,
+            atd: normalizeEfsAtd(e.atd),
         })
     }
     for (const bay of Object.keys(byBay)) {
@@ -173,9 +192,25 @@ export const useEfsStore = defineStore("efs", () => {
             return
         }
         if (msg.type === "scribble") {
-            // Strip TV ignores strokes; still refresh activity
             cur.updatedAt = msg.updatedAt || cur.updatedAt
             cur.efsActive = true
+            const sk = msg.stripKey != null ? String(msg.stripKey).toUpperCase() : ""
+            if (sk) {
+                const strips = { ...(cur.strips || {}) } as Record<string, any>
+                if (msg.deleted) {
+                    delete strips[sk]
+                } else if (msg.strip != null || msg.strokes != null) {
+                    const prev = strips[sk] || { stripKey: sk }
+                    strips[sk] = {
+                        ...prev,
+                        stripKey: sk,
+                        strip: msg.strip !== undefined ? msg.strip : prev.strip,
+                        strokes: msg.strokes !== undefined ? msg.strokes : prev.strokes,
+                        updatedAt: msg.updatedAt || prev.updatedAt,
+                    }
+                }
+                cur.strips = strips
+            }
             applySnapshot(k, { ...cur })
         }
     }
@@ -314,6 +349,28 @@ export const useEfsStore = defineStore("efs", () => {
         return c ? String(c).trim() : undefined
     }
 
+    /**
+     * EFS-owned CFTO / ATD for a strip.
+     * Prefer /order entry fields, then strip body. false/null clear.
+     */
+    function getCftoAtd(airport: string, stripKey: string): EfsCftoAtd {
+        const snap = snapshots[key(defaultRealm.value, airport)]
+        const sk = stripKey.toUpperCase()
+        const entry = snap?.order?.entries?.find((e) => String(e.stripKey).toUpperCase() === sk)
+        const stripRec = snap?.strips?.[sk] as { strip?: { cfto?: boolean; atd?: string | null } } | undefined
+        const strip = stripRec?.strip
+
+        let cfto = false
+        if (entry && "cfto" in entry) cfto = entry.cfto === true
+        else if (strip && "cfto" in strip) cfto = strip.cfto === true
+
+        let atd: string | null = null
+        if (entry && "atd" in entry) atd = normalizeEfsAtd(entry.atd)
+        else if (strip && "atd" in strip) atd = normalizeEfsAtd(strip.atd)
+
+        return { cfto, atd }
+    }
+
     /** @deprecated use getColumns — kept for transitional callers */
     function getLayout(airport: string, view?: string) {
         const cols = getColumns(airport, view)
@@ -362,6 +419,7 @@ export const useEfsStore = defineStore("efs", () => {
         getColumns,
         getSep,
         getEssaConfig,
+        getCftoAtd,
         getLayout,
         latestDataTime,
     }

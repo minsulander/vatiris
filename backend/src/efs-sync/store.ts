@@ -73,6 +73,18 @@ function sectionRank(sectionId: string): number {
     return i >= 0 ? i : SECTION_ORDER.length
 }
 
+/** EFS ATD: HHmm UTC, or null to clear. false/""/invalid → null. */
+export function normalizeEfsAtd(raw: unknown): string | null {
+    if (raw === null || raw === false || raw === undefined || raw === "") return null
+    const digits = String(raw).replace(/\D/g, "")
+    if (digits.length < 3 || digits.length > 4) return null
+    return digits.padStart(4, "0")
+}
+
+export function normalizeEfsCfto(raw: unknown): boolean {
+    return raw === true
+}
+
 export function deriveColumns(order?: AirportOrder): EfsColumn[] {
     const byBay: Record<string, OrderEntry[]> = { "TWR-W": [], "TWR-E": [] }
     for (const e of order?.entries || []) {
@@ -83,6 +95,8 @@ export function deriveColumns(order?: AirportOrder): EfsColumn[] {
             bayId: bay,
             sectionId: String(e.sectionId || "TAXI").toUpperCase(),
             position: Number(e.position) || 0,
+            cfto: normalizeEfsCfto(e.cfto),
+            atd: normalizeEfsAtd(e.atd),
         })
     }
     for (const bay of Object.keys(byBay)) {
@@ -194,15 +208,19 @@ export function putStrip(
     const room = getOrCreate(realm, airport)
     touch(room, cid)
     const prev = room.strips[key]
+    let strip: StripMeta | undefined =
+        body.strip !== undefined ? { ...body.strip } : prev?.strip
+    if (strip) {
+        if ("cfto" in strip) strip.cfto = normalizeEfsCfto(strip.cfto)
+        if ("atd" in strip) strip.atd = normalizeEfsAtd(strip.atd)
+        if (strip.callsign) strip.callsign = String(strip.callsign).toUpperCase()
+    }
     const record: StripSyncRecord = {
         stripKey: key,
-        strip: body.strip !== undefined ? { ...body.strip } : prev?.strip,
+        strip,
         strokes: body.strokes !== undefined ? body.strokes : prev?.strokes,
         updatedAt: room.updatedAt,
         updatedByCid: cid,
-    }
-    if (record.strip?.callsign) {
-        record.strip.callsign = String(record.strip.callsign).toUpperCase()
     }
     room.strips[key] = record
     broadcast(room, {
@@ -277,6 +295,8 @@ export function putOrder(
         bayId: String(e.bayId || "").toUpperCase(),
         sectionId: String(e.sectionId || "TAXI").toUpperCase(),
         position: Number(e.position) || i,
+        cfto: normalizeEfsCfto((e as OrderEntry).cfto),
+        atd: normalizeEfsAtd((e as OrderEntry).atd),
     }))
     touch(room, cid)
     const order: AirportOrder = {
