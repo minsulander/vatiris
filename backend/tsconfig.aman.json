@@ -1,13 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "include": [
-    "src/aman/**/*.ts",
-    "src/routes/aman-rooms.ts",
-    "tests/aman-rooms.test.ts",
-    "src/routes/aman.ts",
-    "tests/aman-runway-handover.test.ts"
-  ]
+  "compilerOptions": { "noEmit": true },
+  "include": ["src/aman/**/*.ts", "src/routes/aman-rooms.ts", "tests/aman-rooms.test.ts", "src/routes/aman.ts", "tests/aman-runway-handover.test.ts"]
 }
