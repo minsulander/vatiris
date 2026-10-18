@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "test:aman": "tsx --test tests/aman-rooms.test.ts",
+    "test:aman": "tsx --test tests/aman-rooms.test.ts tests/aman-runway-handover.test.ts",
     "type-check:aman": "tsc -p tsconfig.aman.json",
     "start": "tsx watch src/server.ts",
     "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:pdfjs-dist --external:pdf-parse"
