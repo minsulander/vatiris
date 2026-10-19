@@ -183,6 +183,7 @@ function claim(r: Room, callsign: string): "sequencer" | "editor" {
         r.sequencer = preferred
         r.sequencerSeen = Date.now()
     }
+    if (r.icao === "ESSA" && !canTakeEssaSequence(callsign)) return "editor"
     if (!sequencerAlive(r) && r.sequencer !== callsign) {
         if (r.sequencer) console.log(`AMAN ${r.net}/${r.icao}: sequencer ${r.sequencer} gone, ${callsign} takes over`)
         else console.log(`AMAN ${r.net}/${r.icao}: ${callsign} is the sequencer`)
@@ -203,14 +204,13 @@ function users(r: Room): string[] {
 }
 
 // ESSA's radar picture must come from a Stockholm centre/approach position.
-// Other positions retain their existing command access; this checks only an
-// explicit request to become sequencer after applying a command.
+// Other positions retain their existing command access but cannot own ESSA.
 function canTakeEssaSequence(callsign: string): boolean {
     const call = callsign.replace(/_+/g, "_")
     return /^(ESOS|ESAA)(?:_[A-Z0-9]+)*_CTR$/.test(call) || /^ESSA(?:_[A-Z0-9]+)*_APP$/.test(call) || call === "ESSA_FMP"
 }
 
-// Opt-in clients use the TMA coordinator, then FMP, before other local positions.
+// Mandatory for every ESSA client, including older clients without policy fields.
 // Preserve the current owner for equal priorities; a new peer cannot churn it.
 function preferredSequencer(r: Room, candidate?: string): string | undefined {
     if (r.icao !== "ESSA") return undefined
@@ -324,8 +324,7 @@ aman.post("/:net/:icao/poll", async (req: Request, res: Response) => {
     if (!r) return
     const callsign = callsignOf(req)
     if (!(await authorize(req, res, r, callsign))) return
-    if (req.body?.sequencerPolicy === "essa-priority-1") {
-        if (r.icao !== "ESSA" || !canTakeEssaSequence(callsign)) { res.status(403).send("This position cannot sequence ESSA"); return }
+    if (r.icao === "ESSA" && canTakeEssaSequence(callsign)) {
         const version = typeof req.body.engineVersion === "string" && /^\d+\.\d+\.\d+$/.test(req.body.engineVersion) ? req.body.engineVersion : ""
         r.preferred.set(callsign, { seen: Date.now(), version })
     }

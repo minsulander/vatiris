@@ -31,11 +31,14 @@ test('original AMAN API: priority and acknowledged runway handover', async t => 
         const leave=(callsign:string)=>call('post','/:net/:icao/leave',{callsign})
         async function reset(){for(const c of ['ESSA_E_APP','ESSA_E__APP','ESSA_FMP','ESOS_1_CTR','ESSA_W_APP'])await leave(c);now+=100000}
 
-        await t.test('capabilities are additive and old callers retain first-owner behavior',async()=>{
+        await t.test('ESSA priority is mandatory for old callers without policy fields',async()=>{
             assert.deepEqual((await call('get','/capabilities')).body,{runwayHandover:1,essaPriority:1})
             assert.equal((await poll('ESOS_1_CTR')).body.role,'sequencer')
-            assert.equal((await poll('ESSA_E_APP')).body.role,'editor')
-            assert.equal((await pub('ESOS_1_CTR')).status,200)
+            assert.equal((await poll('ESSA_E_APP')).body.role,'sequencer')
+            assert.equal((await pub('ESOS_1_CTR')).status,409)
+            assert.equal((await pub('ESSA_E_APP')).status,200)
+            assert.equal((await call('post','/:net/:icao/poll',{callsign:'ESSA_FMP',role:'',sequencerPolicy:false})).body.sequencer,'ESSA_E_APP')
+            assert.equal((await call('put','/:net/:icao',{callsign:'ESMM_2_CTR',sequence:{data:{icao:'ESSA'},sequence:[]}})).status,409)
         })
         await t.test('E APP immediately supersedes FMP, which supersedes centre; peer polling cannot churn owner',async()=>{
             await reset();await poll('ESOS_1_CTR',true);await pub('ESOS_1_CTR')
@@ -87,15 +90,20 @@ test('original AMAN API: priority and acknowledged runway handover', async t => 
             const fallback=(await poll('ESSA_FMP',true)).body
             assert.equal(fallback.role,'sequencer');assert.ok(fallback.handover);assert.ok(fallback.sequence)
         })
-        await t.test('handover spelling normalizes; TWR, ESMM and invalid options cannot claim policy',async()=>{
+        await t.test('handover spelling normalizes; TWR and ESMM may follow but never own ESSA',async()=>{
             await reset();await poll('ESSA_FMP',true)
             assert.equal((await poll('ESSA_E__APP',true)).body.role,'sequencer')
             for(const c of ['ESSA_TWR','ESMM_2_CTR']){
                 assert.equal((await cmd(c)).status,403)
-                assert.equal((await poll(c,true)).status,403)
+                assert.equal((await poll(c,true)).body.role,'editor')
             }
             assert.equal((await cmd('ESSA_FMP',{takeSequencer:'true'})).status,400)
             assert.equal((await call('post','/:net/:icao/command',{callsign:'ESSA_FMP',cmd:{op:'plan'},takeSequencer:true},'sweatbox1','ESSB')).status,403)
+        })
+        await t.test('outside ESSA the existing first-caller lease is unchanged',async()=>{
+            const request=(callsign:string)=>call('post','/:net/:icao/poll',{callsign,role:''},'sweatbox1','ESSB')
+            assert.equal((await request('ESMM_2_CTR')).body.role,'sequencer')
+            assert.equal((await request('ESSA_E_APP')).body.role,'editor')
         })
         await t.test('existing live callsign and training-key authorization still applies',async()=>{
             assert.equal((await poll('UNKNOWN_APP',true,'live')).status,403)
