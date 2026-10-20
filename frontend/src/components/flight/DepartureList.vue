@@ -58,7 +58,15 @@
             <td class="font-weight-medium">{{ dep.callsign }}</td>
             <td class="type-cell" :class="{ 'wtc-not-medium': isNotMediumWTC(dep.type) }">
                 {{ dep.type
-                }}<v-icon
+                }}<template v-for="hint in [esggPushHint(dep)]" :key="dep.callsign + '-esgg-push'">
+                    <span
+                        v-if="hint"
+                        class="esgg-push-letter"
+                        :title="hint.title"
+                        >{{ " " + hint.letter }}</span
+                    >
+                </template
+                ><v-icon
                     v-if="
                         settings.showSlow &&
                         dep.adep?.toUpperCase() === 'ESSA' &&
@@ -349,6 +357,11 @@ table th .v-icon {
     height: 12px;
 }
 
+.esgg-push-letter {
+    font-weight: 400;
+    opacity: 0.75;
+}
+
 table tr td.type-cell {
     white-space: nowrap;
     padding: 0 1px;
@@ -407,6 +420,7 @@ import moment from "moment"
 import constants from "@/constants"
 import { metarAirports } from "@/metcommon"
 import lopPages from "@/data/wiki-pages.json"
+import { getEsggPushLetter, type EsggPushResult } from "@/esggPush"
 
 const props = defineProps({
     airports: {
@@ -1125,5 +1139,10 @@ function isNotMediumWTC(aircraftType: string | undefined): boolean {
 
 function isPropellerDeparture(dep: Departure): boolean {
     return aircraftStore.isPropellerDriven(dep.type)
+}
+
+function esggPushHint(dep: Departure): EsggPushResult | undefined {
+    if (dep.adep?.toUpperCase() !== "ESGG") return undefined
+    return getEsggPushLetter(dep.stand, dep.type)
 }
 </script>
