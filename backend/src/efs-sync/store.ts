@@ -6,6 +6,7 @@ import {
     EfsColumn,
     EfsRealm,
     EssaSep,
+    EssaSepOverrides,
     EFS_SYNC_TTL_MS,
     FORBIDDEN_ES_KEYS,
     OrderEntry,
@@ -19,6 +20,11 @@ import {
 
 export type WsClient = WebSocket
 
+interface SyncSocket {
+    ws: WebSocket
+    cid: number
+}
+
 interface RoomState {
     realm: EfsRealm
     airport: string
@@ -26,7 +32,7 @@ interface RoomState {
     order?: AirportOrder
     meta?: AirportMeta
     updatedAt: string
-    clients: Set<WsClient>
+    clients: Set<SyncSocket>
 }
 
 const rooms = new Map<string, RoomState>()
@@ -113,21 +119,66 @@ export function deriveColumns(order?: AirportOrder): EfsColumn[] {
     ]
 }
 
+const SEP_FIELDS = ["sep", "dlv", "depGap"] as const
+
+/**
+ * Bare SEP for storage. Strips a trailing "nm". Keeps "" so a blank DEP GAP
+ * still round-trips as a string (peers require sep/dlv/depGap strings).
+ */
 export function normalizeSep(raw?: EssaSep | null): EssaSep | undefined {
-    if (!raw || typeof raw !== "object") return undefined
-    const stripNm = (v: string | number | undefined) => {
-        if (v === undefined || v === null || v === "") return undefined
-        if (typeof v === "number") return v
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined
+    const src = raw as Record<string, unknown>
+    const stripNm = (v: unknown): string | number | undefined => {
+        if (v === undefined || v === null) return undefined
+        if (typeof v === "number") return Number.isFinite(v) ? v : undefined
         return String(v).replace(/\s*nm\s*/gi, "").trim()
     }
     const sep: EssaSep = {}
-    const s = stripNm(raw.sep as any)
-    const d = stripNm(raw.dlv as any)
-    const g = stripNm(raw.depGap as any)
-    if (s !== undefined) sep.sep = s
-    if (d !== undefined) sep.dlv = d
-    if (g !== undefined) sep.depGap = g
+    for (const key of SEP_FIELDS) {
+        if (!(key in src)) continue
+        const v = stripNm(src[key])
+        if (v !== undefined) sep[key] = v
+    }
     return Object.keys(sep).length ? sep : undefined
+}
+
+export function parseEssaSepOverrides(
+    raw: unknown,
+): { ok: true; overrides: EssaSepOverrides } | { ok: false; error: string } {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        return { ok: false, error: "essaSepOverrides must be an object" }
+    }
+    const src = raw as Record<string, unknown>
+    const overrides: EssaSepOverrides = {}
+    for (const key of SEP_FIELDS) {
+        if (!(key in src)) continue
+        const v = src[key]
+        if (typeof v !== "string") {
+            return { ok: false, error: `essaSepOverrides.${key} must be a string` }
+        }
+        if (v.length > 32) {
+            return { ok: false, error: `essaSepOverrides.${key} too long` }
+        }
+        overrides[key] = v
+    }
+    return { ok: true, overrides }
+}
+
+/** Payload peers read. Display strings in `essaSepOverrides` are not rewritten. */
+export function publicAirportMeta(meta: AirportMeta): {
+    essaSep?: EssaSep
+    essaConfig?: string
+    essaSepOverrides?: EssaSepOverrides
+} {
+    const payload: {
+        essaSep?: EssaSep
+        essaConfig?: string
+        essaSepOverrides?: EssaSepOverrides
+    } = {}
+    if (meta.essaSep) payload.essaSep = { ...meta.essaSep }
+    if (meta.essaConfig) payload.essaConfig = meta.essaConfig
+    if (meta.essaSepOverrides) payload.essaSepOverrides = { ...meta.essaSepOverrides }
+    return payload
 }
 
 export function isEfsActive(room: RoomState): boolean {
@@ -158,12 +209,13 @@ function touch(room: RoomState, cid?: number) {
     void cid
 }
 
-function broadcast(room: RoomState, msg: object) {
+function broadcast(room: RoomState, msg: object, exceptCid?: number | null) {
     const data = JSON.stringify(msg)
     for (const client of room.clients) {
-        if (client.readyState === 1 /* OPEN */) {
+        if (exceptCid != null && client.cid === exceptCid) continue
+        if (client.ws.readyState === 1 /* OPEN */) {
             try {
-                client.send(data)
+                client.ws.send(data)
             } catch {
                 /* ignore */
             }
@@ -171,9 +223,9 @@ function broadcast(room: RoomState, msg: object) {
     }
 }
 
-export function addClient(realm: EfsRealm, airport: string, ws: WsClient) {
+export function addClient(realm: EfsRealm, airport: string, ws: WsClient, cid: number) {
     const room = getOrCreate(realm, airport)
-    room.clients.add(ws)
+    room.clients.add({ ws, cid })
     ws.send(
         JSON.stringify({
             type: "hello",
@@ -190,7 +242,38 @@ export function addClient(realm: EfsRealm, airport: string, ws: WsClient) {
 export function removeClient(realm: EfsRealm, airport: string, ws: WsClient) {
     const room = rooms.get(roomKey(realm, airport))
     if (!room) return
-    room.clients.delete(ws)
+    for (const client of room.clients) {
+        if (client.ws === ws) room.clients.delete(client)
+    }
+}
+
+/**
+ * Client → server room messages. Only `reassertAssumed` is fanned out
+ * (ephemeral; not stored). Other types and malformed JSON are ignored.
+ * The publisher CID does not receive its own event.
+ */
+export function handleClientMessage(realm: EfsRealm, airport: string, cid: number, raw: unknown) {
+    let msg: { type?: string } | null = null
+    try {
+        const parsed = JSON.parse(String(raw))
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            msg = parsed as { type?: string }
+        }
+    } catch {
+        return
+    }
+    if (!msg || msg.type !== "reassertAssumed") return
+    const room = rooms.get(roomKey(realm, airport))
+    if (!room) return
+    broadcast(
+        room,
+        {
+            type: "reassertAssumed",
+            updatedAt: nowIso(),
+            updatedByCid: cid,
+        },
+        cid,
+    )
 }
 
 export function putStrip(
@@ -322,30 +405,52 @@ export function getOrder(realm: EfsRealm, airport: string): AirportOrder | undef
 export function putMeta(
     realm: EfsRealm,
     airport: string,
-    body: { essaSep?: EssaSep; essaConfig?: string },
+    body: { essaSep?: EssaSep; essaConfig?: string; essaSepOverrides?: EssaSepOverrides },
     cid: number,
 ): AirportMeta | { error: string } {
-    if (!body || typeof body !== "object") {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
         return { error: "JSON body required" }
     }
     const forbidden = findForbiddenEsKeys(body)
     if (forbidden.length) {
         return { error: `esdata fields not allowed: ${forbidden.join(", ")}` }
     }
+    if (body.essaSep == null) {
+        return { error: "essaSep required" }
+    }
+    if (typeof body.essaSep !== "object" || Array.isArray(body.essaSep)) {
+        return { error: "essaSep must be an object" }
+    }
+    const essaSep = normalizeSep(body.essaSep)
+    if (!essaSep) {
+        return { error: "essaSep required" }
+    }
+    const hasOverrides = Object.prototype.hasOwnProperty.call(body, "essaSepOverrides")
+    let nextOverrides: EssaSepOverrides | undefined
+    if (hasOverrides) {
+        if (body.essaSepOverrides === undefined) {
+            return { error: "essaSepOverrides must be an object" }
+        }
+        const parsed = parseEssaSepOverrides(body.essaSepOverrides)
+        if (!parsed.ok) return { error: parsed.error }
+        nextOverrides = parsed.overrides
+    }
     const room = getOrCreate(realm, airport)
-    touch(room, cid)
     const prev = room.meta
+    touch(room, cid)
     const essaConfigRaw = body.essaConfig != null ? String(body.essaConfig).trim() : prev?.essaConfig
     const meta: AirportMeta = {
-        essaSep: body.essaSep !== undefined ? normalizeSep(body.essaSep) : prev?.essaSep,
+        essaSep,
         essaConfig: essaConfigRaw || undefined,
         updatedAt: room.updatedAt,
         updatedByCid: cid,
     }
+    if (hasOverrides) meta.essaSepOverrides = nextOverrides
+    else if (prev?.essaSepOverrides) meta.essaSepOverrides = { ...prev.essaSepOverrides }
     room.meta = meta
     broadcast(room, {
         type: "meta",
-        meta: { essaSep: meta.essaSep, essaConfig: meta.essaConfig },
+        meta: publicAirportMeta(meta),
         updatedAt: room.updatedAt,
         updatedByCid: cid,
     })

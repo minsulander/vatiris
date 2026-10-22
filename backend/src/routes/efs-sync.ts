@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express"
-import { EFS_REALMS, EfsRealm } from "../efs-sync/types"
+import { AirportMeta, EFS_REALMS, EfsRealm } from "../efs-sync/types"
 import * as store from "../efs-sync/store"
 
 const efsSync = Router()
@@ -46,6 +46,17 @@ function params(req: Request, res: Response): { realm: EfsRealm; airport: string
     return { realm, airport }
 }
 
+/** Flat fields plus `meta` so late joiners can read either envelope. */
+function metaBody(meta: AirportMeta) {
+    const payload = store.publicAirportMeta(meta)
+    return {
+        ...payload,
+        updatedAt: meta.updatedAt,
+        updatedByCid: meta.updatedByCid ?? null,
+        meta: payload,
+    }
+}
+
 /** GET full snapshot */
 efsSync.get("/:realm/:airport", (req, res) => {
     const p = params(req, res)
@@ -78,7 +89,7 @@ efsSync.put("/:realm/:airport/meta", (req, res) => {
     if (cid === undefined) return
     const result = store.putMeta(p.realm, p.airport, req.body || {}, cid)
     if ("error" in result) return res.status(400).json(result)
-    res.json(result)
+    res.json(metaBody(result))
 })
 
 efsSync.get("/:realm/:airport/meta", (req, res) => {
@@ -86,7 +97,7 @@ efsSync.get("/:realm/:airport/meta", (req, res) => {
     if (!p) return
     const meta = store.getMeta(p.realm, p.airport)
     if (!meta) return res.status(404).json({ error: "No meta" })
-    res.json(meta)
+    res.json(metaBody(meta))
 })
 
 efsSync.put("/:realm/:airport/heartbeat", (req, res) => {

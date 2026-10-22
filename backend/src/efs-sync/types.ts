@@ -42,10 +42,22 @@ export interface EssaSep {
     depGap?: string | number
 }
 
+/**
+ * TWR click-cycle display strings (e.g. "2.5 nm", "3 nm", "" for a blank DEP GAP).
+ * Absent key = auto for that field. `{}` = all auto.
+ */
+export interface EssaSepOverrides {
+    sep?: string
+    dlv?: string
+    depGap?: string
+}
+
 export interface AirportMeta {
     essaSep?: EssaSep
     /** ESSA runway config id from TWR ES (e.g. "1", "9A") */
     essaConfig?: string
+    /** Optional TWR overrides so peers match auto vs manual. Absent / `{}` = all auto. */
+    essaSepOverrides?: EssaSepOverrides
     updatedAt?: string
     updatedByCid?: number
 }

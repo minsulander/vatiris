@@ -8,7 +8,7 @@ IRIS stores EFS-owned data only. EuroScope/ops status stays on **esdata**; consu
 |--------|------|------|
 | PUT/GET/DELETE | `/efs/sync/:realm/:airport/:stripKey` | `{ strokes?, strip? }` |
 | PUT/GET | `/efs/sync/:realm/:airport/order` | `{ revision?, entries: [{ stripKey, bayId, sectionId, position, cfto?, atd? }] }` |
-| PUT/GET | `/efs/sync/:realm/:airport/meta` | `{ essaSep: { sep, dlv, depGap }, essaConfig?: "1"\|"9A"\|… }` |
+| PUT/GET | `/efs/sync/:realm/:airport/meta` | `{ essaSep: { sep, dlv, depGap }, essaSepOverrides?: { sep?, dlv?, depGap? }, essaConfig?: "1"\|"9A"\|… }` |
 | PUT | `/efs/sync/:realm/:airport/heartbeat` | `{}` |
 | GET | `/efs/sync/:realm/:airport` | Full snapshot |
 | WS | `/efs/sync/:realm/:airport/ws?cid=` | Fanout |
@@ -18,8 +18,10 @@ IRIS stores EFS-owned data only. EuroScope/ops status stays on **esdata**; consu
 - **Realms:** `live` \| `sweatbox` \| `playback` \| `local`
 - **Write auth:** `X-Vatsim-Cid` (optional allowlist `EFS_SYNC_ALLOW_CIDS=cid,cid`)
 - **TTL:** 5 minutes from any write → `efsActive`
-- **SEP:** bare numbers preferred (`2.5`); IRIS strips trailing `nm`
-- **essaConfig:** optional ESSA bankonfig id from TWR ES (Strip TV header). If omitted, IRIS derives from plugin `rwyconfig` / ATIS / WX.
+- **SEP:** bare numbers preferred (`2.5`); IRIS strips trailing `nm`. Empty `depGap` is stored as `""`.
+- **essaSepOverrides:** optional TWR display strings (`"2.5 nm"`, `"3 nm"`, `""` to blank a field). Only `sep` \| `dlv` \| `depGap`, each max 32 characters. Absent key = auto for that field. `{}` = all auto. Omitted on PUT keeps the previous overrides. Never required. Strip TV prefers an override when that key is present, otherwise the bare `essaSep` value.
+- **essaConfig:** optional ESSA bankonfig id from TWR ES (Strip TV header). If omitted, the previous value is kept; if IRIS has none, the header derives from plugin `rwyconfig` / ATIS / WX.
+- **GET `/meta`:** returns the stored fields at the top level and again under `meta`, plus `updatedAt` and `updatedByCid`, so clients can read either envelope.
 - **cfto / atd (EFS-owned):** allowed on **order entries** and **strip bodies**.
   - `cfto`: boolean — `true` = cleared for takeoff; `false` clears
   - `atd`: `"HHmm"` UTC or `null` — `null` / `false` / omit clears (RTO)
@@ -47,10 +49,15 @@ Transfer to APP/DEP ⇒ omit from order (no DELETE required).
 { type: "hello", realm, airport, efsActive, updatedAt }
 { type: "snapshot", /* AirportSyncSnapshot fields */ }
 { type: "scribble", stripKey, strokes, strip?, updatedAt, updatedByCid, deleted? }
-{ type: "meta", meta: { essaSep?, essaConfig? }, updatedAt, updatedByCid }
+{ type: "meta", meta: { essaSep?, essaSepOverrides?, essaConfig? }, updatedAt, updatedByCid }
 { type: "order", order: { revision, entries }, updatedAt, updatedByCid }
 { type: "heartbeat", updatedAt, updatedByCid, efsActive }
+{ type: "reassertAssumed", updatedAt, updatedByCid }
 ```
+
+Client → server (same socket): `{ "type": "reassertAssumed" }`. IRIS fans that out to every other CID in the room and does not store it. Any other client message is ignored. This is the `.efs refresh` late-joiner signal: peers re-write assumed clearance into EuroScope for traffic they track.
+
+`meta` from `PUT /meta` is fanned out to every socket in the room, including the writer, and includes `essaSepOverrides` when stored. Strip TV prefers those overrides over bare `essaSep`.
 
 ## Local mock
 

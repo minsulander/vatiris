@@ -3,6 +3,7 @@ import { reactive, ref } from "vue"
 import { v4 as uuid } from "uuid"
 import moment from "moment"
 import axios from "axios"
+import { resolveDisplayedSep, type SepOverrides } from "@/striptv/efsSepDisplay"
 
 const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:5172"
 
@@ -19,6 +20,9 @@ export interface EfsSepParams {
     depGap?: number | string
     info?: string
 }
+
+/** TWR display strings. Absent key = auto. "" blanks that field. */
+export type EfsSepOverrides = SepOverrides
 
 export interface OrderEntry {
     stripKey: string
@@ -49,7 +53,7 @@ export interface AirportSyncSnapshot {
     updatedAt: string
     order?: AirportOrder
     strips?: Record<string, unknown>
-    meta?: { essaSep?: EfsSepParams; essaConfig?: string }
+    meta?: { essaSep?: EfsSepParams; essaConfig?: string; essaSepOverrides?: EfsSepOverrides }
     columns?: EfsColumn[]
     sep?: EfsSepParams
 }
@@ -103,24 +107,6 @@ function columnsFromOrder(order?: AirportOrder): EfsColumn[] {
     ]
 }
 
-function stripNm(v: string | number | undefined) {
-    if (v === undefined || v === null || v === "") return undefined
-    if (typeof v === "number") return v
-    return String(v).replace(/\s*nm\s*/gi, "").trim()
-}
-
-function normalizeSep(raw?: EfsSepParams | null): EfsSepParams | undefined {
-    if (!raw) return undefined
-    const sep: EfsSepParams = {}
-    const s = stripNm(raw.sep)
-    const d = stripNm(raw.dlv)
-    const g = stripNm(raw.depGap)
-    if (s !== undefined) sep.sep = s
-    if (d !== undefined) sep.dlv = d
-    if (g !== undefined) sep.depGap = g
-    return Object.keys(sep).length ? sep : undefined
-}
-
 interface RoomClient {
     realm: EfsRealm
     airport: string
@@ -147,11 +133,13 @@ export const useEfsStore = defineStore("efs", () => {
     }
 
     function applySnapshot(k: string, snap: AirportSyncSnapshot) {
-        snapshots[k] = snap
         efsActive[k] = !!snap.efsActive
         const cols = snap.columns?.length ? snap.columns : columnsFromOrder(snap.order)
         columns[k] = cols
-        sepByKey[k] = normalizeSep(snap.sep || snap.meta?.essaSep)
+        const bare = snap.meta?.essaSep !== undefined && snap.meta?.essaSep !== null ? snap.meta.essaSep : snap.sep
+        const sep = resolveDisplayedSep(bare, snap.meta?.essaSepOverrides)
+        snapshots[k] = { ...snap, sep }
+        sepByKey[k] = sep
         lastReceivedAt[k] = moment.utc().toISOString()
     }
 
@@ -179,12 +167,12 @@ export const useEfsStore = defineStore("efs", () => {
         }
         if (msg.type === "meta" && msg.meta) {
             cur.meta = msg.meta
-            cur.sep = normalizeSep(msg.meta.essaSep)
             cur.updatedAt = msg.updatedAt || cur.updatedAt
             cur.efsActive = true
             applySnapshot(k, { ...cur })
             return
         }
+        if (msg.type === "reassertAssumed") return
         if (msg.type === "heartbeat") {
             cur.updatedAt = msg.updatedAt || cur.updatedAt
             cur.efsActive = msg.efsActive !== false

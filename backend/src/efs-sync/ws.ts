@@ -38,11 +38,10 @@ export function attachEfsSyncWebSocket(server: HttpServer) {
             }
 
             wss.handleUpgrade(req, socket, head, (ws: WebSocket) => {
-                store.addClient(realm, airport, ws)
+                store.addClient(realm, airport, ws, cid)
                 ws.on("close", () => store.removeClient(realm, airport, ws))
                 ws.on("error", () => store.removeClient(realm, airport, ws))
-                // Clients may send pings as text; ignore
-                ws.on("message", () => {})
+                ws.on("message", (raw) => store.handleClientMessage(realm, airport, cid, raw))
             })
         } catch {
             try {
