@@ -141,7 +141,7 @@ const menuItems = reactive({
             //Index: "https://wiki.vatsim-scandinavia.org/books/lop",
             RTC: "wiki-lop-rtc",
             "ESMM ACC": "wiki-lop-esmm-acc",
-            "ESOS ACC": "wikipdf-lop-esos-acc",
+            "ESOS ACC": "wiki-lop-esos-acc",
             ESCF: "wiki-lop-escf",
             ESCM: "wiki-lop-escm",
             ESDF: "wiki-lop-esdf",

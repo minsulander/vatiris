@@ -218,7 +218,7 @@ async function fetch() {
                 )
             }, 10)
         } else {
-            //console.log("no scroll")
+            div.value.scrollTop = 0
         }
     } catch (error: any) {
         content.value = error.response ? error.response.data : "Error loading content"
