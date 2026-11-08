@@ -1,16 +1,14 @@
 /**
- * SID highlight rules mirrored from vatefs FlightStrip + airport-rules:
- * 1) Amber — uncleared / VFR / radar-vector / SLOW track
- * 2) Black box — preferred next sector DEP-E or ARR-E (ESSA east SIDs)
+ * SID highlight rules for Strip TV:
+ * Black box — preferred next sector DEP-E or ARR-E (ESSA east SIDs)
  */
 
 const TRACK_SEP_RE = /[·•*]/
-const TRACK_SID_RE = /^\d{3}([·•*]\d{3})?[·•*][A-Z]{2,}$/i
 
 /** DEP-E exits from vatefs `data/essa-sid-prefs.json` (Appendix A). */
 const ESSA_DEP_E_EXITS = new Set(["TOVRI", "BABAP"])
 
-export function parseVectorSidName(
+function parseVectorSidName(
     sid: string | undefined | null,
 ): { base: string; exit: string } | null {
     if (!sid) return null
@@ -24,18 +22,6 @@ export function parseVectorSidName(
     if (!/^[A-Z]{2,}\d+[A-Z]+$/.test(base)) return null
     if (!/^[A-Z]{2,5}$/.test(exit) || exit.length === 4) return null
     return { base, exit }
-}
-
-export function isVectorSidName(sid: string | undefined | null): boolean {
-    return parseVectorSidName(sid) !== null
-}
-
-export function isTrackSidName(sid: string | undefined | null): boolean {
-    if (!sid) return false
-    const raw = sid.trim().toUpperCase().replace(/\s+/g, "")
-    if (!raw || raw.startsWith("VFR")) return false
-    if (isVectorSidName(raw)) return false
-    return TRACK_SID_RE.test(raw)
 }
 
 /** Extract TMA exit designator from SID (TOVRI5C → TOVRI, 240·BABAP → BABAP). */
@@ -57,29 +43,6 @@ export function extractSidExit(sid: string | undefined | null): string | null {
     const ve = raw.match(/(?:VE|·)([A-Z]{2,5})$/)
     if (ve) return ve[1]!
     return null
-}
-
-/**
- * Amber SID (vatefs `sidHighlight`):
- * - no clearance yet
- * - VFR / VFR… SID
- * - radar-vector or SLOW track SID
- */
-export function isSidAmberHighlight(options: {
-    sid: string | undefined | null
-    flightRules?: string | null
-    /** EuroScope / esdata clearance flag; false/undefined = uncleared */
-    cleared?: boolean | null
-}): boolean {
-    const raw = (options.sid || "").trim()
-    if (!raw || raw === "—") return false
-    if (!options.cleared) return true
-    const fr = (options.flightRules || "").toUpperCase()
-    if (fr.startsWith("V") || /^VFR/i.test(raw)) return true
-    if (isVectorSidName(raw) || /[A-Z]{2,}\s+\d+[A-Z]+\s+ve[A-Z]{2,}/i.test(raw)) return true
-    if (isTrackSidName(raw)) return true
-    if (/\d{3}(·\d{3})?ve[A-Z]{2,}/i.test(raw.replace(/\s+/g, ""))) return true
-    return false
 }
 
 /** Black SID box when preferred sector is DEP-E / ARR-E (vatefs `needsEssaEastSidBox`). */

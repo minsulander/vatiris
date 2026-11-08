@@ -14,7 +14,7 @@ import {
 } from "@/flightcalc"
 import constants from "@/constants"
 import { computeEssaSepPreload, isDepRwyNonStandard, normalizeEssaRwy } from "@/striptv/essaSep"
-import { isEssaEastSidBox, isSidAmberHighlight } from "@/striptv/sidHighlight"
+import { isEssaEastSidBox } from "@/striptv/sidHighlight"
 import {
     GRP_TOF_ROLL_GS_KT,
     pruneStripAtd,
@@ -51,8 +51,6 @@ export interface StripFlight {
     latitude?: number
     longitude?: number
     thrDistanceNm: number
-    /** Amber SID (uncleared / VFR / vector / SLOW) */
-    sidAmber: boolean
     /** ESSA black SID box (DEP-E / ARR-E) */
     sidEastBox: boolean
     /** Yellow RWY — not ES-active and/or outside ESSA config */
@@ -258,7 +256,6 @@ export function useStripDepartures(options: {
         const rfl = es.rfl ?? es.finalAltitude ?? fp?.altitude
         const xfl = es.xfl ?? es.exitFlightLevel
         const appDepNextSector = es.appDepNextSector || es.nextSector || undefined
-        const sidAmber = isSidAmberHighlight({ sid, flightRules, cleared })
         const sidEastBox = isEssaEastSidBox({
             sid,
             depRwy: runway,
@@ -297,7 +294,6 @@ export function useStripDepartures(options: {
             latitude: lat,
             longitude: lon,
             thrDistanceNm,
-            sidAmber,
             sidEastBox,
             rwyNonStandard,
             cleared,
@@ -367,7 +363,6 @@ export function useStripDepartures(options: {
             rfl: undefined,
             xfl: undefined,
             thrDistanceNm: Infinity,
-            sidAmber: false,
             sidEastBox: false,
             rwyNonStandard: false,
         }
