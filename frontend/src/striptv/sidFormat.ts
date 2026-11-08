@@ -5,7 +5,8 @@
  * - RNAV: "PETEV3G" → "PETEV 3G" (paper/compact: "PETEV3G")
  * - VFR:  "VFR·NORTH" → "NORTH"
  * - Radar-vector: "ARS6E·KOGAV" → "ARS 6E veKOGAV"
- * - SLOW track: "120·BABAP" → "120veBABAP"; "010·240·NOSLI" → "010·240veNOSLI"
+ * - SLOW track: "120·BABAP" → "120veBABAP"; "010·240·NOSLI" / "360·120·TOVRI" → "240veNOSLI" / "120veTOVRI"
+ *   (stripview shows only the last heading·exit; first heading lives in EFS AHD)
  */
 
 const TRACK_SEP_RE = /[·•*]/
@@ -54,7 +55,7 @@ export function isTrackSidName(sid: string | undefined | null): boolean {
     return TRACK_SID_RE.test(raw)
 }
 
-/** Strip display form for ESE track/SLOW SIDs. */
+/** Strip display form for ESE track/SLOW SIDs — last (or only) heading as XXXveEXIT. */
 export function formatTrackSidDisplay(sid: string | undefined | null): string | null {
     if (!sid) return null
     const raw = sid.trim().toUpperCase().replace(/\s+/g, "")
@@ -66,7 +67,8 @@ export function formatTrackSidDisplay(sid: string | undefined | null): string | 
     if (parts.length === 3) {
         const [a, b, exit] = parts
         if (/^\d{3}$/.test(a!) && /^\d{3}$/.test(b!) && /^[A-Z]{2,}$/.test(exit!)) {
-            return `${a!}·${b!}ve${exit!}`
+            // Drop leading heading (EFS AHD); show last heading only
+            return `${b!}ve${exit!}`
         }
         return null
     }
