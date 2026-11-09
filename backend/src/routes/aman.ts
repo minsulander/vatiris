@@ -23,6 +23,7 @@
 
 import { Router, Request, Response } from "express"
 import axios from "axios"
+import { topSkySequence } from "../aman/topsky-sequence"
 
 const aman = Router()
 
@@ -295,13 +296,18 @@ aman.get("/", (req: Request, res: Response) => {
     res.send(status)
 })
 
-function sendSequence(res: Response, r: Room | undefined) {
+function sendSequence(res: Response, r: Room | undefined, topSky = false) {
+    res.set("Cache-Control", "no-store")
     if (!r || !r.sequence || Date.now() - r.sequenceAt > MAX_AGE_MS) {
         res.status(404).send("Not found")
         return
     }
-    res.set("Cache-Control", "no-cache")
-    res.send(r.sequence)
+    const sequence = topSky ? topSkySequence(r.sequence) : r.sequence
+    if (!sequence) {
+        res.status(404).send("Not found")
+        return
+    }
+    res.send(sequence)
 }
 
 aman.get("/capabilities", (_req: Request, res: Response) => {
@@ -311,12 +317,13 @@ aman.get("/capabilities", (_req: Request, res: Response) => {
 // TopSky AMAN_URL: <base>/MAESTRO_sequence_data_ESSA.json (live network)
 aman.get("/:file", (req: Request, res: Response) => {
     const m = /^(?:MAESTRO_sequence_data_)?([A-Z]{4})(?:\.json)?$/i.exec(req.params.file)
-    sendSequence(res, m ? rooms.get(`live/${m[1].toUpperCase()}`) : undefined)
+    sendSequence(res, m ? rooms.get(`live/${m[1].toUpperCase()}`) : undefined, true)
 })
 
 aman.get("/:net/:icao", (req: Request, res: Response) => {
     const icao = String(req.params.icao).replace(/^MAESTRO_sequence_data_/i, "").replace(/\.json$/i, "")
-    sendSequence(res, rooms.get(`${String(req.params.net).toLowerCase()}/${icao.toUpperCase()}`))
+    const topSky = /^MAESTRO_sequence_data_/i.test(String(req.params.icao)) || /\.json$/i.test(String(req.params.icao))
+    sendSequence(res, rooms.get(`${String(req.params.net).toLowerCase()}/${icao.toUpperCase()}`), topSky)
 })
 
 aman.post("/:net/:icao/poll", async (req: Request, res: Response) => {
