@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {spawnSync} from 'node:child_process'
 
 // Pin a reviewed SAAMAN commit; never deploy a moving branch or tag.
-export const SAAMAN_REF='4ba06363ecd95a353f9bd623cdb110526f10c95d'
+export const SAAMAN_REF='d6fd8236254c7522379e763bed85e795f974b8a3'
 export function buildSaamanBrowser({frontend=fileURLToPath(new URL('../frontend',import.meta.url)),ref=SAAMAN_REF,run}={}){
  if(!/^[a-f0-9]{40}$/.test(ref))throw Error('Set SAAMAN_REF to the reviewed 40-character SAAMAN commit')
  const npm=process.env.npm_execpath
