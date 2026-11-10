@@ -33,6 +33,9 @@ export default defineConfig({
             registerType: "autoUpdate",
             devOptions: { enabled: true },
             workbox: {
+                // SAAMAN is a separately versioned application below this site.
+                navigateFallbackDenylist: [/^\/aman(?:\/|$)/],
+                globIgnores: ["aman/**"],
                 // in case the app grows large, and it's not by accident this time,
                 // increase this:
                 maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

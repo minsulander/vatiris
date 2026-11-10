@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -e
 
 s3_url="s3://vatiris.se"
 distribution_id="EHGETQBI2R76M"
@@ -24,5 +25,6 @@ fi
 
 npm install
 npm run build
+npm run build:saaman
 aws s3 sync dist/ $s3_url --delete --acl public-read
 aws cloudfront create-invalidation --distribution-id $distribution_id --paths '/*'
