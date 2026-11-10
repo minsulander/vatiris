@@ -49,9 +49,10 @@
 <script setup lang="ts">
 import Submenu from "@/components/menu/Submenu.vue"
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue"
+import axios from "axios"
 import { useWindowsStore } from "@/stores/windows"
 import { useDctStore } from "@/stores/dct"
-import { useAuthStore } from "@/stores/auth"
+import { backendBaseUrl, useAuthStore } from "@/stores/auth"
 
 const windows = useWindowsStore()
 const dct = useDctStore()
@@ -101,8 +102,8 @@ const menuItems = reactive({
         "ARR DEP": "arrdep",
         STRIPVIEW: {
             ESSA: "striptv-essa",
-            // ESSB / ESGG — deferred
-        },
+            // ESGG added when GET /striptv/esgg returns a stream URL
+        } as { [key: string]: string },
     },
     ATFCM: {
         ECFMP: "ECFMP",
@@ -362,7 +363,21 @@ function changeSearch() {
     }
 }
 
+async function refreshEsggStripviewMenu() {
+    try {
+        const { data } = await axios.get<{ src?: string }>(`${backendBaseUrl}/striptv/esgg`, {
+            headers: { "Cache-Control": "no-cache" },
+        })
+        if ((data?.src || "").trim()) menuItems.Flight.STRIPVIEW.ESGG = "striptv-esgg"
+        else delete menuItems.Flight.STRIPVIEW.ESGG
+    } catch {
+        delete menuItems.Flight.STRIPVIEW.ESGG
+    }
+}
+
 onMounted(() => {
+    refreshEsggStripviewMenu()
+
     const handleKeyDown = (e: KeyboardEvent) => {
         if (
             ((document.activeElement?.tagName != "INPUT" &&
