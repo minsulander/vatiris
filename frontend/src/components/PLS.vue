@@ -162,6 +162,27 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <v-snackbar
+            v-model="snackbarOpen"
+            :timeout="10000"
+            location="bottom"
+            color="#2b2d31"
+            multi-line
+            @update:model-value="onSnackbarToggle"
+        >
+            <div class="pls-snack-header text-caption text-grey-lighten-1 mb-1">WS Message</div>
+            <div class="pls-snack-body">{{ snackbarText }}</div>
+            <template #actions>
+                <v-btn
+                    icon="mdi-close"
+                    variant="text"
+                    density="compact"
+                    aria-label="Close"
+                    @click="snackbarOpen = false"
+                />
+            </template>
+        </v-snackbar>
     </div>
 </template>
 
@@ -176,6 +197,7 @@ import type { Controller } from "@/stores/vatsim"
 import moment from "moment"
 
 const plsApiBaseUrl = import.meta.env.VITE_PLSAPI_BASE_URL || "http://localhost:3001/api"
+const NOTEPAD_POLL_MS = 5000
 
 const settings = useSettingsStore()
 const auth = useAuthStore()
@@ -200,6 +222,88 @@ const availableControllers = ref([])
 const awayControllers = ref([])
 
 const fetchControllersTryCount = ref(0)
+
+/** Last known PLS notepad (WS meddelanden) content; null until first successful fetch. */
+const lastNotepadContent = ref<string | null>(null)
+const snackbarOpen = ref(false)
+const snackbarText = ref("")
+const snackbarQueue = ref<string[]>([])
+let notepadPollTimer: ReturnType<typeof setInterval> | undefined
+
+function enqueuePlsMessages(messages: string[]) {
+    for (const msg of messages) {
+        const text = msg.trim()
+        if (text) snackbarQueue.value.push(text)
+    }
+    if (!snackbarOpen.value) showNextSnackbar()
+}
+
+function showNextSnackbar() {
+    const next = snackbarQueue.value.shift()
+    if (!next) {
+        snackbarOpen.value = false
+        snackbarText.value = ""
+        return
+    }
+    snackbarText.value = next
+    snackbarOpen.value = true
+}
+
+function onSnackbarToggle(open: boolean) {
+    if (!open) {
+        // Let the close animation finish before showing the next update
+        setTimeout(() => showNextSnackbar(), 200)
+    }
+}
+
+/** New non-empty lines vs previous snapshot; full text if the update is a replace. */
+function messagesFromNotepadUpdate(previous: string, next: string): string[] {
+    const prevLines = new Set(
+        previous
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .filter(Boolean),
+    )
+    const nextLines = next
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean)
+    const added = nextLines.filter((l) => !prevLines.has(l))
+    if (added.length) return added
+    const trimmed = next.trim()
+    return trimmed ? [trimmed] : []
+}
+
+const pollNotepad = async () => {
+    if (!settings.enablePLS) return
+    try {
+        const { data } = await axios.get<{ content?: string }>(`${plsApiBaseUrl}/notepad`)
+        const content = typeof data?.content === "string" ? data.content : ""
+        const previous = lastNotepadContent.value
+        lastNotepadContent.value = content
+        if (previous === null) return // baseline — no snackbar on first load
+        if (previous === content) return
+        enqueuePlsMessages(messagesFromNotepadUpdate(previous, content))
+    } catch {
+        // Notepad is optional; ignore transient PLS API errors
+    }
+}
+
+function startNotepadPolling() {
+    stopNotepadPolling()
+    lastNotepadContent.value = null
+    void pollNotepad()
+    notepadPollTimer = setInterval(() => {
+        void pollNotepad()
+    }, NOTEPAD_POLL_MS)
+}
+
+function stopNotepadPolling() {
+    if (notepadPollTimer) {
+        clearInterval(notepadPollTimer)
+        notepadPollTimer = undefined
+    }
+}
 
 const fetchControllers = async () => {
     fetchControllersTryCount.value++
@@ -519,6 +623,7 @@ const hasControllerData = computed(() => {
 
 onMounted(() => {
     if (auth.user) fetchControllers()
+    if (settings.enablePLS) startNotepadPolling()
 
     // Set up interval for fetching controllers every 10 seconds
     const fetchInterval = setInterval(() => {
@@ -534,6 +639,7 @@ onMounted(() => {
     onUnmounted(() => {
         clearInterval(fetchInterval)
         clearInterval(updateInterval)
+        stopNotepadPolling()
     })
 })
 
@@ -554,11 +660,15 @@ watch(
     (newValue) => {
         if (newValue) {
             fetchControllers()
+            startNotepadPolling()
         } else {
             matchedController1.value = null
             matchedController2.value = null
             sessionStartTime1.value = null
             sessionStartTime2.value = null
+            stopNotepadPolling()
+            snackbarQueue.value = []
+            snackbarOpen.value = false
         }
     },
 )
@@ -587,5 +697,10 @@ watch(
 <style scoped>
 .cursor-pointer {
     cursor: pointer;
+}
+.pls-snack-body {
+    white-space: pre-wrap;
+    max-height: 40vh;
+    overflow: auto;
 }
 </style>
