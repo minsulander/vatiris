@@ -76,7 +76,7 @@ import About from "@/components/About.vue"
 import ATCBookings from "@/components/ATCBookings.vue"
 import ArrDep from "@/components/flight/ArrDep.vue"
 import StripTvEssa from "@/components/striptv/StripTvEssa.vue"
-// StripTvPaper (ESGG) — deferred
+import StripTvStream from "@/components/striptv/StripTvStream.vue"
 import useEventBus from "@/eventbus"
 import AircraftTypes from "@/components/icao/AircraftTypes.vue"
 import Callsigns from "@/components/icao/Callsigns.vue"
@@ -264,7 +264,12 @@ const availableWindows = shallowReactive({
         width: 1100,
         height: 700,
     },
-    // striptv-esgg (StripTvPaper) — deferred
+    "striptv-esgg": {
+        title: "STRIPVIEW ESGG",
+        component: StripTvStream,
+        width: 960,
+        height: 540,
+    },
     sectors: {
         title: "Sectors",
         component: Iframe,

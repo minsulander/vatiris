@@ -90,6 +90,9 @@ import aupRoutes from "./routes/aup"
 app.use("/aup", aupRoutes)
 app.use("/lara", aupRoutes)
 
+import striptvRoutes from "./routes/striptv"
+app.use("/striptv", striptvRoutes)
+
 app.use(express.static("public"))
 app.get(/.*/, (req, res) => {
     res.status(404).send()

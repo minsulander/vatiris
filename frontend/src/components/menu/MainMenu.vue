@@ -101,7 +101,7 @@ const menuItems = reactive({
         "ARR DEP": "arrdep",
         STRIPVIEW: {
             ESSA: "striptv-essa",
-            // ESSB / ESGG — deferred
+            ESGG: "striptv-esgg",
         },
     },
     ATFCM: {
