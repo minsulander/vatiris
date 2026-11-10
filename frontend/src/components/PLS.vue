@@ -230,11 +230,10 @@ const snackbarText = ref("")
 const snackbarQueue = ref<string[]>([])
 let notepadPollTimer: ReturnType<typeof setInterval> | undefined
 
-function enqueuePlsMessages(messages: string[]) {
-    for (const msg of messages) {
-        const text = msg.trim()
-        if (text) snackbarQueue.value.push(text)
-    }
+function enqueuePlsMessage(message: string) {
+    const text = message.replace(/\s+$/, "")
+    if (!text) return
+    snackbarQueue.value.push(text)
     if (!snackbarOpen.value) showNextSnackbar()
 }
 
@@ -256,24 +255,6 @@ function onSnackbarToggle(open: boolean) {
     }
 }
 
-/** New non-empty lines vs previous snapshot; full text if the update is a replace. */
-function messagesFromNotepadUpdate(previous: string, next: string): string[] {
-    const prevLines = new Set(
-        previous
-            .split(/\r?\n/)
-            .map((l) => l.trim())
-            .filter(Boolean),
-    )
-    const nextLines = next
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter(Boolean)
-    const added = nextLines.filter((l) => !prevLines.has(l))
-    if (added.length) return added
-    const trimmed = next.trim()
-    return trimmed ? [trimmed] : []
-}
-
 const pollNotepad = async () => {
     if (!settings.enablePLS) return
     try {
@@ -283,7 +264,8 @@ const pollNotepad = async () => {
         lastNotepadContent.value = content
         if (previous === null) return // baseline — no snackbar on first load
         if (previous === content) return
-        enqueuePlsMessages(messagesFromNotepadUpdate(previous, content))
+        // Always show the full notepad text for each update
+        enqueuePlsMessage(content)
     } catch {
         // Notepad is optional; ignore transient PLS API errors
     }
