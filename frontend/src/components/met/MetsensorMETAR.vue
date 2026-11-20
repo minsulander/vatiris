@@ -186,13 +186,18 @@ const currentRunway = computed(() => {
 
 const showRunwaySelector = computed(() => availableRunways.value.length > 1)
 
+const parsedMetar = computed(() => metar.parse(props.id))
+
+// Observation time from the METAR group (DDHHMMZ), not the SMHI or fetch clock.
 const time = computed(() => {
-    // Prefer SMHI timestamp, fallback to METAR
-    if (smhi.smhiData[props.id]?.timestamp) return smhi.smhiData[props.id].timestamp || ""
-    return metar.time || ""
+    const parsed = parsedMetar.value
+    if (parsed?.day == null || parsed.hour == null || parsed.minute == null) return ""
+    const now = moment.utc()
+    const observed = now.clone().date(parsed.day).hour(parsed.hour).minute(parsed.minute).second(0).millisecond(0)
+    if (observed.isAfter(now.clone().add(2, "hours"))) observed.subtract(1, "month")
+    return observed.toISOString()
 })
 
-// Format timestamp in UTC: time only when the observation is from today
 const formattedTime = computed(() => {
     if (!time.value) return ""
     const timeMoment = moment.utc(time.value)
@@ -200,8 +205,6 @@ const formattedTime = computed(() => {
     if (timeMoment.isSame(moment.utc(), "day")) return timeMoment.format("HH:mm")
     return timeMoment.format("YYYY-MM-DD HH:mm")
 })
-
-const parsedMetar = computed(() => metar.parse(props.id))
 const smhiData = computed(() => smhi.smhiData[props.id])
 
 // Get wind data for current runway pair
@@ -873,8 +876,7 @@ onMounted(() => {
     // Subscribe to wind store to get runway data for runway selector
     windSubscription = windStore.subscribe(props.id)
     checkOutdatedInterval = setInterval(() => {
-        // For SMHI data, mark as outdated only if more than 75 minutes old (since SMHI updates every 60 minutes)
-        outdated.value = time.value.length > 0 && moment(time.value).isBefore(moment().subtract(75, "minutes"))
+        outdated.value = time.value.length > 0 && moment.utc(time.value).isBefore(moment.utc().subtract(75, "minutes"))
     }, 5000)
 })
 
