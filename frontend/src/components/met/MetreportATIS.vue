@@ -30,6 +30,7 @@ import { useVatsimStore } from "@/stores/vatsim"
 import { useSettingsStore } from "@/stores/settings"
 import moment from "moment"
 import { useWxStore } from "@/stores/wx"
+import { insertEngineIce } from "@/engineIce"
 
 const props = defineProps<{ id: string; type?: "ARR" | "DEP" }>()
 
@@ -365,7 +366,7 @@ const formatAtisText = (text: string) => {
     //Conditional for ARR/DEP
     const trlDisplay = props.type === "DEP" ? "" : `TRL ${trl}`
 
-    return `
+    const report = `
 ${icao}     ${atisType || "   "}   <span style="font-size: 16px; font-weight: bold;">${atisCode}</span>${" ".repeat(Math.max(0, 10 - atisCode.length))} ${formattedDate}
 RWY <span class="${runwayClass}">${runway.padEnd(11)}</span>MET REPORT  <b>${formattedTime}Z</b> ${otherRunway}
 WIND ${wind}
@@ -380,6 +381,8 @@ QNH <div style="display: inline-block; font-size: 20px; font-weight: bold; margi
 
 ${otherDisplay.value}
   `.trim()
+
+    return insertEngineIce(icao, report)
 }
 
 const changed = ref(false)

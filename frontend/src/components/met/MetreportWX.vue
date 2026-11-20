@@ -42,6 +42,7 @@ import { useSettingsStore } from "@/stores/settings"
 import { useVatsimStore } from "@/stores/vatsim"
 import { useWxStore } from "@/stores/wx"
 import { atisAirports } from "@/metcommon"
+import { insertEngineIce, stripEngineIce } from "@/engineIce"
 import moment from "moment"
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 
@@ -257,6 +258,7 @@ const isATISAirport = computed(() => atisAirports.includes(airportCode.value))
 
 const formatMetreport = (report: string) => {
     if (!report) return ""
+    report = stripEngineIce(report)
 
     // Removes \n in text after TRL
     //Finds where the "free text" starts
@@ -326,7 +328,7 @@ const formatMetreport = (report: string) => {
         })
     }
 
-    return formattedReport
+    return insertEngineIce(props.id, formattedReport)
 }
 
 const formattedMetreport = computed(() => formatMetreport(metreport.value || ""))

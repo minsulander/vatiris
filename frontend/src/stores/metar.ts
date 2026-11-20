@@ -5,6 +5,7 @@ import axios from "axios"
 import useEventBus from "@/eventbus"
 import { parseMetar } from "metar-taf-parser"
 import { calculateTrl } from "@/metcommon"
+import { insertEngineIce } from "@/engineIce"
 import moment from "moment"
 
 export const useMetarStore = defineStore("metar", () => {
@@ -143,7 +144,7 @@ export const useMetarStore = defineStore("metar", () => {
             // TODO RVR = parsed.runwaysInfo
 
             const text = `${header}\n${header2}\n${wind}\n\n${visibility}\n\n${conditions}\n\n${clouds}\n${temp}\n${qnh}\n${info}`
-            return text
+            return insertEngineIce(parsed.station, text)
         } catch (e) {
             console.error("Error parsing metar", metar, e)
             return "PARSE FAIL"
