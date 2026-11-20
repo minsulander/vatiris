@@ -74,6 +74,7 @@ import { useEaipStore } from "./stores/eaip"
 import { useVatfspStore } from "./stores/vatfsp"
 import { useEfsStore } from "./stores/efs"
 import { useWxOpsStore } from "./stores/wxOps"
+import { usePositionsStore } from "./stores/positions"
 
 registerSW({ immediate: true })
 
@@ -102,3 +103,4 @@ global.eaip = useEaipStore()
 global.vatfsp = useVatfspStore()
 global.efs = useEfsStore()
 global.wxOps = useWxOpsStore()
+global.positions = usePositionsStore()

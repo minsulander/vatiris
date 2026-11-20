@@ -102,6 +102,10 @@
                         selection.NAMEOFLINE ||
                         selection.NAME
                     }}
+                    <span v-if="selection.ownership?.controller" style="font-weight: bold">
+                        ({{ selection.ownership.controller
+                        }}{{ selection.ownership.frequency ? " " + selection.ownership.frequency : "" }})
+                    </span>
                     <div
                         v-if="selection.SCHEDULE"
                         class="text-grey-darken-3"
@@ -157,6 +161,8 @@ import Select, { SelectEvent } from "ol/interaction/Select"
 import type { FeatureLike } from "ol/Feature"
 import useEventBus from "@/eventbus"
 import { useWindowsStore } from "@/stores/windows"
+import { usePositionsStore } from "@/stores/positions"
+import { useSettingsStore } from "@/stores/settings"
 import Layer from "ol/layer/Layer"
 import { CARTO_LIGHT_NOLABELS_URL } from "@/basemap"
 
@@ -166,6 +172,8 @@ const ECHARTS_URL =
 
 useGeographic()
 const windows = useWindowsStore()
+const positions = usePositionsStore()
+const settings = useSettingsStore()
 
 const mapcontainer = ref()
 
@@ -196,26 +204,32 @@ const selection = reactive([] as Feature[])
 const selectionProps = reactive([] as any[])
 
 const selectionPropsSorted = computed(() =>
-    Object.values(selectionProps).sort((a, b) => {
-        function str2altitude(str: string | undefined | null) {
-            if (!str) return 0
-            if (str.startsWith("GND")) return 0
-            if (str.startsWith("UNL")) return 9999999
-            if (str.startsWith("FL")) return parseInt(str.substring(2)) * 100
-            return parseInt(str)
-        }
-        if (a.UPPER || b.UPPER) {
-            return str2altitude(b.UPPER) - str2altitude(a.UPPER)
-        }
-        if (a.LOWER || b.LOWER) {
-            return str2altitude(b.LOWER) - str2altitude(a.LOWER)
-        }
-        // if (a.LOCATION && b.LOCATION) {
-        //     return a.LOCATION.localeCompare(b.LOCATION)
-        // }
-        return 0
-    }),
+    Object.values(selectionProps)
+        .sort((a, b) => {
+            function str2altitude(str: string | undefined | null) {
+                if (!str) return 0
+                if (str.startsWith("GND")) return 0
+                if (str.startsWith("UNL")) return 9999999
+                if (str.startsWith("FL")) return parseInt(str.substring(2)) * 100
+                return parseInt(str)
+            }
+            if (a.UPPER || b.UPPER) {
+                return str2altitude(b.UPPER) - str2altitude(a.UPPER)
+            }
+            if (a.LOWER || b.LOWER) {
+                return str2altitude(b.LOWER) - str2altitude(a.LOWER)
+            }
+            return 0
+        })
+        .map((item) => ({ ...item, ...sectorAnnotation(item) })),
 )
+
+function sectorAnnotation(item: { LOCATION?: string; DESIG?: string }) {
+    if (!settings.showSectorCoverage) return { ownership: null }
+    const parsed = positions.parseLocation(item.LOCATION || item.DESIG)
+    if (!parsed) return { ownership: null }
+    return { ownership: positions.ownership(parsed.name) }
+}
 
 const resetCenter = ref(undefined as any)
 const resetZoom = ref(undefined as number | undefined)

@@ -20,6 +20,7 @@ export const useSettingsStore = defineStore("settings", () => {
     const showT1 = ref(true)
     const showSlow = ref(true)
     const colorfulArrDep = ref(true)
+    const showSectorCoverage = ref(true)
 
     // settings stored in localStorage (device specific)
     const customPdfBrowser = ref(localStorage.customPdfBrowser == "true" || !browserHasPDFViewer())
@@ -56,6 +57,7 @@ export const useSettingsStore = defineStore("settings", () => {
             showT1,
             showSlow,
             colorfulArrDep,
+            showSectorCoverage,
         ],
         () => {
             // PLS logic validation
@@ -99,6 +101,7 @@ export const useSettingsStore = defineStore("settings", () => {
                 showT1: showT1.value,
                 showSlow: showSlow.value,
                 colorfulArrDep: colorfulArrDep.value,
+                showSectorCoverage: showSectorCoverage.value,
             }
             localStorage.settings = JSON.stringify(settings)
             if (Date.now() - lastLoadTime > 3000 && auth.user) {
@@ -154,6 +157,7 @@ export const useSettingsStore = defineStore("settings", () => {
         if ("showT1" in settings) showT1.value = settings.showT1
         if ("showSlow" in settings) showSlow.value = settings.showSlow
         if ("colorfulArrDep" in settings) colorfulArrDep.value = settings.colorfulArrDep
+        if ("showSectorCoverage" in settings) showSectorCoverage.value = settings.showSectorCoverage
         // Legacy support: migrate showPropeller to showSlow
         if ("showPropeller" in settings && !("showSlow" in settings)) {
             showSlow.value = settings.showPropeller
@@ -198,6 +202,7 @@ export const useSettingsStore = defineStore("settings", () => {
         showT1,
         showSlow,
         colorfulArrDep,
+        showSectorCoverage,
         customPdfBrowser,
     }
 })

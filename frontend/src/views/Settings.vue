@@ -40,6 +40,25 @@
                 Cons: Links are not supported, can't zoom with mouse wheel, can't select text.
             </p>
 
+            <v-switch
+                color="white"
+                base-color="grey-darken-1"
+                hide-details
+                label="ACC sector coverage"
+                v-model="settings.showSectorCoverage"
+                class="mt-2"
+            />
+            <p class="text-caption text-grey ml-13" style="margin-top: -15px">
+                Menu bar and eCharts show who owns each Swedish ACC sector.
+                <span v-if="positions.mySis.length">
+                    Detected:
+                    <template v-for="(si, index) in positions.mySis" :key="si">
+                        <span v-if="index">, </span>{{ si }}
+                        <span v-if="positions.callsignFor(si)">({{ positions.callsignFor(si) }})</span>
+                    </template>
+                </span>
+            </p>
+
             <h2 class="mt-6">ARR DEP List</h2>
 
             <v-switch
@@ -171,9 +190,11 @@
 
 <script setup lang="ts">
 import { useSettingsStore } from "@/stores/settings"
+import { usePositionsStore } from "@/stores/positions"
 import { watch, ref } from "vue"
 
 const settings = useSettingsStore()
+const positions = usePositionsStore()
 
 const cid1 = ref(settings.cid1)
 const cid2 = ref(settings.cid2)
