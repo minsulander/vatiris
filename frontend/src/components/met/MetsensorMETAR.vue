@@ -98,74 +98,32 @@ const airportElevationFt = computed(() => {
     return airportElevations[props.id] || 0
 })
 
-// Load runway threshold elevations from CSV
-interface RunwayThreshold {
-    leElevationFt: number
-    heElevationFt: number
-}
-
-const runwayThresholds: { [key: string]: { [rwy: string]: RunwayThreshold } } = {}
+// Elevation of each runway end, in feet. Keyed by the end's own designator
+// so 11L and 29R keep their own thresholds even when the pair is reordered.
+const runwayEndElevationFt: { [icao: string]: { [rwy: string]: number } } = {}
 try {
     const parsed = Papa.parse(runwaysData, { header: true, skipEmptyLines: true })
     parsed.data.forEach((row: any) => {
         if (row.airport_ident && row.le_ident && row.he_ident) {
             const icao = row.airport_ident.toUpperCase()
-            const leIdent = row.le_ident.toUpperCase()
-            const heIdent = row.he_ident.toUpperCase()
-            const leElevationFt = parseFloat(row.le_elevation_ft) || 0
-            const heElevationFt = parseFloat(row.he_elevation_ft) || 0
-            
-            if (!runwayThresholds[icao]) {
-                runwayThresholds[icao] = {}
-            }
-            
-            // Store by both LE and HE identifiers
-            const rwyPair = `${leIdent}/${heIdent}`
-            runwayThresholds[icao][rwyPair] = {
-                leElevationFt,
-                heElevationFt,
-            }
-            // Also store by individual runway ends
-            runwayThresholds[icao][leIdent] = {
-                leElevationFt,
-                heElevationFt,
-            }
-            runwayThresholds[icao][heIdent] = {
-                leElevationFt,
-                heElevationFt,
-            }
+            const leIdent = String(row.le_ident).toUpperCase()
+            const heIdent = String(row.he_ident).toUpperCase()
+            const leElevationFt = parseFloat(row.le_elevation_ft)
+            const heElevationFt = parseFloat(row.he_elevation_ft)
+
+            if (!runwayEndElevationFt[icao]) runwayEndElevationFt[icao] = {}
+            if (!isNaN(leElevationFt)) runwayEndElevationFt[icao][leIdent] = leElevationFt
+            if (!isNaN(heElevationFt)) runwayEndElevationFt[icao][heIdent] = heElevationFt
         }
     })
 } catch (error: any) {
     console.error("Error loading runway threshold elevations:", error.message)
 }
 
-// Get runway threshold elevations for current runway pair
-const currentRunwayThresholds = computed(() => {
-    if (!props.id || !currentRunway.value) return null
-    const icaoThresholds = runwayThresholds[props.id]
-    if (!icaoThresholds) return null
-    
-    // Try to find by pair first (e.g., "03/21")
-    if (icaoThresholds[currentRunway.value]) {
-        return icaoThresholds[currentRunway.value]
-    }
-    
-    // Try to find by individual runway ends
-    const runways = currentRunway.value.split("/")
-    if (runways.length === 2) {
-        const leThreshold = icaoThresholds[runways[0]]
-        const heThreshold = icaoThresholds[runways[1]]
-        if (leThreshold && heThreshold) {
-            return {
-                leElevationFt: leThreshold.leElevationFt,
-                heElevationFt: heThreshold.heElevationFt,
-            }
-        }
-    }
-    
-    return null
-})
+function elevationForEnd(end: string): number {
+    if (!props.id || !end) return 0
+    return runwayEndElevationFt[props.id]?.[end.toUpperCase()] || 0
+}
 
 // Runway selection
 const selectedRunway = ref("")
@@ -190,85 +148,43 @@ const timestampOffset = computed(() => {
     return `${Math.max(3, totalWidth - 10)}px`
 })
 
-// Get available runway pairs (e.g., "03/21", "10/28") from wind store
+function compareRunwayNames(a: string, b: string) {
+    const aNum = parseInt(a.replace(/[LRC]$/, ""), 10)
+    const bNum = parseInt(b.replace(/[LRC]$/, ""), 10)
+    if (aNum !== bNum) return aNum - bNum
+    return a.localeCompare(b)
+}
+
+// Physical runway pairs from the runway database (11L stays with 29R).
+// Pairing by heading alone crosses parallel runways that share a heading.
 const availableRunways = computed(() => {
-    if (!props.id || !windStore.windData[props.id]) return []
-    const runways = windStore.windData[props.id].runways
-    
-    // Group runway ends into pairs based on opposite headings
-    const pairs: string[] = []
-    const processed = new Set<string>()
-    
-    for (let i = 0; i < runways.length; i++) {
-        const rwy1 = runways[i]
-        if (processed.has(rwy1.name)) continue
-        
-        // Get runway number without suffix (e.g., "03" from "03L")
-        const rwy1Num = rwy1.name.replace(/[LRC]$/, "")
-        const heading1 = rwy1.heading || 0
-        
-        // Find opposite runway (heading differs by ~180 degrees)
-        let oppositeFound = false
-        for (let j = i + 1; j < runways.length; j++) {
-            const rwy2 = runways[j]
-            if (processed.has(rwy2.name)) continue
-            
-            const heading2 = rwy2.heading || 0
-            // Calculate the difference considering wraparound (0-360 degrees)
-            let diff = Math.abs(heading1 - heading2)
-            if (diff > 180) diff = 360 - diff
-            
-            // If headings are approximately opposite (within 10 degrees of 180)
-            if (Math.abs(diff - 180) < 10) {
-                // Preserve L/R/C designators when creating pairs
-                const pair = [rwy1.name, rwy2.name].sort((a, b) => {
-                    const aNum = parseInt(a.replace(/[LRC]$/, ""))
-                    const bNum = parseInt(b.replace(/[LRC]$/, ""))
-                    return aNum - bNum
-                })
-                pairs.push(pair.join("/"))
-                processed.add(rwy1.name)
-                processed.add(rwy2.name)
-                oppositeFound = true
-                break
-            }
-        }
-        
-        // If no opposite found, treat as single runway (shouldn't happen normally)
-        if (!oppositeFound && !processed.has(rwy1.name)) {
-            pairs.push(rwy1.name)
-            processed.add(rwy1.name)
-        }
-    }
-    
-    // Sort pairs by first runway number
-    return pairs.sort((a, b) => {
-        const aNum = parseInt(a.split("/")[0].replace(/[LRC]$/, ""))
-        const bNum = parseInt(b.split("/")[0].replace(/[LRC]$/, ""))
-        return aNum - bNum
-    })
+    if (!props.id) return []
+    return windStore
+        .getRunwaysForAirport(props.id)
+        .map((pair) => [pair.le.name, pair.he.name].sort(compareRunwayNames).join("/"))
+        .sort(compareRunwayNames)
 })
 
-// Current runway pair - use selected or default to first available
+// Current runway pair - use selected or default to the runway in use
 const currentRunway = computed(() => {
-    if (selectedRunway.value) return selectedRunway.value
+    if (selectedRunway.value && availableRunways.value.includes(selectedRunway.value)) {
+        return selectedRunway.value
+    }
     const defaultRunway = windStore.getRunwayInUse(props.id)
     if (defaultRunway) {
-        // Find which pair contains the default runway (check both with and without designator)
-        const defaultNum = defaultRunway.replace(/[LRC]$/, "")
-        const pair = availableRunways.value.find(p => p.includes(defaultRunway) || p.includes(defaultNum))
-        if (pair) return pair
+        const exact = availableRunways.value.find((pair) => pair.split("/").includes(defaultRunway))
+        if (exact) return exact
+        if (!/[LRC]$/.test(defaultRunway)) {
+            const pair = availableRunways.value.find((candidate) =>
+                candidate.split("/").some((end) => end.replace(/[LRC]$/, "") === defaultRunway),
+            )
+            if (pair) return pair
+        }
     }
     return availableRunways.value[0] || ""
 })
 
-// Show runway selector only if there are more than one runway (more than 2 runway ends)
-const showRunwaySelector = computed(() => {
-    if (!props.id || !windStore.windData[props.id]) return false
-    const runways = windStore.windData[props.id].runways
-    // Show selector if there are more than 2 runway ends (more than one runway)
-    return runways.length > 2
-})
+const showRunwaySelector = computed(() => availableRunways.value.length > 1)
 
 const time = computed(() => {
     // Prefer SMHI timestamp, fallback to METAR
@@ -276,22 +192,13 @@ const time = computed(() => {
     return metar.time || ""
 })
 
-// Format timestamp: show only time (HH:MM) unless date differs from today
+// Format timestamp in UTC: time only when the observation is from today
 const formattedTime = computed(() => {
     if (!time.value) return ""
-    const timeMoment = moment(time.value)
-    const now = moment()
-    
-    // Check if date differs from today
-    const isToday = timeMoment.isSame(now, 'day')
-    
-    if (isToday) {
-        // Show only time: HH:MM
-        return timeMoment.utc().format('HH:mm')
-    } else {
-        // Show date and time: YYYY-MM-DD HH:MM
-        return timeMoment.utc().format('YYYY-MM-DD HH:mm')
-    }
+    const timeMoment = moment.utc(time.value)
+    if (!timeMoment.isValid()) return ""
+    if (timeMoment.isSame(moment.utc(), "day")) return timeMoment.format("HH:mm")
+    return timeMoment.format("YYYY-MM-DD HH:mm")
 })
 
 const parsedMetar = computed(() => metar.parse(props.id))
@@ -303,17 +210,19 @@ const currentRunwayWindData = computed(() => {
     
     const windData = windStore.windData[props.id]
     const rwyParts = currentRunway.value.split("/")
-    
-    // Get runway data for both ends (match with full name including L/R/C)
-    const leRwy = windData.runways.find(r => {
-        // Match by full name first, then by numeric part
-        return r.name === rwyParts[0] || r.name.replace(/[LRC]$/, "") === rwyParts[0].replace(/[LRC]$/, "")
-    })
-    const heRwy = windData.runways.find(r => {
-        // Match by full name first, then by numeric part
-        return r.name === rwyParts[1] || (rwyParts.length === 1 && r.name === rwyParts[0]) ||
-               r.name.replace(/[LRC]$/, "") === (rwyParts[1] || rwyParts[0]).replace(/[LRC]$/, "")
-    })
+
+    // Exact designator match. A numeric fallback is only safe when that number
+    // exists on a single end — otherwise 11L would pick up 11R's components.
+    const findRunwayEnd = (name: string | undefined) => {
+        if (!name) return null
+        const exact = windData.runways.find((r) => r.name === name)
+        if (exact) return exact
+        if (/[LRC]$/.test(name)) return null
+        const matches = windData.runways.filter((r) => r.name.replace(/[LRC]$/, "") === name)
+        return matches.length === 1 ? matches[0] : null
+    }
+    const leRwy = findRunwayEnd(rwyParts[0])
+    const heRwy = rwyParts.length > 1 ? findRunwayEnd(rwyParts[1]) : null
     
     if (!leRwy && !heRwy) return null
     
@@ -468,14 +377,11 @@ const metsensorText = computed(() => {
         const formatWind = (rwy: any, general: any) => {
             const dir = rwy?.direction ?? general?.direction
             const spd = rwy?.speed ?? general?.speed
-            
-            // Check for calm wind: when speed is 0 or missing, and direction is undefined/null/0/"CALM"
-            // Also check if both speed and direction are missing/0
-            const speedIsZero = spd === 0 || spd === undefined || spd === null
+
+            // 00000KT is calm. The METAR parser still reports direction "N" with speed 0,
+            // because degrees 0 is dropped in favour of the cardinal letter.
             const directionIsCalm = dir === undefined || dir === null || dir === 0 || dir === "CALM" || (typeof dir === "string" && dir.toUpperCase() === "CALM")
-            const isCalm = speedIsZero && directionIsCalm
-            
-            if (isCalm) {
+            if (spd === 0 || ((spd === undefined || spd === null) && directionIsCalm)) {
                 return "000/00"
             }
             
@@ -525,6 +431,12 @@ const metsensorText = computed(() => {
             if (typeof min === "number" && typeof max === "number") {
                 return `${String(min).padStart(2, "0")}/${String(max).padStart(2, "0")}`
             }
+            // METAR has no 2-minute min/max. Show mean/gust when a gust is reported.
+            const speed = rwy?.speed ?? general?.speed
+            const gust = rwy?.gust ?? general?.gust
+            if (typeof speed === "number" && typeof gust === "number" && gust > 0) {
+                return `${String(speed).padStart(2, "0")}/${String(gust).padStart(2, "0")}`
+            }
             return ""
         }
         const leMinMax = formatMinMax(windData.le, windData.general)
@@ -570,61 +482,63 @@ const metsensorText = computed(() => {
         // METAR RVR format: R{runway number}{designator}/{RVR value}[V{max}]?[NUD]
         // N=no change, U=upward trend, D=downward trend
         // Examples: R03/2000N, R26R/P2000N, R03/M0050N, R32/0550N, R33/0400U, R03/1200V2000N
-        const rvrPattern = /R(\d{2}[LCR]?)\/([PM]?)(\d{4})(?:V(\d{4}))?[NUD]/g
+        const rvrPattern = /R(\d{2}[LCR]?)\/([PM]?)(\d{4})(?:V(\d{4}))?([NUD])?/g
         const matches = [...rawMetar.matchAll(rvrPattern)]
-        
-        // Get current runway numbers for matching (preserve L/R/C designators)
+
         const rwyParts = currentRunway.value.split("/")
         const rwy1Full = rwyParts[0] || ""
         const rwy2Full = rwyParts.length > 1 ? rwyParts[1] : ""
-        // Get numeric parts for matching (METAR may not have L/R/C)
-        const rwy1Num = rwy1Full ? rwy1Full.replace(/[LRC]$/, "").padStart(2, "0") : ""
-        const rwy2Num = rwy2Full ? rwy2Full.replace(/[LRC]$/, "").padStart(2, "0") : ""
-        
-        // Process each RVR match
+
+        const rvrMatchesEnd = (rvrIdent: string, end: string) => {
+            if (!end) return false
+            const rvrNum = rvrIdent.replace(/[LRC]$/, "")
+            const endNum = end.replace(/[LRC]$/, "").padStart(2, "0")
+            if (rvrNum !== endNum) return false
+            const rvrDes = rvrIdent.match(/[LRC]$/)?.[0]
+            const endDes = end.match(/[LRC]$/)?.[0]
+            if (rvrDes && endDes) return rvrDes === endDes
+            return true
+        }
+
         for (const match of matches) {
-            const rvrRwyFull = match[1] // Full runway identifier (e.g., "32", "26R", "03L")
-            const rvrRwyNum = rvrRwyFull.replace(/[LRC]$/, "").padStart(2, "0") // Just the number
-            const prefix = match[2] // P = plus (greater than), M = minus (less than)
+            const rvrRwyFull = match[1]
+            const prefix = match[2]
             const value = parseInt(match[3])
             const rangeValue = match[4] ? parseInt(match[4]) : undefined
-            
-            // Format RVR value
+            const trend = match[5] || "N"
+
             let formattedRvr: string
             if (prefix === "P" || value >= 2000 || (rangeValue && rangeValue >= 2000)) {
                 formattedRvr = ">2000N"
             } else if (prefix === "M") {
-                formattedRvr = `<${value}N`
+                formattedRvr = `<${value}${trend}`
             } else if (rangeValue) {
-                // Range: show min/max (remove leading zeros)
-                formattedRvr = `${value}V${rangeValue}N`
+                formattedRvr = `${value}V${rangeValue}${trend}`
             } else {
-                // Remove leading zeros from value (e.g., 0550 -> 550)
-                formattedRvr = `${value}N`
+                formattedRvr = `${value}${trend}`
             }
-            
-            // Assign to the correct column based on runway match
-            if (rwy1Num && rvrRwyNum === rwy1Num) {
-                rvrCol1 = formattedRvr
-            } else if (rwy2Num && rvrRwyNum === rwy2Num) {
-                rvrCol3 = formattedRvr
-            }
+
+            if (rvrMatchesEnd(rvrRwyFull, rwy1Full)) rvrCol1 = formattedRvr
+            else if (rvrMatchesEnd(rvrRwyFull, rwy2Full)) rvrCol3 = formattedRvr
         }
     }
-    
-    // If no RVR data found in METAR, show ">2000N" in both runway end columns
-    let hasRvrData = false
-    if (rvrCol1 || rvrCol3) {
-        hasRvrData = true
-    }
-    
-    if (!hasRvrData && metar.metar[props.id] && !metar.metar[props.id].includes("Loading")) {
-        const rwyParts = currentRunway.value.split("/")
-        if (rwyParts[0]) {
-            rvrCol1 = ">2000N"
+
+    // METAR omits RVR when it is operationally insignificant. Fill >2000N
+    // only when prevailing visibility confirms that. A low visibility without
+    // an RVR group stays blank rather than showing a value that is too high.
+    if (!rvrCol1 && !rvrCol3 && metar.metar[props.id] && !metar.metar[props.id].includes("Loading")) {
+        const parsed = parsedMetar.value
+        let visM: number | undefined
+        if (parsed?.cavok) visM = 10000
+        else if (parsed?.visibility && typeof parsed.visibility.value === "number") {
+            visM = parsed.visibility.unit === "SM" ? parsed.visibility.value * 1609.344 : parsed.visibility.value
+        } else if (typeof smhiData.value?.visibility === "number") {
+            visM = smhiData.value.visibility
         }
-        if (rwyParts.length > 1 && rwyParts[1]) {
-            rvrCol3 = ">2000N"
+        if (visM !== undefined && visM >= 2000) {
+            const rwyParts = currentRunway.value.split("/")
+            if (rwyParts[0]) rvrCol1 = ">2000N"
+            if (rwyParts.length > 1 && rwyParts[1]) rvrCol3 = ">2000N"
         }
     }
     
@@ -633,7 +547,14 @@ const metsensorText = computed(() => {
     // VIS column: Visibility from SMHI API - shown only in middle (M) column
     // Show in meters (M) when 5000 m or less, otherwise in kilometers (KM)
     let visLine = formatThreeColumns("VIS", "", "", "")
-    const visibility = smhiData.value?.visibility
+    let visibility = smhiData.value?.visibility
+    if (typeof visibility !== "number") {
+        const parsed = parsedMetar.value
+        if (parsed?.cavok) visibility = 10000
+        else if (parsed?.visibility && typeof parsed.visibility.value === "number") {
+            visibility = parsed.visibility.unit === "SM" ? parsed.visibility.value * 1609.344 : parsed.visibility.value
+        }
+    }
     if (typeof visibility === "number") {
         let visFormatted: string
         if (visibility <= 5000) {
@@ -713,18 +634,18 @@ const metsensorText = computed(() => {
     
     // QFETHR row: QFE for runway threshold elevations (three columns)
     let qfethrLine = formatThreeColumns("QFETHR", "", "", "")
-    if (qnh && currentRunwayThresholds.value && currentRunwayThresholds.value.leElevationFt > 0) {
+    if (qnh) {
         const calculateQfe = (elevationFt: number) => {
+            if (!elevationFt) return ""
             const elevationM = elevationFt * 0.3048
             const qfe = qnh * (1 - elevationM / 8434.5)
             const isFromSmhi = smhiData.value?.qnh !== undefined
             return isFromSmhi ? qfe.toFixed(1) : Math.round(qfe).toString()
         }
-        const leQfe = calculateQfe(currentRunwayThresholds.value.leElevationFt)
-        const heQfe = currentRunwayThresholds.value.heElevationFt > 0
-            ? calculateQfe(currentRunwayThresholds.value.heElevationFt)
-            : ""
-        qfethrLine = formatThreeColumns("QFETHR", leQfe, "", heQfe)
+        const ends = currentRunway.value.split("/")
+        const leQfe = calculateQfe(elevationForEnd(ends[0] || ""))
+        const heQfe = ends.length > 1 ? calculateQfe(elevationForEnd(ends[1])) : ""
+        if (leQfe || heQfe) qfethrLine = formatThreeColumns("QFETHR", leQfe, "", heQfe)
     }
     
     // Build the formatted text - columns above QNH, then QNH, then TRL/QFE row, then T/DP/HUM below

@@ -114,6 +114,21 @@ interface AirportCacheEntry {
 const airportCache = new Map<string, AirportCacheEntry>()
 const AIRPORT_CACHE_DURATION = 55 * 60 * 1000 // 55 minutes
 
+// A station farther than this is not representative of the aerodrome.
+// Visibility stations are sparse, so that parameter allows a wider radius.
+const MAX_STATION_DISTANCE_KM = 40
+const MAX_VISIBILITY_DISTANCE_KM = 80
+
+function readNearValue(
+    nearest: { station: SmhiStation; distance: number } | null,
+    maxKm: number,
+): number | undefined {
+    if (!nearest || nearest.distance > maxKm) return undefined
+    const latest = nearest.station.value[nearest.station.value.length - 1]
+    const value = parseFloat(latest?.value)
+    return isNaN(value) ? undefined : value
+}
+
 // Fetch station data from SMHI API
 async function getStationData(parameter: number): Promise<SmhiStation[]> {
     try {
@@ -227,73 +242,38 @@ smhi.get("/", async (req: Request, res: Response) => {
 
         // Find nearest stations
         const nearestTempStation = findNearestStation(temperatureStations, coords.latitude, coords.longitude)
-        if (!nearestTempStation) {
+        const temperature = readNearValue(nearestTempStation, MAX_STATION_DISTANCE_KM)
+        if (temperature === undefined || !nearestTempStation) {
             return res.status(404).json({ error: `No nearby temperature station with valid data found for ${icao}` })
         }
+        const tempLatest = nearestTempStation.station.value[nearestTempStation.station.value.length - 1]
+        const timestamp = new Date(tempLatest.date).toISOString()
 
-        // Get temperature value
-        const tempValue = nearestTempStation.station.value[nearestTempStation.station.value.length - 1]
-        const temperature = parseFloat(tempValue.value)
-        const timestamp = new Date(tempValue.date).toISOString()
+        const dewpointRaw = dewpointStations?.length
+            ? readNearValue(findNearestStation(dewpointStations, coords.latitude, coords.longitude), MAX_STATION_DISTANCE_KM)
+            : undefined
+        const dewpoint = dewpointRaw !== undefined && dewpointRaw >= -50 && dewpointRaw <= 50 ? dewpointRaw : undefined
 
-        // Find nearest dewpoint station and get dewpoint
-        let dewpoint: number | undefined = undefined
-        if (dewpointStations && dewpointStations.length > 0) {
-            const nearestDewStation = findNearestStation(dewpointStations, coords.latitude, coords.longitude)
-            if (nearestDewStation) {
-                const dewValue = nearestDewStation.station.value[nearestDewStation.station.value.length - 1]
-                const parsedDewpoint = parseFloat(dewValue.value)
-                // Validate dewpoint (reasonable range: -50 to +50 °C)
-                if (!isNaN(parsedDewpoint) && parsedDewpoint >= -50 && parsedDewpoint <= 50) {
-                    dewpoint = parsedDewpoint
-                }
-            }
-        }
+        const humidityRaw = humidityStations?.length
+            ? readNearValue(findNearestStation(humidityStations, coords.latitude, coords.longitude), MAX_STATION_DISTANCE_KM)
+            : undefined
+        const humidity = humidityRaw !== undefined && humidityRaw >= 0 && humidityRaw <= 100 ? humidityRaw : undefined
 
-        // Find nearest humidity station and get relative humidity
-        let humidity: number | undefined = undefined
-        if (humidityStations && humidityStations.length > 0) {
-            const nearestHumStation = findNearestStation(humidityStations, coords.latitude, coords.longitude)
-            if (nearestHumStation) {
-                const humValue = nearestHumStation.station.value[nearestHumStation.station.value.length - 1]
-                const parsedHumidity = parseFloat(humValue.value)
-                // Validate humidity to be within 0-100%
-                if (!isNaN(parsedHumidity) && parsedHumidity >= 0 && parsedHumidity <= 100) {
-                    humidity = parsedHumidity
-                }
-            }
-        }
+        const qnhRaw = pressureStations?.length
+            ? readNearValue(findNearestStation(pressureStations, coords.latitude, coords.longitude), MAX_STATION_DISTANCE_KM)
+            : undefined
+        const qnh = qnhRaw !== undefined && qnhRaw > 850 && qnhRaw < 1100 ? qnhRaw : undefined
 
-        // Find nearest pressure station and get QNH
-        let qnh: number | undefined = undefined
-        if (pressureStations && pressureStations.length > 0) {
-            const nearestPressStation = findNearestStation(pressureStations, coords.latitude, coords.longitude)
-            if (nearestPressStation) {
-                const pressValue = nearestPressStation.station.value[nearestPressStation.station.value.length - 1]
-                const parsedQnh = parseFloat(pressValue.value)
-                // Validate QNH to be within a reasonable range (e.g., 850-1100 hPa)
-                if (!isNaN(parsedQnh) && parsedQnh > 850 && parsedQnh < 1100) {
-                    qnh = parsedQnh
-                }
-            }
-        }
-
-        // Find nearest visibility station and get visibility
-        let visibility: number | undefined = undefined
-        if (visibilityStations && visibilityStations.length > 0) {
-            const nearestVisStation = findNearestStation(visibilityStations, coords.latitude, coords.longitude)
-            if (nearestVisStation) {
-                const visValue = nearestVisStation.station.value[nearestVisStation.station.value.length - 1]
-                const parsedVisibility = parseFloat(visValue.value)
-                // Validate visibility to be within a reasonable range (0-100000 meters)
-                if (!isNaN(parsedVisibility) && parsedVisibility >= 0 && parsedVisibility <= 100000) {
-                    visibility = parsedVisibility
-                }
-            }
-        }
+        const visibilityRaw = visibilityStations?.length
+            ? readNearValue(
+                  findNearestStation(visibilityStations, coords.latitude, coords.longitude),
+                  MAX_VISIBILITY_DISTANCE_KM,
+              )
+            : undefined
+        const visibility = visibilityRaw !== undefined && visibilityRaw >= 0 && visibilityRaw <= 100000 ? visibilityRaw : undefined
 
         const response: SmhiResponse = {
-            temperature: isNaN(temperature) ? undefined : temperature,
+            temperature,
             dewpoint: dewpoint,
             humidity: humidity,
             qnh: qnh,

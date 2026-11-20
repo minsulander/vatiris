@@ -173,7 +173,7 @@ export const useWindStore = defineStore("wind", () => {
         const runways = getRunwaysForAirport(icao)
 
         const windData = {
-            direction: parsed.wind.degrees || parsed.wind.direction,
+            direction: parsed.wind.degrees ?? parsed.wind.direction,
             speed: parsed.wind.speed,
             unit: parsed.wind.unit,
             gust: parsed.wind.gust,
@@ -183,13 +183,13 @@ export const useWindStore = defineStore("wind", () => {
                 {
                     name: rwy.le.name,
                     heading: rwy.le.heading,
-                    direction: parsed.wind?.degrees || parsed.wind?.direction,
+                    direction: parsed.wind?.degrees ?? parsed.wind?.direction,
                     speed: parsed.wind?.speed,
                     gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
                     ...calculateWindComponents(
-                        parsed.wind?.degrees || parsed.wind?.direction,
+                        parsed.wind?.degrees ?? parsed.wind?.direction,
                         parsed.wind?.speed || 0,
                         rwy.le.heading,
                     ),
@@ -197,13 +197,13 @@ export const useWindStore = defineStore("wind", () => {
                 {
                     name: rwy.he.name,
                     heading: rwy.he.heading,
-                    direction: parsed.wind?.degrees || parsed.wind?.direction,
+                    direction: parsed.wind?.degrees ?? parsed.wind?.direction,
                     speed: parsed.wind?.speed,
                     gust: parsed.wind?.gust,
                     variableFrom: parsed.wind?.minVariation,
                     variableTo: parsed.wind?.maxVariation,
                     ...calculateWindComponents(
-                        parsed.wind?.degrees || parsed.wind?.direction,
+                        parsed.wind?.degrees ?? parsed.wind?.direction,
                         parsed.wind?.speed || 0,
                         rwy.he.heading,
                     ),
