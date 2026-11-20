@@ -75,11 +75,12 @@ export const useSettingsStore = defineStore("settings", () => {
                 cid2.value = ""
                 useVatsimConnect.value = false
             } else if (plsLogic.value === "simple") {
+                // Simple mode shows the logged-in VATSIM Connect session, not a manual CID.
                 cid1.value = ""
                 cid2.value = ""
                 position1.value = ""
                 position2.value = ""
-                useVatsimConnect.value = false
+                useVatsimConnect.value = true
             }
 
             const settings = {

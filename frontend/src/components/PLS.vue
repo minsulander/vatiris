@@ -330,58 +330,8 @@ const matchControllers = (controllers: any) => {
             awayControllers,
         )
     } else if (settings.plsLogic === "simple") {
-        const cid1 = settings.useVatsimConnect ? auth.user?.cid.toString() : settings.cid1
-        const cid2 = settings.cid2
-
-        // Find controllers in VATSIM data
-        const vatsimController1 = cid1 ? vatsim.data.controllers.find((c: Controller) => c.cid.toString() === cid1) : null
-        const vatsimController2 = cid2 ? vatsim.data.controllers.find((c: Controller) => c.cid.toString() === cid2) : null
-
-        // Convert VATSIM controller to PLS format
-        matchedController1.value = vatsimController1 ? {
-            cid: vatsimController1.cid,
-            name: vatsimController1.name,
-            position: vatsimController1.callsign,
-            callsign: vatsimController1.callsign,
-            timestamp: vatsimController1.logon_time
-        } : null
-
-        matchedController2.value = vatsimController2 ? {
-            cid: vatsimController2.cid,
-            name: vatsimController2.name,
-            position: vatsimController2.callsign,
-            callsign: vatsimController2.callsign,
-            timestamp: vatsimController2.logon_time
-        } : null
-
-        // Set controller status based on callsign in simple mode
-        controllerStatus1.value = vatsimController1?.callsign?.includes("_OBS") ? "O" : ""
-        controllerStatus2.value = vatsimController2?.callsign?.includes("_OBS") ? "O" : ""
-        
-        // Update session start times from logon_time (which is a string timestamp)
-        if (matchedController1.value && matchedController1.value.timestamp) {
-            const logonDate = new Date(matchedController1.value.timestamp)
-            if (!isNaN(logonDate.getTime())) {
-                sessionStartTime1.value = logonDate
-            } else {
-                sessionStartTime1.value = null
-            }
-        } else {
-            sessionStartTime1.value = null
-        }
-        
-        if (matchedController2.value && matchedController2.value.timestamp) {
-            const logonDate = new Date(matchedController2.value.timestamp)
-            if (!isNaN(logonDate.getTime())) {
-                sessionStartTime2.value = logonDate
-            } else {
-                sessionStartTime2.value = null
-            }
-        } else {
-            sessionStartTime2.value = null
-        }
-        
-        return // Early return to avoid setting session times again below
+        applySimpleSession()
+        return
     } else if (settings.plsLogic === "Position") {
         // Only look in activeControllers for position logic
         matchedController1.value = settings.position1
@@ -436,12 +386,52 @@ const formatSessionTime = (startTime: Date | null) => {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
 }
 
+const connectedCid = () => {
+    const cid = auth.user?.cid
+    if (cid === undefined || cid === null || cid === "") return ""
+    return String(cid)
+}
+
+const parseLogonTime = (timestamp: unknown): Date | null => {
+    if (!timestamp) return null
+    const logonDate = new Date(timestamp as string)
+    return Number.isNaN(logonDate.getTime()) ? null : logonDate
+}
+
+// Simple mode ignores PLS and manual CIDs. It shows the logged-in controller's VATSIM session.
+const applySimpleSession = () => {
+    const cid = connectedCid()
+    const controllers = vatsim.data?.controllers
+    const vatsimController =
+        cid && Array.isArray(controllers)
+            ? controllers.find((c: Controller) => String(c.cid) === cid)
+            : undefined
+
+    matchedController1.value = vatsimController
+        ? {
+              cid: vatsimController.cid,
+              name: vatsimController.name,
+              position: vatsimController.callsign,
+              callsign: vatsimController.callsign,
+              timestamp: vatsimController.logon_time,
+          }
+        : null
+    matchedController2.value = null
+    controllerStatus1.value = vatsimController?.callsign?.includes("_OBS") ? "O" : ""
+    controllerStatus2.value = ""
+    sessionStartTime1.value = parseLogonTime(vatsimController?.logon_time)
+    sessionStartTime2.value = null
+}
+
 const sessionTimeClass1 = computed(() => {
-    if (canGoOnBreak(matchedController1.value)) {
+    const breakable = canGoOnBreak(matchedController1.value)
+    const showDuration = breakable || (settings.plsLogic === "simple" && matchedController1.value)
+    if (showDuration) {
         const minutes = moment(currentTime.value).diff(sessionStartTime1.value, "minute")
-        if (minutes >= 120) return "text-red-darken-1 cursor-pointer"
-        else if (minutes >= 90) return "text-yellow-darken-2 cursor-pointer"
-        else return "text-grey cursor-pointer"
+        const pointer = breakable ? " cursor-pointer" : ""
+        if (minutes >= 120) return `text-red-darken-1${pointer}`
+        else if (minutes >= 90) return `text-yellow-darken-2${pointer}`
+        else return `text-grey${pointer}`
     }
     return "text-grey"
 })
@@ -604,6 +594,7 @@ const hasControllerData = computed(() => {
 })
 
 onMounted(() => {
+    if (settings.plsLogic === "simple") applySimpleSession()
     if (auth.user) fetchControllers()
     if (settings.enablePLS) startNotepadPolling()
 
@@ -633,6 +624,7 @@ bus.on("refresh", () => {
 watch(
     () => auth.user,
     () => {
+        if (settings.plsLogic === "simple") applySimpleSession()
         if (auth.user) fetchControllers()
     },
 )
@@ -641,6 +633,7 @@ watch(
     () => settings.enablePLS,
     (newValue) => {
         if (newValue) {
+            if (settings.plsLogic === "simple") applySimpleSession()
             fetchControllers()
             startNotepadPolling()
         } else {
@@ -664,15 +657,19 @@ bus.on("settingsChanged", (updatedSettings) => {
     fetchControllers()
 })
 
-// Update the watch for VATSIM data changes
+watch(
+    () => settings.plsLogic,
+    () => {
+        if (settings.plsLogic === "simple") applySimpleSession()
+        else if (auth.user) fetchControllers()
+    },
+)
+
 watch(
     () => vatsim.data.controllers,
     () => {
-        if (settings.plsLogic === "simple") {
-            matchControllers({ activeControllers: [], availableControllers: [], awayControllers: [] })
-        }
+        if (settings.plsLogic === "simple") applySimpleSession()
     },
-    { deep: true }
 )
 </script>
 
