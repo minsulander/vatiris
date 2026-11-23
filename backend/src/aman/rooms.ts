@@ -26,6 +26,8 @@ function bounded(value: unknown, bytes: number) {
     if (value === undefined || Buffer.byteLength(JSON.stringify(value)) > bytes) throw new RelayError(413, "AMAN payload exceeds limit")
 }
 const compatible = (a: Engine, b: Engine) => a.name === b.name && a.schema === b.schema
+// Both timestamps are from the server. The publisher's payload clock is not involved.
+const publicationAge = (r: Room, now: number) => r.sequence ? Math.max(0, now - r.updated) : undefined
 
 // No aircraft calculations here: each compatible plugin room owns its opaque recovery state.
 export class AmanRooms {
@@ -88,11 +90,13 @@ export class AmanRooms {
         if (touch && role === "sequencer") r.seen = now
         const changed = input.epoch !== r.epoch || input.revision !== r.revision || input.role !== role
             || (!this.alive(r) && client.canSequence)
-        const stale = !r.sequence || now - r.updated >= STALE_MS
+        const publicationAgeMs = publicationAge(r, now)
+        const stale = publicationAgeMs === undefined || publicationAgeMs >= STALE_MS
         const results = (r.results.get(client.id) || []).filter(x => x.id > (input.resultsAfter || 0))
         const out: any = { epoch: r.epoch, revision: r.revision, settingsRevision: r.settingsRevision,
             role, sequencer: this.alive(r) ? r.owner?.callsign : null, engine: r.engine,
-            stale, updated: r.updated || null, users: [...r.clients.values()].map(x => ({ callsign: x.client.callsign, engine: x.client.engine })) }
+            stale, updated: r.updated || null, serverTimeMs: now, publicationAgeMs,
+            users: [...r.clients.values()].map(x => ({ callsign: x.client.callsign, engine: x.client.engine })) }
         if (changed) { out.sequence = stale ? null : clone(r.sequence); out.checkpoint = clone(r.checkpoint); out.settings = clone(r.settings) }
         if (role === "sequencer") { out.lease = r.lease; out.commands = clone(r.commands) }
         if (results.length) out.results = clone(results)
@@ -179,9 +183,11 @@ export class AmanRooms {
         return { epoch: r.epoch, revision: r.revision, settingsRevision: r.settingsRevision }
     }
     supervision(key: string) {
-        const r = this.get(key)
+        const r = this.get(key), now = this.now()
+        const publicationAgeMs = publicationAge(r, now)
         return clone({ epoch: r.epoch, revision: r.revision, settingsRevision: r.settingsRevision, settings: r.settings,
-            engine: r.engine, supervision: r.supervision, stale: !r.sequence || this.now() - r.updated >= STALE_MS })
+            engine: r.engine, supervision: r.supervision, serverTimeMs: now, publicationAgeMs,
+            stale: publicationAgeMs === undefined || publicationAgeMs >= STALE_MS })
     }
     sequence(key: string) {
         const r = this.rooms.get(key)

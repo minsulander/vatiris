@@ -11,13 +11,13 @@
 //   sweatbox2  SWEATBOX-2 server } AMAN_SWEATBOX_KEY when set
 //
 //   POST /aman/:net/:icao/poll      { callsign, role, version, cmdAfter }  long poll (<= 20 s)
-//        -> { role, sequencer, version, sequence?, commands?, results?, users }
+//        -> { role, sequencer, version, sequence?, commands?, results?, users, serverTimeMs, publicationAgeMs? }
 //   PUT  /aman/:net/:icao           { callsign, sequence, results?, cmdAck? }   sequencer only (409 otherwise)
 //   POST /aman/:net/:icao/command   { callsign, cmd, takeSequencer? }           -> { id }
 //        takeSequencer: transfer to the sender only after this command succeeds in a publication
 //   GET  /aman/capabilities         optional protocol extensions
 //   POST /aman/:net/:icao/leave     { callsign }
-//   GET  /aman/:net/:icao           latest sequence (MAESTRO format)
+//   GET  /aman/:net/:icao           latest sequence (MAESTRO format), with SAAMAN clock headers
 //   GET  /aman/MAESTRO_sequence_data_<ICAO>.json   live sequence, for TopSky's AMAN_URL
 //   GET  /aman                      status of all rooms (for the VatIRIS frontend)
 
@@ -31,7 +31,9 @@ const POLL_TIMEOUT_MS = 20_000
 const LEASE_MS = 8_000 // sequencer considered gone after this long without a request
 const CLIENT_TIMEOUT_MS = 60_000
 const COMMAND_TTL_MS = 60_000
-const MAX_AGE_MS = 30_000 // do not serve abandoned guidance for ten minutes
+const MAX_AGE_MS = 30_000 // do not serve abandoned guidance after 30 seconds
+const SERVER_TIME_HEADER = "X-SAAMAN-Server-Time"
+const PUBLICATION_AGE_HEADER = "X-SAAMAN-Publication-Age"
 const NETWORKS = ["live", "sweatbox1", "sweatbox2"] as const
 type Network = (typeof NETWORKS)[number]
 
@@ -64,6 +66,7 @@ interface Room {
     version: number
     sequence: any | null
     sequenceAt: number
+    sequenceReceivedAt: number
     sequencer: string | null
     sequencerSeen: number
     commands: Command[]
@@ -87,6 +90,7 @@ function room(net: Network, icao: string): Room {
             version: 0,
             sequence: null,
             sequenceAt: 0,
+            sequenceReceivedAt: 0,
             sequencer: null,
             sequencerSeen: 0,
             commands: [],
@@ -116,6 +120,17 @@ function callsignOf(req: Request): string {
         .toUpperCase()
         .replace(/[^A-Z0-9_-]/g, "")
         .substring(0, 20)
+}
+
+function publicationAgeMs(r: Room | undefined): number | undefined {
+    // Only the backend's receipt and elapsed time determine publication age.
+    return r?.sequence ? Math.floor(performance.now() - r.sequenceReceivedAt) : undefined
+}
+
+function setClockHeaders(res: Response, ageMs: number | undefined) {
+    res.set("Access-Control-Expose-Headers", `${SERVER_TIME_HEADER}, ${PUBLICATION_AGE_HEADER}`)
+    res.set(SERVER_TIME_HEADER, String(Date.now()))
+    if (ageMs !== undefined) res.set(PUBLICATION_AGE_HEADER, String(ageMs))
 }
 
 // ---------------------------------------------------------------- who may write
@@ -255,7 +270,11 @@ function answer(r: Room, w: Omit<Waiter, "res" | "timer">, force: boolean): any 
         r.results.delete(w.callsign)
         news = true
     }
-    return news ? out : undefined
+    if (!news) return undefined
+    out.serverTimeMs = Date.now()
+    const ageMs = publicationAgeMs(r)
+    if (ageMs !== undefined) out.publicationAgeMs = ageMs
+    return out
 }
 
 function wake(r: Room) {
@@ -298,7 +317,9 @@ aman.get("/", (req: Request, res: Response) => {
 
 function sendSequence(res: Response, r: Room | undefined, topSky = false) {
     res.set("Cache-Control", "no-store")
-    if (!r || !r.sequence || Date.now() - r.sequenceAt > MAX_AGE_MS) {
+    const ageMs = publicationAgeMs(r)
+    if (!topSky) setClockHeaders(res, ageMs)
+    if (!r || ageMs === undefined || ageMs >= MAX_AGE_MS) {
         res.status(404).send("Not found")
         return
     }
@@ -311,7 +332,7 @@ function sendSequence(res: Response, r: Room | undefined, topSky = false) {
 }
 
 aman.get("/capabilities", (_req: Request, res: Response) => {
-    res.set("Cache-Control", "no-store").send({ runwayHandover: 1, essaPriority: 1 })
+    res.set("Cache-Control", "no-store").send({ runwayHandover: 1, essaPriority: 1, serverTimeMs: Date.now() })
 })
 
 // TopSky AMAN_URL: <base>/MAESTRO_sequence_data_ESSA.json (live network)
@@ -387,6 +408,7 @@ aman.put("/:net/:icao", async (req: Request, res: Response) => {
     }
     r.sequence = seq
     r.sequenceAt = Date.now()
+    r.sequenceReceivedAt = performance.now()
     r.version++
     const ack = Number(req.body?.cmdAck) || 0
     // Match results against the server's own pending commands before pruning.
@@ -412,6 +434,7 @@ aman.put("/:net/:icao", async (req: Request, res: Response) => {
         r.sequencerSeen = Date.now()
     }
     wake(r)
+    setClockHeaders(res, publicationAgeMs(r))
     res.send({ version: r.version })
 })
 

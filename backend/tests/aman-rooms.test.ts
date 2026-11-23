@@ -76,7 +76,11 @@ test("expired commands report failure; stale sequences disappear", () => {
     r.command(key, b, { requestId: "old", epoch: s.epoch, revision: 1, cmd: { op: "reorder" } })
     now += STALE_MS
     rejects(404, () => r.sequence(key))
-    assert.equal(r.poll(key, observer, {}).data.sequence, null)
+    const stale = r.poll(key, observer, {}).data
+    assert.equal(stale.sequence, null)
+    assert.equal(stale.serverTimeMs, now)
+    assert.equal(stale.publicationAgeMs, STALE_MS)
+    assert.equal(r.supervision(key).publicationAgeMs, STALE_MS)
     now += 30_000
     const result = r.poll(key, b, {}).data.results[0]
     assert.equal(result.ok, false)
@@ -132,7 +136,8 @@ test("switching the owner to observer releases ownership and cannot renew its le
 })
 
 test("actual HTTP routes authenticate writers and separate supervisor settings", async () => {
-    const relay = createAmanRoomsRouter({ authenticate: async (req, res) => {
+    let now = 100_000
+    const relay = createAmanRoomsRouter({ rooms: new AmanRooms(() => now), authenticate: async (req, res) => {
         const cid = Number(req.headers["x-test-cid"])
         if (!cid) { res.status(401).end(); return }
         return { cid }
@@ -151,6 +156,8 @@ test("actual HTTP routes authenticate writers and separate supervisor settings",
         assert.equal((await request("/poll", "POST", identity)).status, 401)
         const s = (await request("/poll", "POST", { ...identity, wait: false }, 1396125)).body
         assert.equal(s.role, "sequencer")
+        assert.equal(s.serverTimeMs, now)
+        assert.equal(s.publicationAgeMs, undefined)
         assert.equal((await request("/settings", "PUT", { epoch: s.epoch, revision: 0, settings: { rate: 25 } }, 1234567)).status, 403)
         assert.equal((await request("/supervision", "GET", undefined, 1234567)).status, 403)
         assert.equal((await request("/reset", "POST", { epoch: s.epoch, revision: 0 }, 1234567)).status, 403)
@@ -164,12 +171,18 @@ test("actual HTTP routes authenticate writers and separate supervisor settings",
         const updated = (await request("/poll", "POST", { ...identity, wait: false }, 1396125)).body
         const payload = { ...identity, ...updated, requestId: "publish", sequence: sequence(), checkpoint: { retained: true }, supervision: { private: true } }
         assert.equal((await request("", "PUT", payload, 1396125)).status, 200)
+        now += 2_000
         const editor = { ...identity, instanceId: "instance-b", callsign: b.callsign }
         const e = (await request("/poll", "POST", { ...editor, wait: false }, 1234567)).body
         assert.equal(e.lease, undefined)
         assert.equal(e.supervision, undefined)
+        assert.equal(e.serverTimeMs, now)
+        assert.equal(e.publicationAgeMs, 2_000)
         assert.equal((await request("", "PUT", { ...payload, ...editor, requestId: "spoof" }, 1234567)).status, 409)
-        assert.equal((await request("/supervision", "GET", undefined, 1396125)).body.supervision.private, true)
+        const supervision = (await request("/supervision", "GET", undefined, 1396125)).body
+        assert.equal(supervision.supervision.private, true)
+        assert.equal(supervision.serverTimeMs, now)
+        assert.equal(supervision.publicationAgeMs, 2_000)
         assert.equal((await request("/MAESTRO_sequence_data_ESSA.json", "GET")).body.sequence[0].callsign, "SAS123")
         assert.equal((await request("/MAESTRO_sequence_data_ESSB.json", "GET")).status, 404)
         // Editor waits, then a publication wakes it with the new checkpoint.
