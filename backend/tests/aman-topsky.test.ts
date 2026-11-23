@@ -64,6 +64,8 @@ test("malformed or mismatched SAAMAN checkpoints fail closed instead of exposing
 // socket. This is also usable on build hosts where loopback binding is blocked.
 test("public filename routes are filtered; plain room reads and writes preserve the opaque shared sequence", async t => {
     let now = 100_000
+    let elapsed = 1_000
+    t.mock.method(performance, "now", () => elapsed)
     const oldNow = Date.now, oldInterval = global.setInterval, oldAtc = process.env.AMAN_REQUIRE_ATC
     const timers: ReturnType<typeof setInterval>[] = []
     Date.now = () => now; process.env.AMAN_REQUIRE_ATC = "0"
@@ -76,7 +78,7 @@ test("public filename routes are filtered; plain room reads and writes preserve 
                 const chunks: Buffer[] = [], payload = body === undefined ? undefined : Buffer.from(JSON.stringify(body))
                 const socket = new Duplex({ read() {}, write(chunk, _encoding, callback) { chunks.push(Buffer.from(chunk)); callback() } })
                 const req = new IncomingMessage(socket as unknown as Socket); req.method = method; req.url = path; req.httpVersion = "1.1"; req.httpVersionMajor = 1; req.httpVersionMinor = 1
-                req.headers = { "content-type": "application/json", host: "in-process.test", ...(payload ? { "content-length": String(payload.length) } : {}) }
+                req.headers = { "content-type": "application/json", host: "in-process.test", origin: "https://vatiris.se", ...(payload ? { "content-length": String(payload.length) } : {}) }
                 req.rawHeaders = Object.entries(req.headers).flatMap(([key, value]) => [key, String(value)])
                 const res = new ServerResponse(req); res.assignSocket(socket as unknown as Socket)
                 const timeout = setTimeout(() => { socket.destroy(); reject(new Error("In-process HTTP request timed out")) }, 5000)
@@ -97,6 +99,44 @@ test("public filename routes are filtered; plain room reads and writes preserve 
             })
         }
         const publish = (sequence: any, icao = "ESSA") => request("PUT", `/aman/live/${icao}`, { callsign: "ESSA_FMP", sequence })
+        await t.test("clock metadata follows the backend clock and elapsed receipt age, independent of the publisher", async () => {
+            const clock = await request("GET", "/aman/capabilities")
+            assert.deepEqual(clock.body, { runwayHandover: 1, essaPriority: 1, serverTimeMs: now })
+            assert.match(clock.headers, /cache-control: no-store/i)
+
+            const emptyRoom = await request("GET", "/aman/live/ESSA")
+            assert.equal(emptyRoom.status, 404)
+            assert.match(emptyRoom.headers, new RegExp(`x-saaman-server-time: ${now}\r?\n`, "i"))
+            assert.doesNotMatch(emptyRoom.headers, /x-saaman-publication-age: /i)
+
+            const skewed = publication(now + 90_000)
+            const receipt = await publish(skewed)
+            assert.equal(receipt.status, 200)
+            assert.match(receipt.headers, /x-saaman-publication-age: 0\r?\n/i)
+            assert.match(receipt.headers, /access-control-expose-headers: X-SAAMAN-Server-Time, X-SAAMAN-Publication-Age\r?\n/i)
+
+            // A host wall-clock correction changes the UTC sample, not guide expiry.
+            now += 180_000
+            elapsed += 2_000
+            const editor = await request("GET", "/aman/live/ESSA")
+            assert.equal(editor.status, 200)
+            assert.deepEqual(editor.body, skewed)
+            assert.match(editor.headers, new RegExp(`x-saaman-server-time: ${now}\r?\n`, "i"))
+            assert.match(editor.headers, /x-saaman-publication-age: 2000\r?\n/i)
+            assert.match(editor.headers, /access-control-expose-headers: X-SAAMAN-Server-Time, X-SAAMAN-Publication-Age\r?\n/i)
+
+            const poll = await request("POST", "/aman/live/ESSA/poll", { callsign: "ESSA_FMP", role: "", version: receipt.body.version })
+            assert.equal(poll.body.serverTimeMs, now)
+            assert.equal(poll.body.publicationAgeMs, 2_000)
+            assert.equal(poll.body.version, receipt.body.version)
+            assert.deepEqual(poll.body.sequence, skewed)
+
+            // Repeated successful reads cannot rejuvenate the old publication.
+            elapsed += 28_000
+            const stale = await request("GET", "/aman/live/ESSA")
+            assert.equal(stale.status, 404)
+            assert.match(stale.headers, /x-saaman-publication-age: 30000\r?\n/i)
+        })
         await t.test("all TopSky filename aliases use the same filtered replacement, while editor GET stays complete", async () => {
             const full = publication(now); assert.equal((await publish(full)).status, 200)
             const expected = topSkySequence(full); assert.ok(expected)
@@ -105,6 +145,7 @@ test("public filename routes are filtered; plain room reads and writes preserve 
                 assert.equal(r.status, 200, path); assert.match(r.headers, /cache-control: no-store/i)
                 assert.deepEqual(r.body, expected, path)
                 assert.equal(r.body.saamanRelay, undefined)
+                assert.doesNotMatch(r.headers, /x-saaman-publication-age: /i)
             }
             const editor = await request("GET", "/aman/live/ESSA")
             assert.equal(editor.status, 200); assert.deepEqual(editor.body, full)
@@ -118,6 +159,7 @@ test("public filename routes are filtered; plain room reads and writes preserve 
         })
         await t.test("stale public and full reads are 404 with no-store; no abandoned guidance is served as a fresh 200", async () => {
             now += 30_001
+            elapsed += 30_001
             for (const path of ["/aman/MAESTRO_sequence_data_ESSA.json", "/aman/live/ESSA.json", "/aman/live/ESSA"]) {
                 const r = await request("GET", path); assert.equal(r.status, 404); assert.match(r.headers, /cache-control: no-store/i)
             }

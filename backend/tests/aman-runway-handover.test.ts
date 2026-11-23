@@ -32,7 +32,7 @@ test('original AMAN API: priority and acknowledged runway handover', async t => 
         async function reset(){for(const c of ['ESSA_E_APP','ESSA_E__APP','ESSA_FMP','ESOS_1_CTR','ESSA_W_APP'])await leave(c);now+=100000}
 
         await t.test('ESSA priority is mandatory for old callers without policy fields',async()=>{
-            assert.deepEqual((await call('get','/capabilities')).body,{runwayHandover:1,essaPriority:1})
+            assert.deepEqual((await call('get','/capabilities')).body,{runwayHandover:1,essaPriority:1,serverTimeMs:now})
             assert.equal((await poll('ESOS_1_CTR')).body.role,'sequencer')
             assert.equal((await poll('ESSA_E_APP')).body.role,'sequencer')
             assert.equal((await pub('ESOS_1_CTR')).status,409)
